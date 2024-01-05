@@ -1,15 +1,16 @@
 import logging
 import os
-from slack_bolt import App, Ack
+from slack_bolt import App, Ack, Say
 from slack_sdk.web import WebClient
 
 # 動作確認用にデバッグレベルのロギングを有効にします
 # 本番運用では削除しても構いません
-logging.basicConfig(level=logging.DEBUG)
+
+if  os.getenv["ENV"] == "local":
+    logging.basicConfig(level=logging.DEBUG)
 
 SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
-print(SLACK_SIGNING_SECRET, SLACK_BOT_TOKEN)
 
 app = App(
     # リクエストの検証に必要な値
@@ -63,6 +64,9 @@ def handle_modal(ack: Ack):
 def handle_time_consuming_task(logger: logging.Logger, view: dict):
     logger.info(view)
 
+def reply_hello(ack: Ack, say: Say):
+    ack()
+    say("Hello!")
 
 # @app.view のようなデコレーターでの登録ではなく
 # Lazy Listener としてメインの処理を設定します
@@ -76,6 +80,10 @@ app.view("modal-id")(
 )
 
 # 他の処理を追加するときはここに追記してください
+app.message("hello")(
+    ack=just_ack,
+    lazy=[reply_hello],
+)
 
 
 if __name__ == "__main__":

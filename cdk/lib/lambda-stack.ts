@@ -32,7 +32,8 @@ export class LambdaStack extends cdk.Stack {
 
     // Lambda レイヤーの定義
     const myLayer = new lambda.LayerVersion(this, "MyLayer", {
-      // pip install -r requirements.txt -t layer で指定ディレクトリにライブラリをインストール
+      // pip install -r requirements.txt -t layer/python で指定ディレクトリにライブラリをインストール
+      // "python"ディレクトリごと送らないといけないことに注意
       code: lambda.Code.fromAsset("../layer"), // レイヤーの内容を含むディレクトリ
       compatibleRuntimes: [lambda.Runtime.PYTHON_3_9], // このレイヤーが互換性を持つランタイム
       description: "A layer for my lambda functions",
