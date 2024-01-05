@@ -16,5 +16,7 @@ services:
       dockerfile: ./docker/cdk/Dockerfile
     volumes:
       - ./cdk:/var/cdk
-      - ~/.aws:/root/.aws
+      - ./slack_concierge:/var/slack_concierge
     tty: true
+    env_file:
+      - .env
