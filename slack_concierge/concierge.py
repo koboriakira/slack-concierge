@@ -1,12 +1,15 @@
 import logging
 import os
+import hashlib
+import hmac
+import json
 from slack_bolt import App, Ack, Say
 from slack_sdk.web import WebClient
 
 # 動作確認用にデバッグレベルのロギングを有効にします
 # 本番運用では削除しても構いません
 
-if  os.getenv["ENV"] == "local":
+if  os.getenv("ENV") == "local":
     logging.basicConfig(level=logging.DEBUG)
 
 SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
@@ -32,6 +35,7 @@ def just_ack(ack: Ack):
 # trigger_id は数秒以内に使う必要があるが、それ以外はいくら時間がかかっても構いません
 def start_modal_interaction(body: dict, client: WebClient):
     # 入力項目ひとつだけのシンプルなモーダルを開く
+    client.chat_postMessage(channel=body["user"]["id"], text="Hello!")
     client.views_open(
         trigger_id=body["trigger_id"],
         view={
@@ -61,12 +65,9 @@ def handle_modal(ack: Ack):
 
 # モーダルで送信ボタンが押されたときに非同期で実行される処理
 # モーダルの操作以外で時間のかかる処理があればこちらに書く
-def handle_time_consuming_task(logger: logging.Logger, view: dict):
+def handle_time_consuming_task(logger: logging.Logger, view: dict, client: WebClient):
     logger.info(view)
 
-def reply_hello(ack: Ack, say: Say):
-    ack()
-    say("Hello!")
 
 # @app.view のようなデコレーターでの登録ではなく
 # Lazy Listener としてメインの処理を設定します
@@ -78,13 +79,6 @@ app.view("modal-id")(
   ack=handle_modal,
   lazy=[handle_time_consuming_task],
 )
-
-# 他の処理を追加するときはここに追記してください
-app.message("hello")(
-    ack=just_ack,
-    lazy=[reply_hello],
-)
-
 
 if __name__ == "__main__":
     # python -m concierge のように実行すると開発用 Web サーバーで起動します
@@ -98,8 +92,42 @@ from slack_bolt.adapter.aws_lambda import SlackRequestHandler
 SlackRequestHandler.clear_all_log_handlers()
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
 
+def verify_slack_signature(secret, timestamp, body, signature):
+    # ベースストリングの作成
+    basestring = f"v0:{timestamp}:{body}"
+
+    # HMAC SHA256署名の計算
+    calculated_signature = 'v0=' + hmac.new(
+        key=bytes(secret, 'utf-8'),
+        msg=bytes(basestring, 'utf-8'),
+        digestmod=hashlib.sha256
+    ).hexdigest()
+
+    # 計算された署名と受信した署名を比較
+    return hmac.compare_digest(calculated_signature, signature)
+
 # AWS Lambda 環境で実行される関数
-def handler(event, context):
+def handler(event:dict, context:dict):
+    logger = logging.getLogger()
+
+    headers: dict = event.get('headers', {})
+    body: dict = event.get('body', {})
+    logger.info("Request Headers:", headers)
+    logger.info("Request Body:", body)
+
+    # Slack署名ヘッダー
+    slack_signature = headers.get('X-Slack-Signature')
+    slack_request_timestamp = headers.get('X-Slack-Request-Timestamp')
+
+    if not verify_slack_signature(SLACK_SIGNING_SECRET, slack_request_timestamp, body, slack_signature):
+        logger.info("Invalid signature")
+        # return {
+        #     'statusCode': 403,
+        #     'body': json.dumps('Invalid signature')
+        # }
+    logger.info("Valid signature")
+
+
     # AWS Lambda 環境のリクエスト情報を app が処理できるよう変換してくれるアダプター
     slack_handler = SlackRequestHandler(app=app)
     # 応答はそのまま AWS Lambda の戻り値として返せます
