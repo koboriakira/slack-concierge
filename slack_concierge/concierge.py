@@ -67,6 +67,7 @@ def handle_modal(ack: Ack):
 # モーダルの操作以外で時間のかかる処理があればこちらに書く
 def handle_time_consuming_task(logger: logging.Logger, view: dict, client: WebClient):
     logger.info(view)
+    # client.chat_postMessage(channel=body["user"]["id"], text="Hello!")
 
 
 # @app.view のようなデコレーターでの登録ではなく
@@ -93,39 +94,37 @@ SlackRequestHandler.clear_all_log_handlers()
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
 
 def verify_slack_signature(secret, timestamp, body, signature):
-    # ベースストリングの作成
-    basestring = f"v0:{timestamp}:{body}"
+    return True
+    # # ベースストリングの作成
+    # basestring = f"v0:{timestamp}:{body}"
 
-    # HMAC SHA256署名の計算
-    calculated_signature = 'v0=' + hmac.new(
-        key=bytes(secret, 'utf-8'),
-        msg=bytes(basestring, 'utf-8'),
-        digestmod=hashlib.sha256
-    ).hexdigest()
+    # # HMAC SHA256署名の計算
+    # calculated_signature = 'v0=' + hmac.new(
+    #     key=bytes(secret, 'utf-8'),
+    #     msg=bytes(basestring, 'utf-8'),
+    #     digestmod=hashlib.sha256
+    # ).hexdigest()
 
-    # 計算された署名と受信した署名を比較
-    return hmac.compare_digest(calculated_signature, signature)
+    # # 計算された署名と受信した署名を比較
+    # return hmac.compare_digest(calculated_signature, signature)
 
 # AWS Lambda 環境で実行される関数
 def handler(event:dict, context:dict):
-    logger = logging.getLogger()
+    logger = logging.getLogger(__name__)
+    logger.info("Request event:", event)
 
-    headers: dict = event.get('headers', {})
-    body: dict = event.get('body', {})
-    logger.info("Request Headers:", headers)
-    logger.info("Request Body:", body)
+    # headers = event['headers']
+    # body = event['body']
+    # slack_signature = headers.get('X-Slack-Signature')
+    # slack_request_timestamp = headers.get('X-Slack-Request-Timestamp')
 
-    # Slack署名ヘッダー
-    slack_signature = headers.get('X-Slack-Signature')
-    slack_request_timestamp = headers.get('X-Slack-Request-Timestamp')
-
-    if not verify_slack_signature(SLACK_SIGNING_SECRET, slack_request_timestamp, body, slack_signature):
-        logger.info("Invalid signature")
-        # return {
-        #     'statusCode': 403,
-        #     'body': json.dumps('Invalid signature')
-        # }
-    logger.info("Valid signature")
+    # if not verify_slack_signature(SLACK_SIGNING_SECRET, slack_request_timestamp, body, slack_signature):
+    #     logger.info("Invalid signature")
+    #     # return {
+    #     #     'statusCode': 403,
+    #     #     'body': json.dumps('Invalid signature')
+    #     # }
+    # logger.info("Valid signature")
 
 
     # AWS Lambda 環境のリクエスト情報を app が処理できるよう変換してくれるアダプター
