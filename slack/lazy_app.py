@@ -1,7 +1,6 @@
 import os
 from slack_bolt import App
-from usecase import just_ack, say_hello
-
+from usecase.create_calendar import shortcut_create_calendar
 
 def create_lazy_app() -> App:
     app = App(
@@ -10,11 +9,7 @@ def create_lazy_app() -> App:
         process_before_response=True,
     )
 
-    # 以下、扱える処理を羅列する
-
-    app.message("hello")(
-        ack=just_ack.execute,
-        lazy=[say_hello.execute],
-    )
+    # 以下、扱える処理をusecase単位で追加
+    app = shortcut_create_calendar(app)
 
     return app
