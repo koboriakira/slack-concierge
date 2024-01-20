@@ -6,6 +6,9 @@ name = "pypi"
 [packages]
 slack_bolt = "*"
 slack_sdk = "*"
+requests = "*"
+jpholiday = "*"
+PyYAML = "*"
 
 [requires]
 python_version = "3.11"
