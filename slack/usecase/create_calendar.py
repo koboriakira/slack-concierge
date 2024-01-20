@@ -1,6 +1,9 @@
 import logging
+from datetime import date as Date
 from slack_sdk.web import WebClient
 from slack_bolt import App, Ack
+from domain_service.block.block_builder import BlockBuilder
+from domain_service.view.view_builder import ViewBuilder
 
 def just_ack(ack: Ack):
     ack()
@@ -14,22 +17,19 @@ def handle_modal(ack: Ack):
 
 def start_modal_interaction(body: dict, client: WebClient):
     logging.info("start_modal_interaction")
+
+    blocks = BlockBuilder()\
+      .add_datepicker(action_id="datepicker-action",
+                      header="日付を選択してください",
+                      placeholder="日付を選択してください",
+                      initial_date=Date.today().isoformat())\
+      .build()
+    logging.debug(blocks)
+
+    view = ViewBuilder(callback_id="modal-id",blocks=blocks).build()
     client.views_open(
         trigger_id=body["trigger_id"],
-        view={
-            "type": "modal",
-            "callback_id": "modal-id",
-            "title": {"type": "plain_text", "text": "My App"},
-            "submit": {"type": "plain_text", "text": "Submit"},
-            "close": {"type": "plain_text", "text": "Cancel"},
-            "blocks": [
-                {
-                    "type": "input",
-                    "element": {"type": "plain_text_input"},
-                    "label": {"type": "plain_text", "text": "Text"},
-                },
-            ],
-        },
+        view=view,
     )
 
 def handle_time_consuming_task(logger: logging.Logger, view: dict):
