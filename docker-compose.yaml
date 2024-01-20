@@ -1,0 +1,19 @@
+# @format
+
+version: "3.0"
+
+services:
+  api:
+    container_name: "slack-concierge-api"
+    volumes:
+      - ./:/workspace:cached
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    env_file:
+      - .env
+    working_dir: /workspace/slack
+    command: pipenv run uvicorn main:app --reload --port=8080 --host=0.0.0.0
+    ports:
+      - 10120:8080
+    tty: true
