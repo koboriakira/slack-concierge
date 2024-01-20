@@ -12,29 +12,34 @@ import yaml
 class LambdaGoogleCalendarApi(GoogleCalendarApi):
     def __init__(self):
         self.domain = os.environ["LAMBDA_GOOGLE_CALENDAR_API_DOMAIN"]
-        self.access_token = os.environ["GAS_DEPLOY_ID"]
+        self.access_token = "Bearer " + os.environ["GAS_DEPLOY_ID"]
 
     def get_gas_calendar(self,
                          date: DateObject) -> list[dict]:
-        return []
+        url = self.domain + "list"
         params = {
             "start_date": date.isoformat(),
             "end_date": date.isoformat(),
         }
         headers = {
+            "Accept": "application/json",
             "access-token": self.access_token,
         }
-        return requests.get(url=self.domain, params=params, headers=headers).json()
+        response = requests.get(url=url, params=params, headers=headers)
+        logging.debug(f"get_gas_calendar: status_code={response.status_code}")
+        return response.json()
 
     def get_gas_calendar_achievements(self,
                                       date: DateObject) -> list[dict]:
-        return []
-        params = {
-            "start_date": date.isoformat(),
-            "end_date": date.isoformat(),
-            "achievement": True,
-        }
-        return requests.get(url=self.domain, params=params).json()
+        raise NotImplementedError
+        # params = {
+        #     "start_date": date.isoformat(),
+        #     "end_date": date.isoformat(),
+        #     "achievement": True,
+        # }
+        # response = requests.get(url=self.domain, params=params)
+        # logging.debug(f"get_gas_calendar_achievements: status_code={response.status_code}")
+        # return response.json()
 
     def post_schedule(self, schedule: Schedule) -> dict:
         return {}
@@ -80,3 +85,9 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
 
 def dump_yaml(value: dict) -> str:
     return yaml.dump(value, allow_unicode=True)
+
+if __name__ == "__main__":
+    # python -m infrastructure.api.lambda_google_calendar_api
+    logging.basicConfig(level=logging.DEBUG)
+    api = LambdaGoogleCalendarApi()
+    logging.info(api.get_gas_calendar(date=DateObject(2024, 1, 12)))
