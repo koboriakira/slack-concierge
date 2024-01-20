@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-# from slack_socket.domain.slack_request.interactive.action import InteractiveActionType
 from typing import Optional
 import json
 import logging

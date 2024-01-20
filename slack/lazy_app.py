@@ -1,6 +1,6 @@
 import os
 from slack_bolt import App
-from usecase.create_calendar import shortcut_create_calendar
+from interface.create_calendar import shortcut_create_calendar
 
 def create_lazy_app() -> App:
     app = App(

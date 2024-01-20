@@ -1,197 +1,266 @@
-import logging
-import json
-from datetime import date as Date
-from slack_sdk.web import WebClient
-from slack_bolt import App, Ack
-from domain_service.block.block_builder import BlockBuilder
-from domain_service.view.view_builder import ViewBuilder
-from domain.view.view import View
-
-def just_ack(ack: Ack):
-    ack()
-
-def handle_modal(ack: Ack):
-    # ack() は何も渡さず呼ぶとただ今のモーダルを閉じるだけ
-    # response_action とともに応答すると
-    # エラーを表示したり、モーダルの内容を更新したりできる
-    # https://slack.dev/bolt-python/ja-jp/concepts#view_submissions
-    ack()
-
-def start_modal_interaction(body: dict, client: WebClient):
-    logging.info("start_modal_interaction")
-
-    today = Date.today()
-
-    block_builder = BlockBuilder().add_datepicker(
-                      action_id="datepicker-action",
-                      header="日付を選択してください",
-                      placeholder="日付を選択してください",
-                      initial_date=today.isoformat())
-
-    # 土曜もしくは日曜の場合は、週次レビューの有無を聞く
-    if today.weekday() in [5, 6]:
-        block_builder = block_builder.add_checkboxes(
-            action_id="weekly-review-action",
-            header="週次レビューはやりますか？",
-            options=[
-                {
-                    "text": "やる",
-                    "value": "is_weekly_review"
-                },
-            ]
-        )
-
-    block_builder = block_builder.add_checkboxes(
-            action_id="childcare-action",
-            header="明日の子育ての予定を選択してください。",
-            options=[
-                {
-                    "text": "朝の子育て",
-                    "value": "is_morning_childcare"
-                },
-                {
-                    "text": "夜の子育て",
-                    "value": "is_evening_childcare"
-                }
-            ]
-        )
-    block_builder = block_builder.add_checkboxes(
-        action_id="meal-action",
-        header="夕食はつくりますか？",
-        options=[
-            {
-                "text": "夕食を作る",
-                "value": "is_cook_dinner"
-            }
-        ]
-    )
-    block_builder = block_builder.add_timepicker(
-        action_id="wakeup-time",
-        placeholder="起床の時間を選択してください",
-        initial_time="07:00",
-        label="起床の時間"
-    )
-    block_builder = block_builder.add_plain_text_input(
-        action_id="breakfast_detail",
-        label="朝食の予定",
-        multiline=True,
-        optional=True,
-    )
-    block_builder = block_builder.add_timepicker(
-        action_id="lunch-time",
-        placeholder="昼食の時間を選択してください",
-        initial_time="12:00",
-        label="昼食の時間"
-    )
-    block_builder = block_builder.add_plain_text_input(
-        action_id="lunch_detail",
-        label="昼食の予定",
-        multiline=True,
-        optional=True,
-    )
-    block_builder = block_builder.add_timepicker(
-        action_id="dinner-time",
-        placeholder="夕食の時間を選択してください",
-        initial_time="18:30",
-        label="夕食の時間"
-    )
-
-    # FIXME: レシピ取得
-    # block_builder = block_builder.add_multi_static_select(
-    #     action_id="dinner-recipes",
-    #     options=recipe_options,
-    #     optional=True,
-    # )
-
-    # FIXME: チャンネル、スレッド
-    # block_builder = block_builder.add_context(text={
-    #     "channel_id": channel_id,
-    #     "thread_ts": thread_ts
-    # })
-
-    blocks = block_builder.build()
-    logging.debug(blocks)
-
-    view = ViewBuilder(callback_id="modal-id",blocks=blocks).build()
-    client.views_open(
-        trigger_id=body["trigger_id"],
-        view=view,
-    )
-
-def create_calendar(logger: logging.Logger, view: dict):
-    view_model = View(view)
-    state = view_model.get_state()
-    logging.info(state)
-    context = view_model.get_context()
-    logging.info(context)
-
-    # FIXME: primaryプロジェクトを取得
-    primary_projects = []
-    # primary_projects = self.notion_api.get(path="/project/",
-    #                                         params={"status": "Primary"})
-    # primary_projects = [NotionPage.from_dict(p) for p in primary_projects]
-
-    # FIXME: レシピを取得
-    dinner_recipe_pages = []
-    # recipes = self.notion_api.get(path="/recipe/", params={"cached": True})
-    # dinner_recipe_ids = [r["value"]
-    #                       for r in request.dinner_recipes]
-    # dinner_recipe_pages = [RecipePage.from_dict(
-    #     r) for r in recipes if r["id"] in dinner_recipe_ids]
-
-    is_morning_childcare = state.is_checked(
-        action_id="childcare-action", value="is_morning_childcare")
-    is_evening_childcare = state.is_checked(
-        action_id="childcare-action", value="is_evening_childcare")
-    is_weekly_review = state.is_checked(
-        action_id="weekly-review-action", value="is_weekly_review")
-    is_cook_dinner = state.is_checked(
-        action_id="meal-action", value="is_cook_dinner")
-    wakeup_time = state.get_timepicker(
-        action_id="wakeup-time")
-    lunch_time = state.get_timepicker(
-        action_id="lunch-time")
-    dinner_time = state.get_timepicker(
-        action_id="dinner-time")
-    breakfast_detail = state.get_text_input_value(
-        action_id="breakfast_detail")
-    lunch_detail = state.get_text_input_value(
-        action_id="lunch_detail")
-    # dinner_recipes = state.get_multi_selected(
-    #     action_id="dinner-recipes")
-    date = state.get_datepicker(
-        action_id="datepicker-action")
-
-    # FIXME: 実処理
-    # create_calendar_usecase = CreateCalendar(
-    #     is_morning_childcare=is_morning_childcare,
-    #     is_evening_childcare=is_evening_childcare,
-    #     is_weekly_review=is_weekly_review,
-    #     is_cook_dinner=is_cook_dinner,
-    #     wakeup_time=wakeup_time,
-    #     lunch_time=lunch_time,
-    #     dinner_time=dinner_time,
-    #     breakfast_detail=breakfast_detail,
-    #     lunch_detail=lunch_detail,
-    #     dinner_recipe_pages=dinner_recipe_pages,
-    #     primary_projects=primary_projects,
-    #     date=date,
-    # )
-    # response = create_calendar_usecase.handle()
-
-    # self.slack_bot_api.chat_post_message(
-    #     text=response, channel_id=request.channel_id, thread_ts=request.thread_ts)
+from datetime import date as DateObject
+from datetime import datetime as DatetimeObject
+from datetime import time as TimeObject
+from datetime import timedelta
+from domain.notion.notion_page import NotionPage, RecipePage
+from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
+from domain.schedule.enum import Wakeup, Breakfast, GoToKindergarten, MorningHousework, Lunch, Pickup, Bathtime, Bedtime, Resttime, Dinner, WeeklyReview, CookDinner, DriveProject
+from util.datetime import is_holiday
+from domain.schedule.schedule import Schedule
 
 
-def shortcut_create_calendar(app: App):
-    app.shortcut("create-calendar")(
-        ack=just_ack,
-        lazy=[start_modal_interaction],
-    )
+CATEGORY_MORNING = "朝の予定"
+CATEGORY_LUNCH = "昼休み"
+CATEGORY_EVENING = "夜の予定"
+CATEGORY_PRIVATE = "プライベート"
 
-    app.view("modal-id")(
-        ack=handle_modal,
-        lazy=[create_calendar],
-    )
 
-    return app
+class CreateCalendar:
+    def __init__(self,
+                 is_morning_childcare: bool,
+                 is_evening_childcare: bool,
+                 is_weekly_review: bool,
+                 is_cook_dinner: bool,
+                 wakeup_time: TimeObject,
+                 lunch_time: TimeObject,
+                 dinner_time: TimeObject,
+                 breakfast_detail: str,
+                 lunch_detail: str,
+                 dinner_recipe_pages: list[RecipePage],
+                 primary_projects: list[NotionPage],
+                 google_calendar_api: GoogleCalendarApi,
+                 date: DateObject):
+        self.is_morning_childcare = is_morning_childcare
+        self.is_evening_childcare = is_evening_childcare
+        self.is_weekly_review = is_weekly_review
+        self.is_cook_dinner = is_cook_dinner
+        self.wakeup_time = wakeup_time
+        self.lunch_time = lunch_time
+        self.dinner_time = dinner_time
+        self.breakfast_detail = breakfast_detail
+        self.lunch_detail = lunch_detail
+        self.dinner_recipe_pages = dinner_recipe_pages
+        self.primary_projects = primary_projects
+        self.date = date
+        self.google_calendar_api = google_calendar_api
+        self.latest_end = None
+
+    def handle(self) -> str:
+        """ カレンダーを作成する """
+        text_list: list[str] = []
+
+        # 完了メッセージ
+        url = f"https://calendar.google.com/calendar/u/0/r/day/{self.date.strftime('%Y/%m/%d')}"
+        text_list.append(f"<{url}|カレンダー>を作成しました。")
+
+        # 起床
+        wakeup_start = DatetimeObject.combine(self.date, self.wakeup_time)
+        schedule = Wakeup.create(start_datetime=wakeup_start)
+        self._post_gas_calendar(schedule=schedule)
+
+        # 朝食
+        schedule = Breakfast.create(
+            start=self.latest_end, breakfast_detail=self.breakfast_detail)
+        self._post_gas_calendar(schedule=schedule)
+
+        # 登園
+        if not is_holiday(self.date) and self.is_morning_childcare:
+            schedule = GoToKindergarten.create(start=self.latest_end)
+            self._post_gas_calendar(schedule=schedule)
+
+        # 朝の家事
+        schedule = MorningHousework.create(start=self.latest_end)
+        self._post_gas_calendar(schedule=schedule)
+
+        # 昼食
+        lunch_start = DatetimeObject.combine(self.date, self.lunch_time)
+        schedule = Lunch.create(start=lunch_start,
+                                lunch_detail=self.lunch_detail)
+        self._post_gas_calendar(schedule=schedule)
+
+        # 週次レビュー
+        if self.is_weekly_review:
+            schedule = WeeklyReview.create(start=self.latest_end)
+            self._post_gas_calendar(schedule=schedule)
+
+        # 夕食の準備
+        if self.is_cook_dinner:
+            schedule = CookDinner.create(
+                start=self.latest_end, dinner_recipe_pages=self.dinner_recipe_pages)
+            self._post_gas_calendar(schedule=schedule)
+
+        # 夜の子育て(おむかえ)
+        if not is_holiday(self.date) and self.is_evening_childcare:
+            pickup_start = DatetimeObject.combine(
+                self.date, TimeObject(17, 45))
+            schedule = Pickup.create(start=pickup_start)
+            self._post_gas_calendar(schedule=schedule)
+
+        # 夕食
+        dinner_start = DatetimeObject.combine(self.date, self.dinner_time)
+        schedule = Dinner.create(start=dinner_start,
+                                 dinner_recipe_pages=self.dinner_recipe_pages)
+        self._post_gas_calendar(schedule=schedule)
+
+        if self.is_evening_childcare:
+            # お風呂
+            schedule = Bathtime.create(start=self.latest_end)
+            self._post_gas_calendar(schedule=schedule)
+            # 寝かしつけ
+            bedtime_start = DatetimeObject.combine(
+                self.date, TimeObject(20, 30))
+            schedule = Bedtime.create(start=bedtime_start)
+            self._post_gas_calendar(schedule=schedule)
+        else:
+            # 子育てがなければお風呂のみ
+            bathtime_start = DatetimeObject.combine(
+                self.date, TimeObject(21, 0))
+            schedule = Bathtime.create(start=bathtime_start)
+            self._post_gas_calendar(schedule=schedule)
+
+        # 休息
+        rest_start = DatetimeObject.combine(self.date, TimeObject(22, 0))
+        schedule = Resttime.create(start=rest_start)
+        self._post_gas_calendar(schedule=schedule)
+
+        # # 余った時間にプロジェクトを進める時間を入れる
+        # free_time_list = self._calculate_free_time()
+        # create_project_calendar = CreateProjectCalendar(
+        #     date=self.date,
+        #     free_time_list=free_time_list,
+        #     project_id_list=[project.id for project in self.primary_projects])
+        # create_project_calendar.handle()
+
+        return "\n".join(text_list)
+
+    def _calculate_free_time(self) -> list[dict[str, str]]:
+        """ 余った時間を計算する """
+        calendar = self.google_calendar_api.get_gas_calendar(date=self.date)
+        time_range_list = [{
+            "start": DatetimeObject.fromisoformat(schedule["start"]),
+            "end": DatetimeObject.fromisoformat(schedule["end"]),
+        } for schedule in calendar]
+        if not is_holiday(date=self.date):
+            # 平日は仕事だと仮定して、9:30〜17:00の時間帯を追加する
+            time_range_list.append({
+                "start": DatetimeObject.combine(self.date, TimeObject(9, 30)),
+                "end": DatetimeObject.combine(self.date, TimeObject(17, 00)),
+            })
+        time_range_list.sort(key=lambda range: range["start"].timestamp())
+
+        # 起床時刻から23:00の間で、空いている時間帯を計算する
+        tmp_free_time: list[dict[str, str]] = []
+        base_start = DatetimeObject.combine(self.date, self.wakeup_time)
+        base_end = DatetimeObject.combine(self.date, TimeObject(23, 0))
+        for schedule in time_range_list:
+            if schedule["start"].timestamp() > base_start.timestamp():
+                # 1時間以上空いている場合は、空いている時間帯を追加する
+                if schedule["start"].timestamp() - base_start.timestamp() > 60 * 60:
+                    tmp_free_time.append({
+                        "start": base_start.time().strftime("%H:%M"),
+                        "end": schedule["start"].time().strftime("%H:%M")
+                    })
+            base_start = schedule["end"]
+        if base_end.timestamp() > base_start.timestamp():
+            # 1時間以上空いている場合は、空いている時間帯を追加する
+            if base_end.timestamp() - base_start.timestamp() > 60 * 60:
+                tmp_free_time.append({
+                    "start": base_start.time().strftime("%H:%M"),
+                    "end": base_end.time().strftime("%H:%M")
+                })
+        # 2時間以上ある場合は、1時間単位に分ける
+        free_time_list: list[dict[str, str]] = []
+        for time_range in tmp_free_time:
+            start = TimeObject.fromisoformat(time_range["start"])
+            end = TimeObject.fromisoformat(time_range["end"])
+            range_num = ((end.hour * 60 + end.minute) -
+                         (start.hour * 60 + start.minute)) // 60
+            if range_num > 0:
+                for hour_idx in range(range_num):
+                    new_start = TimeObject(start.hour + hour_idx, start.minute)
+                    new_end = TimeObject(
+                        new_start.hour + 1, new_start.minute) if hour_idx < range_num - 1 else end
+                    free_time_list.append({
+                        "start": new_start.strftime("%H:%M"),
+                        "end": new_end.strftime("%H:%M")
+                    })
+            else:
+                free_time_list.append(time_range)
+        return free_time_list
+
+    def _fill_primary_project(self) -> list[NotionPage]:
+        """ プロジェクトを埋める """
+        free_time_list = self._calculate_free_time()
+
+        # プロジェクトを埋める
+        project_count = len(self.primary_projects)
+        count = 0
+        while count < project_count:
+            if count >= len(free_time_list):
+                # 処理できなかったprimary_projectを返却する
+                return self.primary_projects[count:]
+            project = self.primary_projects[count]
+
+            title = project.title
+            time_range = free_time_list[count]
+
+            start_datetime = DatetimeObject.combine(
+                self.date, TimeObject.fromisoformat(time_range["start"]))
+            end_datetime = start_datetime + timedelta(minutes=60)
+            category = CATEGORY_PRIVATE  # TODO: プロジェクトのカレンダーとするか
+            detail = {"memo": project.url}
+            # FIXME: post_scheduleを利用する
+            # self.google_calendar_api.post_gas_calendar(
+            #     title=title,
+            #     start=start_datetime,
+            #     end=end_datetime,
+            #     category=category,
+            #     detail=detail)
+            count += 1
+        return []
+
+    def _post_gas_calendar(self, schedule: Schedule) -> DatetimeObject:
+        self.google_calendar_api.post_schedule(schedule=schedule)
+        self.latest_end = schedule.end
+        return schedule.end
+
+    def test(self):
+        print(self._calculate_free_time())
+
+
+# class CreateProjectCalendar:
+#     """ サブクラスのような立ち位置。プロジェクトのカレンダーをつくる """
+
+#     def __init__(self,
+#                  date: DateObject,
+#                  free_time_list: list[dict[str, str]],
+#                  project_id_list: list[str],
+#                  google_calendar_api: GoogleCalendarApi):
+#         self.date = date
+#         self.free_time_list = free_time_list
+#         # startの降順にソートする
+#         self.free_time_list.sort(
+#             key=lambda time_range: time_range["start"], reverse=True)
+#         # self.notion_api = DailyNotionApi()
+#         self.projects = [self.notion_api.get(
+#             f"/project/{project_id}") for project_id in project_id_list]
+#         self.google_calendar_api = google_calendar_api()
+
+#     def handle(self) -> list:
+#         """ プロジェクトを埋める """
+#         while len(self.free_time_list) > 0 and len(self.projects) > 0:
+#             self._regist_project_to_calendar()
+#         return self.projects
+
+#     def _regist_project_to_calendar(self) -> None:
+#         project = self.projects.pop()
+#         range = self.free_time_list.pop()
+
+#         title = project["title"]
+#         start = DatetimeObject.combine(
+#             self.date, TimeObject.fromisoformat(range["start"]))
+#         drive_project = DriveProject.create(start=start,
+#                                             title=title,
+#                                             notion_url=project["url"],
+#                                             tasks=project["tasks"])
+#         self.google_calendar_api.post_schedule(schedule=drive_project)
