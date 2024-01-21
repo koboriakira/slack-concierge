@@ -34,6 +34,8 @@ class State:
 
     def get_multi_selected(self, action_id: str) -> list[dict[str, str]]:
         """ 複数選択の結果を取得する """
+        if action_id not in self.action_map:
+            return []
         selected_options = self.action_map[action_id]["selected_options"]
         return [{
             "text": option["text"]["text"],
