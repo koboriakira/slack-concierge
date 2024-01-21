@@ -8,8 +8,7 @@ from domain.schedule.schedule import Schedule
 class GoogleCalendarApi(metaclass=ABCMeta):
     @abstractmethod
     def get_gas_calendar(self,
-                         start: DatetimeObject,
-                         end: DatetimeObject,) -> list[dict]:
+                         date: DateObject) -> list[dict]:
         """ カレンダーを取得する """
         pass
 
