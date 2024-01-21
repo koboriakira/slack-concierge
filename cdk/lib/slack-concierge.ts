@@ -6,7 +6,6 @@ import {
   Duration,
   aws_lambda as lambda,
   aws_iam as iam,
-  aws_apigateway as apigateway,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -24,7 +23,6 @@ export class SlackConcierge extends Stack {
     const role = this.makeRole();
     const myLayer = this.makeLayer();
     const fn = this.createLambdaFunction(role, myLayer);
-    this.makeApiGateway(fn);
   }
 
   /**
@@ -106,25 +104,5 @@ export class SlackConcierge extends Stack {
     });
 
     return fn;
-  }
-
-  /**
-   * Create an API Gateway.
-   * @param {lambda.Function} fn The Lambda function to be integrated.
-   */
-  makeApiGateway(fn: lambda.Function) {
-    // REST API の定義
-    const restapi = new apigateway.RestApi(this, "Slack-Concierge", {
-      deployOptions: {
-        stageName: "v1",
-      },
-      restApiName: "Slack-Concierge",
-    });
-    // ルートとインテグレーションの設定
-    restapi.root.addMethod("ANY", new apigateway.LambdaIntegration(fn));
-    restapi.root
-      .addResource("{proxy+}")
-      .addMethod("GET", new apigateway.LambdaIntegration(fn));
-    return restapi;
   }
 }
