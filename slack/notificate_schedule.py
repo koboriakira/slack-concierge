@@ -18,6 +18,7 @@ IS_TEST = False
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_BOT = WebClient(token=SLACK_BOT_TOKEN)
 
+logging.basicConfig(level=logging.INFO)
 google_calendar_api = LambdaGoogleCalendarApi()
 schedule_list_cache = None
 
@@ -31,6 +32,7 @@ def handler(event, context):
     logging.debug(data)
 
     if schedule_list_cache is None:
+        logging.info("cache is None")
         schedule_list_cache = list(map(Schedule.from_entity, data))
 
     for schedule in schedule_list_cache:
