@@ -30,5 +30,9 @@ jobs:
           workdir: cdk
           aws-role: ${{ secrets.AWS_ROLE }}
         env:
+          SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_APP_TOKEN: ${{ secrets.SLACK_APP_TOKEN }}
+          LAMBDA_GOOGLE_CALENDAR_API_DOMAIN: ${{ secrets.LAMBDA_GOOGLE_CALENDAR_API_DOMAIN }}
+          GAS_DEPLOY_ID: ${{ secrets.GAS_DEPLOY_ID }}
+          LAMBDA_NOTION_API_DOMAIN: ${{ secrets.LAMBDA_NOTION_API_DOMAIN }}
+          NOTION_SECRET: ${{ secrets.NOTION_SECRET }}
