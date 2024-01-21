@@ -11,9 +11,7 @@ import { Construct } from "constructs";
 
 // CONFIG
 const RUNTIME = lambda.Runtime.PYTHON_3_11;
-const TIMEOUT = 30;
 const APP_DIR_PATH = "../slack";
-const HANDLER_NAME = "lazy_main.handler";
 const LAYER_ZIP_PATH = "../dependencies.zip";
 
 export class SlackConcierge extends Stack {
@@ -22,7 +20,26 @@ export class SlackConcierge extends Stack {
 
     const role = this.makeRole();
     const myLayer = this.makeLayer();
-    const fn = this.createLambdaFunction(role, myLayer);
+
+    // lazy_main
+    const lambda_lazy_main = this.createLambdaFunction(
+      "Lambda",
+      role,
+      myLayer,
+      "lazy_main.handler",
+      30,
+      true
+    );
+
+    // notificate_schedule
+    const lambda_notificate_schedule = this.createLambdaFunction(
+      "NotificateSchedule",
+      role,
+      myLayer,
+      "notificate_schedule.handler",
+      60,
+      false
+    );
   }
 
   /**
@@ -71,16 +88,20 @@ export class SlackConcierge extends Stack {
    * @returns {lambda.Function} The created Lambda function.
    */
   createLambdaFunction(
+    name: string,
     role: iam.Role,
-    myLayer: lambda.LayerVersion
+    myLayer: lambda.LayerVersion,
+    handler: string,
+    timeout: number = 30,
+    function_url_enabled: boolean = false
   ): lambda.Function {
-    const fn = new lambda.Function(this, "Lambda", {
+    const fn = new lambda.Function(this, name, {
       runtime: RUNTIME,
-      handler: HANDLER_NAME,
+      handler: handler,
       code: lambda.Code.fromAsset(APP_DIR_PATH),
       role: role,
       layers: [myLayer],
-      timeout: Duration.seconds(TIMEOUT),
+      timeout: Duration.seconds(timeout),
     });
 
     fn.addEnvironment(
@@ -99,9 +120,11 @@ export class SlackConcierge extends Stack {
     );
     fn.addEnvironment("NOTION_SECRET", process.env.NOTION_SECRET || "");
 
-    fn.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE, // 認証なし
-    });
+    if (function_url_enabled) {
+      fn.addFunctionUrl({
+        authType: lambda.FunctionUrlAuthType.NONE, // 認証なし
+      });
+    }
 
     return fn;
   }
