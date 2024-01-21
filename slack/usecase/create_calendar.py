@@ -1,6 +1,8 @@
 from datetime import date as DateObject
 from datetime import datetime as DatetimeObject
 from datetime import time as TimeObject
+from domain_service.block.block_builder import BlockBuilder
+from domain_service.view.view_builder import ViewBuilder
 from domain.notion.notion_page import NotionPage, RecipePage
 from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
 from domain.schedule.enum import Wakeup, Breakfast, GoToKindergarten, MorningHousework, Lunch, Pickup, Bathtime, Bedtime, Resttime, Dinner, WeeklyReview, CookDinner, DriveProject
