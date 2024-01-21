@@ -170,12 +170,12 @@ class Schedule(Mapping):
     def get_post_channel_id(self) -> str:
         return CHANNEL_CATEGORY[self.category]
 
-    def is_in_now(self, now: DatetimeObject) -> bool:
+    def is_in_now(self, now: DatetimeObject, delta_minutes: int = 5) -> bool:
         # 現在時刻を取得
-        before_5_minutes = now - timedelta(minutes=5)
+        before = now - timedelta(minutes=delta_minutes)
 
-        # 直近5分以内かを判定する
-        return before_5_minutes.timestamp() <= self.start.timestamp() <= now.timestamp()
+        # 直近n分以内かを判定する
+        return before.timestamp() <= self.start.timestamp() <= now.timestamp()
 
     def get_first_sub_task(self) -> Optional[SubTask]:
         if len(self.sub_tasks) == 0:
