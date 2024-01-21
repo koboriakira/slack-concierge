@@ -8,6 +8,7 @@ from domain_service.view.view_builder import ViewBuilder
 from domain.view.view import View
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from usecase.create_calendar import CreateCalendar as CreateCalendarUsecase
+from util.logging_traceback import logging_traceback
 
 def just_ack(ack: Ack):
     ack()
@@ -190,14 +191,9 @@ def create_calendar(logger: logging.Logger, view: dict):
         #     text=response, channel_id=request.channel_id, thread_ts=request.thread_ts)
     except Exception as err:
         import sys
-        import traceback
         exc_info=sys.exc_info()
 
-        t, v, tb = exc_info
-        formatted_exception = "\n".join(
-            traceback.format_exception(t, v, tb))
-        logging.error(err)
-        logging.error(formatted_exception)
+        logging_traceback(err, exc_info)
 
 def shortcut_create_calendar(app: App):
     app.shortcut("create-calendar")(
