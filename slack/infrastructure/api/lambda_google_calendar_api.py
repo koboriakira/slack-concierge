@@ -7,7 +7,7 @@ from datetime import datetime as DatetimeObject
 from typing import Optional
 import os
 import yaml
-
+import json
 
 class LambdaGoogleCalendarApi(GoogleCalendarApi):
     def __init__(self):
@@ -41,8 +41,7 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
         # logging.debug(f"get_gas_calendar_achievements: status_code={response.status_code}")
         # return response.json()
 
-    def post_schedule(self, schedule: Schedule) -> dict:
-        return {}
+    def post_schedule(self, schedule: Schedule) -> bool:
         return self._post_gas_calendar(
             start=schedule.start,
             end=schedule.end,
@@ -68,8 +67,9 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
                           end: DatetimeObject,
                           category: str,
                           title: str,
-                          detail: Optional[str] = None) -> dict:
+                          detail: Optional[str] = None) -> bool:
         """ カレンダーを追加する """
+        url = self.domain + "schedule"
         data = {
             "category": category,
             "title": title,
@@ -77,11 +77,19 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
             "end": end.isoformat(),
             "detail": detail,
         }
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "access-token": self.access_token,
+        }
         logging.debug(f"post_gas_calendar: {data}")
-        response = requests.post(url=self.domain, json=data)
+        response = requests.post(url=url, json=data, headers=headers)
         logging.debug(f"post_gas_calendar: status_code={response.status_code}")
-        logging.debug(response.json())
-        return response.json()
+        response_json = response.json()
+        if isinstance(response_json, str):
+            response_json = json.loads(response_json)
+        logging.debug(f"post_gas_calendar: response={response_json}")
+        return "status" in response_json and response_json["status"] == "success"
 
 def dump_yaml(value: dict) -> str:
     return yaml.dump(value, allow_unicode=True)
@@ -90,4 +98,11 @@ if __name__ == "__main__":
     # python -m infrastructure.api.lambda_google_calendar_api
     logging.basicConfig(level=logging.DEBUG)
     api = LambdaGoogleCalendarApi()
-    logging.info(api.get_gas_calendar(date=DateObject(2024, 1, 12)))
+    # logging.info(api.get_gas_calendar(date=DateObject(2024, 1, 12)))
+    logging.info(api._post_gas_calendar(
+        start=DatetimeObject(2024, 1, 12, 10, 0),
+        end=DatetimeObject(2024, 1, 12, 11, 0),
+        category="プライベート",
+        title="test",
+        detail=""
+    ))

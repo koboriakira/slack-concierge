@@ -121,73 +121,83 @@ def start_modal_interaction(body: dict, client: WebClient):
     )
 
 def create_calendar(logger: logging.Logger, view: dict):
-    view_model = View(view)
-    state = view_model.get_state()
-    logging.info(state)
-    context = view_model.get_context()
-    logging.info(context)
+    try:
+        view_model = View(view)
+        state = view_model.get_state()
+        logging.info(state)
+        context = view_model.get_context()
+        logging.info(context)
 
-    # FIXME: primaryプロジェクトを取得
-    primary_projects = []
-    # primary_projects = self.notion_api.get(path="/project/",
-    #                                         params={"status": "Primary"})
-    # primary_projects = [NotionPage.from_dict(p) for p in primary_projects]
+        # FIXME: primaryプロジェクトを取得
+        primary_projects = []
+        # primary_projects = self.notion_api.get(path="/project/",
+        #                                         params={"status": "Primary"})
+        # primary_projects = [NotionPage.from_dict(p) for p in primary_projects]
 
-    # FIXME: レシピを取得
-    dinner_recipe_pages = []
-    # recipes = self.notion_api.get(path="/recipe/", params={"cached": True})
-    # dinner_recipe_ids = [r["value"]
-    #                       for r in request.dinner_recipes]
-    # dinner_recipe_pages = [RecipePage.from_dict(
-    #     r) for r in recipes if r["id"] in dinner_recipe_ids]
+        # FIXME: レシピを取得
+        dinner_recipe_pages = []
+        # recipes = self.notion_api.get(path="/recipe/", params={"cached": True})
+        # dinner_recipe_ids = [r["value"]
+        #                       for r in request.dinner_recipes]
+        # dinner_recipe_pages = [RecipePage.from_dict(
+        #     r) for r in recipes if r["id"] in dinner_recipe_ids]
 
-    is_morning_childcare = state.is_checked(
-        action_id="childcare-action", value="is_morning_childcare")
-    is_evening_childcare = state.is_checked(
-        action_id="childcare-action", value="is_evening_childcare")
-    is_weekly_review = state.is_checked(
-        action_id="weekly-review-action", value="is_weekly_review")
-    is_cook_dinner = state.is_checked(
-        action_id="meal-action", value="is_cook_dinner")
-    wakeup_time = state.get_timepicker(
-        action_id="wakeup-time")
-    lunch_time = state.get_timepicker(
-        action_id="lunch-time")
-    dinner_time = state.get_timepicker(
-        action_id="dinner-time")
-    breakfast_detail = state.get_text_input_value(
-        action_id="breakfast_detail")
-    lunch_detail = state.get_text_input_value(
-        action_id="lunch_detail")
-    # dinner_recipes = state.get_multi_selected(
-    #     action_id="dinner-recipes")
-    date = state.get_datepicker(
-        action_id="datepicker-action")
+        is_morning_childcare = state.is_checked(
+            action_id="childcare-action", value="is_morning_childcare")
+        is_evening_childcare = state.is_checked(
+            action_id="childcare-action", value="is_evening_childcare")
+        is_weekly_review = state.is_checked(
+            action_id="weekly-review-action", value="is_weekly_review")
+        is_cook_dinner = state.is_checked(
+            action_id="meal-action", value="is_cook_dinner")
+        wakeup_time = state.get_timepicker(
+            action_id="wakeup-time")
+        lunch_time = state.get_timepicker(
+            action_id="lunch-time")
+        dinner_time = state.get_timepicker(
+            action_id="dinner-time")
+        breakfast_detail = state.get_text_input_value(
+            action_id="breakfast_detail")
+        lunch_detail = state.get_text_input_value(
+            action_id="lunch_detail")
+        # dinner_recipes = state.get_multi_selected(
+        #     action_id="dinner-recipes")
+        date = state.get_datepicker(
+            action_id="datepicker-action")
 
-    google_calendar_api = LambdaGoogleCalendarApi()
+        google_calendar_api = LambdaGoogleCalendarApi()
 
-    # FIXME: 実処理
-    create_calendar_usecase = CreateCalendarUsecase(
-        is_morning_childcare=is_morning_childcare,
-        is_evening_childcare=is_evening_childcare,
-        is_weekly_review=is_weekly_review,
-        is_cook_dinner=is_cook_dinner,
-        wakeup_time=wakeup_time,
-        lunch_time=lunch_time,
-        dinner_time=dinner_time,
-        breakfast_detail=breakfast_detail,
-        lunch_detail=lunch_detail,
-        dinner_recipe_pages=dinner_recipe_pages,
-        primary_projects=primary_projects,
-        date=date,
-        google_calendar_api=google_calendar_api,
-    )
-    response = create_calendar_usecase.handle()
-    logging.debug(response)
+        # FIXME: 実処理
+        create_calendar_usecase = CreateCalendarUsecase(
+            is_morning_childcare=is_morning_childcare,
+            is_evening_childcare=is_evening_childcare,
+            is_weekly_review=is_weekly_review,
+            is_cook_dinner=is_cook_dinner,
+            wakeup_time=wakeup_time,
+            lunch_time=lunch_time,
+            dinner_time=dinner_time,
+            breakfast_detail=breakfast_detail,
+            lunch_detail=lunch_detail,
+            dinner_recipe_pages=dinner_recipe_pages,
+            primary_projects=primary_projects,
+            date=date,
+            google_calendar_api=google_calendar_api,
+        )
+        response = create_calendar_usecase.handle()
+        logging.debug(response)
 
-    # self.slack_bot_api.chat_post_message(
-    #     text=response, channel_id=request.channel_id, thread_ts=request.thread_ts)
+        # self.slack_bot_api.chat_post_message(
+        #     text=response, channel_id=request.channel_id, thread_ts=request.thread_ts)
+    except Exception as err:
+        import sys
+        import traceback
+        exc_info=sys.exc_info()
 
+        t, v, tb = exc_info
+        formatted_exception = "\n".join(
+            traceback.format_exception(t, v, tb))
+        logging.error(err)
+        logging.error(formatted_exception)
 
 def shortcut_create_calendar(app: App):
     app.shortcut("create-calendar")(

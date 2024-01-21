@@ -28,6 +28,6 @@ class GoogleCalendarApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def post_schedule(self, schedule: Schedule) -> dict:
+    def post_schedule(self, schedule: Schedule) -> bool:
         """ カレンダーを追加する """
         pass
