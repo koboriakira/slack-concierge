@@ -3,7 +3,7 @@ import os
 import logging
 import requests
 from domain.infrastructure.api.notion_api import NotionApi
-from domain.notion.notion_page import RecipePage
+from domain.notion.notion_page import RecipePage, NotionPage
 
 NOTION_SECRET = os.getenv("NOTION_SECRET")
 
@@ -12,7 +12,16 @@ class LambdaNotionApi(NotionApi):
         self.domain = os.environ["LAMBDA_NOTION_API_DOMAIN"]
 
     def list_recipes(self) -> list[RecipePage]:
-        return self._get(path="recipes")
+        response = self._get(path="recipes")
+        return [RecipePage.from_dict(page) for page in response]
+
+    def list_projects(self, status: Optional[str] = None) -> list[NotionPage]:
+        params = {}
+        if status:
+            params["status"] = status
+        response = self._get(path="projects", params=params)
+        logging.debug(response)
+        return [NotionPage.from_dict(page) for page in response]
 
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """
@@ -38,5 +47,5 @@ if __name__ == "__main__":
     # python -m infrastructure.api.lambda_notion_api
     logging.basicConfig(level=logging.DEBUG)
     notion_api = LambdaNotionApi()
-    response = notion_api.list_recipes()
+    response = notion_api.list_projects(status="Primary")
     print(response)
