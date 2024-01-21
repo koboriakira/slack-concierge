@@ -66,6 +66,7 @@ def create_calendar(logger: logging.Logger, view: dict, client: WebClient):
             action_id="lunch_detail")
         dinner_recipes = state.get_multi_selected(
             action_id="dinner-recipes")
+        dinner_recipe_ids = [r["value"] for r in dinner_recipes]
         date = state.get_datepicker(
             action_id="datepicker-action")
         chennel_id = context.channel_id or ChannelType.NOTIFICATION.value
@@ -85,7 +86,7 @@ def create_calendar(logger: logging.Logger, view: dict, client: WebClient):
             dinner_time=dinner_time,
             breakfast_detail=breakfast_detail,
             lunch_detail=lunch_detail,
-            dinner_recipes=dinner_recipes,
+            dinner_recipe_ids=dinner_recipe_ids,
             date=date,
             google_calendar_api=google_calendar_api,
             notion_api=notion_api,

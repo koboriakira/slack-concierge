@@ -28,7 +28,7 @@ class CreateCalendar:
                  dinner_time: TimeObject,
                  breakfast_detail: str,
                  lunch_detail: str,
-                 dinner_recipes: list[dict[str, str]],
+                 dinner_recipe_ids: list[str],
                  date: DateObject,
                  google_calendar_api: GoogleCalendarApi,
                  notion_api: NotionApi,
@@ -42,7 +42,7 @@ class CreateCalendar:
         self.dinner_time = dinner_time
         self.breakfast_detail = breakfast_detail
         self.lunch_detail = lunch_detail
-        self.dinner_recipes = dinner_recipes
+        self.dinner_recipe_ids = dinner_recipe_ids
         self.date = date
         self.google_calendar_api = google_calendar_api
         self.notion_api = notion_api
@@ -54,8 +54,7 @@ class CreateCalendar:
         """
         # レシピページを取得する
         dinner_recipe_pages = self.notion_api.list_recipes()
-        dinner_recipe_ids = [r["value"] for r in self.dinner_recipes]
-        dinner_recipe_pages = [r for r in dinner_recipe_pages if r.id in dinner_recipe_ids]
+        dinner_recipe_pages = [r for r in dinner_recipe_pages if r.id in self.dinner_recipe_ids]
 
         # primaryステータスのプロジェクトを取得
         primary_projects: list[NotionPage] = self.notion_api.list_projects(status="Primary")
