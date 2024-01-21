@@ -11,11 +11,9 @@ TIMES_CHANNEL_ID = "C02CVBZV0UB"
 
 logger = get_logger(__name__)
 
-class SyncBusinessTimelineUseCase:
-    def __init__(self):
-        self.private_slack_bot: WebClient = WebClient(
-            token=os.environ["SLACK_BOT_TOKEN"],
-        )
+class SyncBusinessTimeline:
+    def __init__(self, original_client: WebClient):
+        self.original_client: WebClient = original_client
         self.business_slack_user_bot: WebClient = WebClient(
             token=os.environ["BUSINESS_SLACK_USER_TOKEN"],
         )
@@ -56,7 +54,7 @@ class SyncBusinessTimelineUseCase:
 
 
     def _find_thread_message(self, channel_id: str, thread_ts: str) -> str:
-        response = self.private_slack_bot.conversations_replies(
+        response = self.original_client.conversations_replies(
             channel=channel_id,
             ts=thread_ts,
         )
@@ -82,7 +80,7 @@ class SyncBusinessTimelineUseCase:
         return None
 
     def _upload_file(self, file_id: str, text: Optional[str] = None, thread_ts: Optional[str] = None) -> dict:
-        response = self.private_slack_bot.files_info(
+        response = self.original_client.files_info(
             file=file_id,
         )
 

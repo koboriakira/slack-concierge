@@ -5,7 +5,7 @@ from slack_sdk.web import WebClient
 from slack_bolt import App, Ack, Say
 from slack_bolt.context.context import BoltContext
 from util.logging_traceback import logging_traceback
-from domain.message import Message
+from domain.message import ExtendedMessage
 
 def just_ack(ack: Ack):
     ack()
@@ -14,7 +14,7 @@ def react(message:dict, say: Say, context: BoltContext):
     try:
         logging.info("react")
         # context.say("Hi!")
-        message_model = Message(**message)
+        message_model = ExtendedMessage(**message)
         if not message_model.from_kobori():
             return
         logging.debug("context: " + str(context))

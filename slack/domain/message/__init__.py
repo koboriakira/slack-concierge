@@ -1,2 +1,2 @@
-from .message import BaseMessage
+from .message import BaseMessage, ExtendedMessage
 from .messages import Messages
