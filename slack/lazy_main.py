@@ -10,7 +10,8 @@ def handler(event, context):
     from slack_bolt.adapter.aws_lambda import SlackRequestHandler
 
     SlackRequestHandler.clear_all_log_handlers()
-    logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
+    logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
+    logging.info("handler is called")
     slack_handler = SlackRequestHandler(app=app)
     return slack_handler.handle(event, context)
 
