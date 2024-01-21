@@ -12,7 +12,7 @@ from domain.channel.channel_type import ChannelType
 
 # 5分先にする
 NOW = Datetime.now() + timedelta(minutes=5)
-NOW = Datetime(2024, 1, 22, 9, 0)
+# NOW = Datetime(2024, 1, 22, 9, 0)
 IS_TEST = False
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
@@ -24,24 +24,39 @@ if IS_TEST:
     logger.setLevel(logging.DEBUG)
 
 google_calendar_api = LambdaGoogleCalendarApi()
-schedule_list_cache = None
+cache = None
 
 def handler(event, context):
     """
     AWS Lambda での実行に対応するハンドラー関数
     """
-    global schedule_list_cache
+    global cache
 
     data = google_calendar_api.get_gas_calendar(date=NOW.date())
     logger.debug(data)
 
-    if schedule_list_cache is None:
+    schedule_list = []
+    if cache is None:
         logger.info("cache is None")
         print("cache is None")
-        schedule_list_cache = list(map(Schedule.from_entity, data))
+        schedule_list = list(map(Schedule.from_entity, data))
+        cache = {
+            "expires_at": NOW + timedelta(minutes=5),
+            "schedule_list": schedule_list,
+        }
+    elif cache["expires_at"] < NOW:
+        logger.info("cache is expired")
+        print("cache is expired")
+        schedule_list = list(map(Schedule.from_entity, data))
+        cache = {
+            "expires_at": NOW + timedelta(minutes=5),
+            "schedule_list": schedule_list,
+        }
+    else:
+        schedule_list = cache["schedule_list"]
 
     result = {"result": "schedule is not found"}
-    for schedule in schedule_list_cache:
+    for schedule in schedule_list:
         if schedule.is_in_now(now=NOW):
             post_schedule(schedule)
             result = schedule.to_dict()
