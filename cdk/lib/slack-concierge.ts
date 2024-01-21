@@ -6,6 +6,8 @@ import {
   Duration,
   aws_lambda as lambda,
   aws_iam as iam,
+  aws_events as events,
+  aws_events_targets as targets,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -40,6 +42,17 @@ export class SlackConcierge extends Stack {
       60,
       false
     );
+    // notificate_schedule: EventBridgeのルール
+    new events.Rule(this, "NotificateScheduleRule", {
+      // JSTで、AM6:00からPM11:00までの間、5分おきに実行
+      // see https://docs.aws.amazon.com/ja_jp/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions
+      schedule: events.Schedule.cron({ minute: "*/5", hour: "21-14" }),
+      targets: [
+        new targets.LambdaFunction(lambda_notificate_schedule, {
+          retryAttempts: 2,
+        }),
+      ],
+    });
   }
 
   /**
