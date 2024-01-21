@@ -17,9 +17,7 @@ def react(message:dict, say: Say, context: BoltContext):
         message_model = Message(**message)
         if not message_model.from_kobori():
             return
-
-        logging.info("context: " + str(context))
-        say(message_model.text)
+        logging.debug("context: " + str(context))
     except Exception as e:
         import sys
         exc_info = sys.exc_info()
