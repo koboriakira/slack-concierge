@@ -12,7 +12,7 @@ class LambdaNotionApi(NotionApi):
         self.domain = os.environ["LAMBDA_NOTION_API_DOMAIN"]
 
     def list_recipes(self) -> list[RecipePage]:
-        raise NotImplementedError
+        return self._get(path="recipes")
 
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """
@@ -38,5 +38,5 @@ if __name__ == "__main__":
     # python -m infrastructure.api.lambda_notion_api
     logging.basicConfig(level=logging.DEBUG)
     notion_api = LambdaNotionApi()
-    response = notion_api._get(path="projects")
+    response = notion_api.list_recipes()
     print(response)
