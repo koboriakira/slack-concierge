@@ -9,3 +9,7 @@ class NotionApi(metaclass=ABCMeta):
     @abstractmethod
     def list_projects(self) -> list[NotionPage]:
         pass
+
+    @abstractmethod
+    def find_project(self, project_id: str) -> NotionPage:
+        pass

@@ -23,14 +23,18 @@ class LambdaNotionApi(NotionApi):
         logging.debug(response)
         return [NotionPage.from_dict(page) for page in response]
 
+    def find_project(self, project_id: str) -> NotionPage:
+        response = self._get(path=f"projects/{project_id}")
+        logging.debug(response)
+        return NotionPage.from_dict(response)
+
+
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """
         url = f"{self.domain}{path}"
-        logging.debug(f"get: {url} {params}")
         headers = {
             "access-token": NOTION_SECRET,
         }
-        logging.debug(headers)
         response = requests.get(url, params=params, headers=headers)
         logging.debug(response)
         if response.status_code != 200:
@@ -47,5 +51,5 @@ if __name__ == "__main__":
     # python -m infrastructure.api.lambda_notion_api
     logging.basicConfig(level=logging.DEBUG)
     notion_api = LambdaNotionApi()
-    response = notion_api.list_projects(status="Primary")
+    response = notion_api.find_project(project_id="b95d7eb173f9436893c2240650323b30")
     print(response)

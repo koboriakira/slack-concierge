@@ -139,7 +139,9 @@ class CreateCalendar:
         create_project_calendar = CreateProjectCalendar(
             date=self.date,
             free_time_list=free_time_list,
-            project_id_list=[project.id for project in primary_projects])
+            project_id_list=[project.id for project in primary_projects],
+            google_calendar_api=self.google_calendar_api,
+            notion_api=self.notion_api)
         create_project_calendar.handle()
 
         return "\n".join(text_list)
@@ -213,14 +215,14 @@ class CreateProjectCalendar:
                  date: DateObject,
                  free_time_list: list[dict[str, str]],
                  project_id_list: list[str],
-                 google_calendar_api: GoogleCalendarApi):
+                 google_calendar_api: GoogleCalendarApi,
+                 notion_api: NotionApi):
         self.date = date
         self.free_time_list = free_time_list
         # startの降順にソートする
         self.free_time_list.sort(
             key=lambda time_range: time_range["start"], reverse=True)
-        self.projects = [self.notion_api.get(
-            f"/project/{project_id}") for project_id in project_id_list]
+        self.projects = [notion_api.find_project(project_id) for project_id in project_id_list]
         self.google_calendar_api = google_calendar_api
 
     def handle(self) -> list:
@@ -233,11 +235,12 @@ class CreateProjectCalendar:
         project = self.projects.pop()
         range = self.free_time_list.pop()
 
-        title = project["title"]
+        title = project.title
         start = DatetimeObject.combine(
             self.date, TimeObject.fromisoformat(range["start"]))
         drive_project = DriveProject.create(start=start,
                                             title=title,
-                                            notion_url=project["url"],
-                                            tasks=project["tasks"])
+                                            notion_url=project.url,
+                                            tasks=[], # TODO: タスクもいずれ入れる
+                                            )
         self.google_calendar_api.post_schedule(schedule=drive_project)
