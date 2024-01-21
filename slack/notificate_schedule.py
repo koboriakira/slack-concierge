@@ -18,7 +18,11 @@ IS_TEST = False
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_BOT = WebClient(token=SLACK_BOT_TOKEN)
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+if IS_TEST:
+    logger.setLevel(logging.DEBUG)
+
 google_calendar_api = LambdaGoogleCalendarApi()
 schedule_list_cache = None
 
@@ -29,10 +33,10 @@ def handler(event, context):
     global schedule_list_cache
 
     data = google_calendar_api.get_gas_calendar(date=NOW.date())
-    logging.debug(data)
+    logger.debug(data)
 
     if schedule_list_cache is None:
-        logging.info("cache is None")
+        logger.info("cache is None")
         print("cache is None")
         schedule_list_cache = list(map(Schedule.from_entity, data))
 
@@ -92,7 +96,7 @@ def post_schedule(schedule: Schedule, is_debug:bool = False) -> None:
     block_builder = block_builder.add_context(text=json.dumps(context))
 
     blocks = block_builder.build()
-    logging.info(blocks)
+    logger.info(blocks)
 
     channel = ChannelType.SCHEDULE if not IS_TEST else ChannelType.TEST
     if not is_debug:
@@ -100,10 +104,9 @@ def post_schedule(schedule: Schedule, is_debug:bool = False) -> None:
                                 text=schedule.title,
                                 blocks=blocks)
     else:
-        logging.info(channel.value)
-        logging.info(schedule.title)
-        logging.info(blocks)
+        logger.info(channel.value)
+        logger.info(schedule.title)
+        logger.info(blocks)
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
     handler({}, {})
