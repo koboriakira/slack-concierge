@@ -1,12 +1,12 @@
 from datetime import date as DateObject
 from datetime import datetime as DatetimeObject
 from datetime import time as TimeObject
-from datetime import timedelta
 from domain.notion.notion_page import NotionPage, RecipePage
 from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
 from domain.schedule.enum import Wakeup, Breakfast, GoToKindergarten, MorningHousework, Lunch, Pickup, Bathtime, Bedtime, Resttime, Dinner, WeeklyReview, CookDinner, DriveProject
 from util.datetime import is_holiday
 from domain.schedule.schedule import Schedule
+from domain.infrastructure.api.notion_api import NotionApi
 
 
 CATEGORY_MORNING = "朝の予定"
@@ -26,10 +26,11 @@ class CreateCalendar:
                  dinner_time: TimeObject,
                  breakfast_detail: str,
                  lunch_detail: str,
-                 dinner_recipe_pages: list[RecipePage],
-                 primary_projects: list[NotionPage],
+                 dinner_recipes: list[dict[str, str]],
+                 date: DateObject,
                  google_calendar_api: GoogleCalendarApi,
-                 date: DateObject):
+                 notion_api: NotionApi,
+                 ):
         self.is_morning_childcare = is_morning_childcare
         self.is_evening_childcare = is_evening_childcare
         self.is_weekly_review = is_weekly_review
@@ -39,14 +40,24 @@ class CreateCalendar:
         self.dinner_time = dinner_time
         self.breakfast_detail = breakfast_detail
         self.lunch_detail = lunch_detail
-        self.dinner_recipe_pages = dinner_recipe_pages
-        self.primary_projects = primary_projects
+        self.dinner_recipes = dinner_recipes
         self.date = date
         self.google_calendar_api = google_calendar_api
+        self.notion_api = notion_api
         self.latest_end = None
 
     def handle(self) -> str:
-        """ カレンダーを作成する """
+        """
+        カレンダーを作成する
+        """
+        # レシピページを取得する
+        dinner_recipe_pages = self.notion_api.list_recipes()
+        dinner_recipe_ids = [r["value"] for r in self.dinner_recipes]
+        dinner_recipe_pages = [r for r in dinner_recipe_pages if r.id in dinner_recipe_ids]
+
+        # primaryステータスのプロジェクトを取得
+        primary_projects: list[NotionPage] = self.notion_api.list_projects(status="Primary")
+
         text_list: list[str] = []
 
         # 完了メッセージ
@@ -86,7 +97,7 @@ class CreateCalendar:
         # 夕食の準備
         if self.is_cook_dinner:
             schedule = CookDinner.create(
-                start=self.latest_end, dinner_recipe_pages=self.dinner_recipe_pages)
+                start=self.latest_end, dinner_recipe_pages=dinner_recipe_pages)
             self._post_gas_calendar(schedule=schedule)
 
         # 夜の子育て(おむかえ)
@@ -99,7 +110,7 @@ class CreateCalendar:
         # 夕食
         dinner_start = DatetimeObject.combine(self.date, self.dinner_time)
         schedule = Dinner.create(start=dinner_start,
-                                 dinner_recipe_pages=self.dinner_recipe_pages)
+                                 dinner_recipe_pages=dinner_recipe_pages)
         self._post_gas_calendar(schedule=schedule)
 
         if self.is_evening_childcare:
@@ -123,13 +134,13 @@ class CreateCalendar:
         schedule = Resttime.create(start=rest_start)
         self._post_gas_calendar(schedule=schedule)
 
-        # # 余った時間にプロジェクトを進める時間を入れる
-        # free_time_list = self._calculate_free_time()
-        # create_project_calendar = CreateProjectCalendar(
-        #     date=self.date,
-        #     free_time_list=free_time_list,
-        #     project_id_list=[project.id for project in self.primary_projects])
-        # create_project_calendar.handle()
+        # 余った時間にプロジェクトを進める時間を入れる
+        free_time_list = self._calculate_free_time()
+        create_project_calendar = CreateProjectCalendar(
+            date=self.date,
+            free_time_list=free_time_list,
+            project_id_list=[project.id for project in primary_projects])
+        create_project_calendar.handle()
 
         return "\n".join(text_list)
 
@@ -188,79 +199,45 @@ class CreateCalendar:
                 free_time_list.append(time_range)
         return free_time_list
 
-    def _fill_primary_project(self) -> list[NotionPage]:
-        """ プロジェクトを埋める """
-        free_time_list = self._calculate_free_time()
-
-        # プロジェクトを埋める
-        project_count = len(self.primary_projects)
-        count = 0
-        while count < project_count:
-            if count >= len(free_time_list):
-                # 処理できなかったprimary_projectを返却する
-                return self.primary_projects[count:]
-            project = self.primary_projects[count]
-
-            title = project.title
-            time_range = free_time_list[count]
-
-            start_datetime = DatetimeObject.combine(
-                self.date, TimeObject.fromisoformat(time_range["start"]))
-            end_datetime = start_datetime + timedelta(minutes=60)
-            category = CATEGORY_PRIVATE  # TODO: プロジェクトのカレンダーとするか
-            detail = {"memo": project.url}
-            # FIXME: post_scheduleを利用する
-            # self.google_calendar_api.post_gas_calendar(
-            #     title=title,
-            #     start=start_datetime,
-            #     end=end_datetime,
-            #     category=category,
-            #     detail=detail)
-            count += 1
-        return []
 
     def _post_gas_calendar(self, schedule: Schedule) -> DatetimeObject:
         self.google_calendar_api.post_schedule(schedule=schedule)
         self.latest_end = schedule.end
         return schedule.end
 
-    def test(self):
-        print(self._calculate_free_time())
 
+class CreateProjectCalendar:
+    """ サブクラスのような立ち位置。プロジェクトのカレンダーをつくる """
 
-# class CreateProjectCalendar:
-#     """ サブクラスのような立ち位置。プロジェクトのカレンダーをつくる """
+    def __init__(self,
+                 date: DateObject,
+                 free_time_list: list[dict[str, str]],
+                 project_id_list: list[str],
+                 google_calendar_api: GoogleCalendarApi):
+        self.date = date
+        self.free_time_list = free_time_list
+        # startの降順にソートする
+        self.free_time_list.sort(
+            key=lambda time_range: time_range["start"], reverse=True)
+        self.projects = [self.notion_api.get(
+            f"/project/{project_id}") for project_id in project_id_list]
+        self.google_calendar_api = google_calendar_api
 
-#     def __init__(self,
-#                  date: DateObject,
-#                  free_time_list: list[dict[str, str]],
-#                  project_id_list: list[str],
-#                  google_calendar_api: GoogleCalendarApi):
-#         self.date = date
-#         self.free_time_list = free_time_list
-#         # startの降順にソートする
-#         self.free_time_list.sort(
-#             key=lambda time_range: time_range["start"], reverse=True)
-#         # self.notion_api = DailyNotionApi()
-#         self.projects = [self.notion_api.get(
-#             f"/project/{project_id}") for project_id in project_id_list]
-#         self.google_calendar_api = google_calendar_api()
+    def handle(self) -> list:
+        """ プロジェクトを埋める """
+        while len(self.free_time_list) > 0 and len(self.projects) > 0:
+            self._regist_project_to_calendar()
+        return self.projects
 
-#     def handle(self) -> list:
-#         """ プロジェクトを埋める """
-#         while len(self.free_time_list) > 0 and len(self.projects) > 0:
-#             self._regist_project_to_calendar()
-#         return self.projects
+    def _regist_project_to_calendar(self) -> None:
+        project = self.projects.pop()
+        range = self.free_time_list.pop()
 
-#     def _regist_project_to_calendar(self) -> None:
-#         project = self.projects.pop()
-#         range = self.free_time_list.pop()
-
-#         title = project["title"]
-#         start = DatetimeObject.combine(
-#             self.date, TimeObject.fromisoformat(range["start"]))
-#         drive_project = DriveProject.create(start=start,
-#                                             title=title,
-#                                             notion_url=project["url"],
-#                                             tasks=project["tasks"])
-#         self.google_calendar_api.post_schedule(schedule=drive_project)
+        title = project["title"]
+        start = DatetimeObject.combine(
+            self.date, TimeObject.fromisoformat(range["start"]))
+        drive_project = DriveProject.create(start=start,
+                                            title=title,
+                                            notion_url=project["url"],
+                                            tasks=project["tasks"])
+        self.google_calendar_api.post_schedule(schedule=drive_project)

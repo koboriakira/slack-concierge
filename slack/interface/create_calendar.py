@@ -7,6 +7,7 @@ from domain_service.block.block_builder import BlockBuilder
 from domain_service.view.view_builder import ViewBuilder
 from domain.view.view import View
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
+from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from usecase.create_calendar import CreateCalendar as CreateCalendarUsecase
 from util.logging_traceback import logging_traceback
 
@@ -129,20 +130,6 @@ def create_calendar(logger: logging.Logger, view: dict):
         context = view_model.get_context()
         logging.info(context)
 
-        # FIXME: primaryプロジェクトを取得
-        primary_projects = []
-        # primary_projects = self.notion_api.get(path="/project/",
-        #                                         params={"status": "Primary"})
-        # primary_projects = [NotionPage.from_dict(p) for p in primary_projects]
-
-        # FIXME: レシピを取得
-        dinner_recipe_pages = []
-        # recipes = self.notion_api.get(path="/recipe/", params={"cached": True})
-        # dinner_recipe_ids = [r["value"]
-        #                       for r in request.dinner_recipes]
-        # dinner_recipe_pages = [RecipePage.from_dict(
-        #     r) for r in recipes if r["id"] in dinner_recipe_ids]
-
         is_morning_childcare = state.is_checked(
             action_id="childcare-action", value="is_morning_childcare")
         is_evening_childcare = state.is_checked(
@@ -161,12 +148,13 @@ def create_calendar(logger: logging.Logger, view: dict):
             action_id="breakfast_detail")
         lunch_detail = state.get_text_input_value(
             action_id="lunch_detail")
-        # dinner_recipes = state.get_multi_selected(
-        #     action_id="dinner-recipes")
+        dinner_recipes = state.get_multi_selected(
+            action_id="dinner-recipes")
         date = state.get_datepicker(
             action_id="datepicker-action")
 
         google_calendar_api = LambdaGoogleCalendarApi()
+        notion_api = LambdaNotionApi()
 
         # FIXME: 実処理
         create_calendar_usecase = CreateCalendarUsecase(
@@ -179,10 +167,11 @@ def create_calendar(logger: logging.Logger, view: dict):
             dinner_time=dinner_time,
             breakfast_detail=breakfast_detail,
             lunch_detail=lunch_detail,
-            dinner_recipe_pages=dinner_recipe_pages,
-            primary_projects=primary_projects,
+            dinner_recipes=dinner_recipes,
+            # primary_projects=primary_projects,
             date=date,
             google_calendar_api=google_calendar_api,
+            notion_api=notion_api,
         )
         response = create_calendar_usecase.handle()
         logging.debug(response)
