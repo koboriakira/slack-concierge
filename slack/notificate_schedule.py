@@ -33,13 +33,18 @@ def handler(event, context):
 
     if schedule_list_cache is None:
         logging.info("cache is None")
+        print("cache is None")
         schedule_list_cache = list(map(Schedule.from_entity, data))
 
+    result = {"result": "schedule is not found"}
     for schedule in schedule_list_cache:
         if schedule.is_in_now(now=NOW):
             post_schedule(schedule)
+            result = schedule.to_dict()
         if IS_TEST:
             post_schedule(schedule=schedule, is_debug=True)
+
+    return result
 
 def post_schedule(schedule: Schedule, is_debug:bool = False) -> None:
     block_builder = BlockBuilder()
