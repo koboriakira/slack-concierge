@@ -1,8 +1,11 @@
+import json
 from slack_sdk.web import WebClient
 from slack_bolt import App, Ack
 from usecase.sync_business_timeline import SyncBusinessTimeline as SyncBusinessTimelineUsecase
 from util.logging_traceback import logging_traceback
 from util.custom_logging import get_logger
+from domain.message import BaseMessage
+from domain.channel import Channel
 
 SHORTCUT_ID = "sync-times"
 
@@ -13,14 +16,16 @@ def just_ack(ack: Ack):
 
 def sync_times(body: dict, client: WebClient):
     logger.info("sync_times")
-    logger.debug(body)
+    logger.debug(json.dumps(body))
 
     try:
         usecase = SyncBusinessTimelineUsecase(original_client = client)
+        message = BaseMessage.from_dict(body["message"])
+        channel = Channel.from_entity(body["channel"])
         usecase.execute(
-            text=body["text"],
-            original_channel=body["channel_id"],
-            original_thread_ts=body["thread_ts"],
+            text=message.text,
+            original_channel=channel.id,
+            original_thread_ts=message.ts,
             file_id_list=[], # TODO: 画像のIDを取得する
         )
 
