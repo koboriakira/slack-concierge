@@ -12,7 +12,7 @@ from domain.channel.channel_type import ChannelType
 
 # 5分先にする
 NOW = Datetime.now() + timedelta(minutes=5)
-# NOW = Datetime(2024, 1, 22, 9, 0)
+# NOW = Datetime(2024, 1, 22, 12, 0)
 IS_TEST = False
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
@@ -20,8 +20,9 @@ SLACK_BOT = WebClient(token=SLACK_BOT_TOKEN)
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-if IS_TEST:
+if os.environ.get("ENVIRONMENT") == "dev":
     logger.setLevel(logging.DEBUG)
+
 
 google_calendar_api = LambdaGoogleCalendarApi()
 cache = None
@@ -38,7 +39,6 @@ def handler(event, context):
     schedule_list = []
     if cache is None:
         logger.info("cache is None")
-        print("cache is None")
         schedule_list = list(map(Schedule.from_entity, data))
         cache = {
             "expires_at": NOW + timedelta(minutes=5),
@@ -46,7 +46,6 @@ def handler(event, context):
         }
     elif cache["expires_at"] < NOW:
         logger.info("cache is expired")
-        print("cache is expired")
         schedule_list = list(map(Schedule.from_entity, data))
         cache = {
             "expires_at": NOW + timedelta(minutes=5),
@@ -54,15 +53,18 @@ def handler(event, context):
         }
     else:
         schedule_list = cache["schedule_list"]
+    logger.debug(schedule_list)
 
     result = {"result": "schedule is not found"}
     for schedule in schedule_list:
         if schedule.is_in_now(now=NOW):
+            logger.info("schedule is found")
             post_schedule(schedule)
             result = schedule.to_dict()
         if IS_TEST:
             post_schedule(schedule=schedule, is_debug=True)
 
+    logger.info(result)
     return result
 
 def post_schedule(schedule: Schedule, is_debug:bool = False) -> None:
@@ -124,4 +126,5 @@ def post_schedule(schedule: Schedule, is_debug:bool = False) -> None:
         logger.info(blocks)
 
 if __name__ == "__main__":
-    handler({}, {})
+    logger.debug("debug mode")
+    print(handler({}, {}))
