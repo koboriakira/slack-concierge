@@ -132,6 +132,11 @@ export class SlackConcierge extends Stack {
       process.env.LAMBDA_NOTION_API_DOMAIN || ""
     );
     fn.addEnvironment("NOTION_SECRET", process.env.NOTION_SECRET || "");
+    fn.addEnvironment(
+      "BUSINESS_SLACK_USER_TOKEN",
+      process.env.BUSINESS_SLACK_USER_TOKEN || ""
+    );
+    fn.addEnvironment("SLACK_USER_TOKEN", process.env.SLACK_USER_TOKEN || "");
 
     if (function_url_enabled) {
       fn.addFunctionUrl({
