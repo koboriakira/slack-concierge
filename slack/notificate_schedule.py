@@ -41,9 +41,10 @@ def handler(event, context):
         logger.info("cache is None")
         schedule_list = list(map(Schedule.from_entity, data))
         cache = {
-            "expires_at": NOW + timedelta(minutes=5),
+            "expires_at": NOW + timedelta(minutes=60),
             "schedule_list": schedule_list,
         }
+        logger.info(cache)
     elif cache["expires_at"] < NOW:
         logger.info("cache is expired")
         schedule_list = list(map(Schedule.from_entity, data))
