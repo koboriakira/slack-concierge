@@ -13,20 +13,22 @@ class LambdaNotionApi(NotionApi):
 
     def list_recipes(self) -> list[RecipePage]:
         response = self._get(path="recipes")
-        return [RecipePage.from_dict(page) for page in response]
+        data = response["data"]
+        return [RecipePage.from_dict(page) for page in data]
 
     def list_projects(self, status: Optional[str] = None) -> list[NotionPage]:
         params = {}
         if status:
             params["status"] = status
         response = self._get(path="projects", params=params)
-        logging.debug(response)
-        return [NotionPage.from_dict(page) for page in response]
+        data = response["data"]
+        return [NotionPage.from_dict(page) for page in data]
 
     def find_project(self, project_id: str) -> NotionPage:
         response = self._get(path=f"projects/{project_id}")
         logging.debug(response)
-        return NotionPage.from_dict(response)
+        data = response["data"]
+        return NotionPage.from_dict(data)
 
 
     def _get(self, path: str, params: dict = {}) -> dict:
@@ -38,18 +40,13 @@ class LambdaNotionApi(NotionApi):
         response = requests.get(url, params=params, headers=headers)
         logging.debug(response)
         if response.status_code != 200:
-            logging.error(f"response: {response}")
-            return None
-        try:
-            return response.json()
-        except Exception as e:
-            logging.warning(e)
-            return {"message": response.text}
+            raise Exception(f"status_code: {response.status_code}, message: {response.text}")
+        return response.json()
 
 
 if __name__ == "__main__":
     # python -m infrastructure.api.lambda_notion_api
     logging.basicConfig(level=logging.DEBUG)
     notion_api = LambdaNotionApi()
-    response = notion_api.find_project(project_id="b95d7eb173f9436893c2240650323b30")
-    print(response)
+    # response = notion_api.find_project(project_id="b95d7eb173f9436893c2240650323b30")
+    print(notion_api.list_recipes())
