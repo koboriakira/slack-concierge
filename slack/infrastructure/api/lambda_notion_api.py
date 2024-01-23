@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import date as Date
 import os
 import logging
 import requests
@@ -30,6 +31,31 @@ class LambdaNotionApi(NotionApi):
         data = response["data"]
         return NotionPage.from_dict(data)
 
+    def create_track_page(self, track_name: str,
+                                artists: list[str],
+                                spotify_url: Optional[str] = None,
+                                cover_url: Optional[str] = None,
+                                release_date: Optional[Date] = None,) -> dict:
+        url = f"{self.domain}music"
+        headers = {
+            "access-token": NOTION_SECRET,
+        }
+        data = {
+            "track_name": track_name,
+            "artists": artists,
+        }
+        if spotify_url:
+            data["spotify_url"] = spotify_url
+        if cover_url:
+            data["cover_url"] = cover_url
+        if release_date:
+            data["release_date"] = release_date.strftime("%Y-%m-%d")
+        respone = requests.post(url=url, headers=headers, json=data)
+        logging.debug(respone)
+        if respone.status_code != 200:
+            raise Exception(f"status_code: {respone.status_code}, message: {respone.text}")
+        response_json = respone.json()
+        return response_json["data"]
 
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """
@@ -48,5 +74,14 @@ if __name__ == "__main__":
     # python -m infrastructure.api.lambda_notion_api
     logging.basicConfig(level=logging.DEBUG)
     notion_api = LambdaNotionApi()
-    # response = notion_api.find_project(project_id="b95d7eb173f9436893c2240650323b30")
-    print(notion_api.list_recipes())
+
+    # print(notion_api.find_project(project_id="b95d7eb173f9436893c2240650323b30"))
+
+    # print(notion_api.list_recipes())
+
+    print(notion_api.create_track_page(
+        track_name="Plastic Love",
+        artists=["Friday Night Plans"],
+        spotify_url="https://open.spotify.com/intl-ja/track/2qxTmEfGbBGMSJrwu4Ez1v?si=c4750c498ac14c7c",
+        release_date=Date(2024, 1, 22)
+    ))
