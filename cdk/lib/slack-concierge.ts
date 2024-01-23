@@ -137,6 +137,10 @@ export class SlackConcierge extends Stack {
       process.env.BUSINESS_SLACK_USER_TOKEN || ""
     );
     fn.addEnvironment("SLACK_USER_TOKEN", process.env.SLACK_USER_TOKEN || "");
+    fn.addEnvironment(
+      "SPOTIFY_CLIENT_SECRET",
+      process.env.SPOTIFY_CLIENT_SECRET || ""
+    );
 
     if (function_url_enabled) {
       fn.addFunctionUrl({
