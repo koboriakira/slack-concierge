@@ -29,6 +29,21 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
         logging.debug(f"get_gas_calendar: status_code={response.status_code}")
         return response.json()
 
+    def get_current_schedules(self) -> list[dict]:
+        """ 直近のスケジュールを取得する。デフォルトで5分先 """
+        url = self.domain + "next_schedules"
+        headers = {
+            "Accept": "application/json",
+            "access-token": self.access_token,
+        }
+        response = requests.get(url=url, headers=headers)
+        logging.debug(f"post_gas_calendar: status_code={response.status_code}")
+        response_json = response.json()
+        if isinstance(response_json, str):
+            response_json = json.loads(response_json)
+        logging.debug(f"post_gas_calendar: response={response_json}")
+        return response_json
+
     def get_gas_calendar_achievements(self,
                                       date: DateObject) -> list[dict]:
         raise NotImplementedError
@@ -99,10 +114,11 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     api = LambdaGoogleCalendarApi()
     # logging.info(api.get_gas_calendar(date=DateObject(2024, 1, 12)))
-    logging.info(api._post_gas_calendar(
-        start=DatetimeObject(2024, 1, 12, 10, 0),
-        end=DatetimeObject(2024, 1, 12, 11, 0),
-        category="プライベート",
-        title="test",
-        detail=""
-    ))
+    # logging.info(api._post_gas_calendar(
+    #     start=DatetimeObject(2024, 1, 12, 10, 0),
+    #     end=DatetimeObject(2024, 1, 12, 11, 0),
+    #     category="プライベート",
+    #     title="test",
+    #     detail=""
+    # ))
+    print(api.get_current_schedules())

@@ -13,6 +13,11 @@ class GoogleCalendarApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def get_current_schedules(self) -> list[dict]:
+        """ 直近のスケジュールを取得する。デフォルトで5分先 """
+        pass
+
+    @abstractmethod
     def get_gas_calendar_achievements(self,
                                       date: DateObject) -> list[dict]:
         """ 実績を取得する """

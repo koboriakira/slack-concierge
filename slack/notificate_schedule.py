@@ -33,40 +33,14 @@ def handler(event, context):
     """
     global cache
 
-    data = google_calendar_api.get_gas_calendar(date=NOW.date())
-    logger.debug(data)
+    data = google_calendar_api.get_current_schedules()
+    if data is None:
+        return data
 
-    schedule_list = []
-    if cache is None:
-        logger.info("cache is None")
-        schedule_list = list(map(Schedule.from_entity, data))
-        cache = {
-            "expires_at": NOW + timedelta(minutes=60),
-            "schedule_list": schedule_list,
-        }
-        logger.info(cache)
-    elif cache["expires_at"] < NOW:
-        logger.info("cache is expired")
-        schedule_list = list(map(Schedule.from_entity, data))
-        cache = {
-            "expires_at": NOW + timedelta(minutes=5),
-            "schedule_list": schedule_list,
-        }
-    else:
-        schedule_list = cache["schedule_list"]
-    logger.debug(schedule_list)
-
-    result = {"result": "schedule is not found"}
-    for schedule in schedule_list:
-        if schedule.is_in_now(now=NOW):
-            logger.info("schedule is found")
-            post_schedule(schedule)
-            result = schedule.to_dict()
-        if IS_TEST:
-            post_schedule(schedule=schedule, is_debug=True)
-
-    logger.info(result)
-    return result
+    schedules = [Schedule.from_entity(d) for d in data]
+    for schedule in schedules:
+        post_schedule(schedule)
+    return schedules
 
 def post_schedule(schedule: Schedule, is_debug:bool = False) -> None:
     block_builder = BlockBuilder()
