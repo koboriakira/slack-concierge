@@ -25,14 +25,10 @@ if os.environ.get("ENVIRONMENT") == "dev":
 
 
 google_calendar_api = LambdaGoogleCalendarApi()
-cache = None
-
 def handler(event, context):
     """
     AWS Lambda での実行に対応するハンドラー関数
     """
-    global cache
-
     data = google_calendar_api.get_current_schedules()
     if data is None:
         return data
