@@ -2,8 +2,6 @@ import os
 import json
 import logging
 from slack_sdk.web import WebClient
-from datetime import datetime as Datetime
-from datetime import timedelta
 from domain.schedule.schedule import Schedule
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from domain_service.block.block_builder import BlockBuilder
@@ -28,12 +26,12 @@ def handler(event, context):
     """
     data = google_calendar_api.get_current_schedules()
     if data is None:
-        return data
+        return {"message": "no schedule"}
 
     schedules = [Schedule.from_entity(d) for d in data]
     for schedule in schedules:
         post_schedule(schedule)
-    return schedules
+    return {"message": "success"}
 
 def post_schedule(schedule: Schedule, is_debug:bool = False) -> None:
     block_builder = BlockBuilder()
