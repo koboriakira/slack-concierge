@@ -10,9 +10,6 @@ from domain_service.block.block_builder import BlockBuilder
 from domain.user.user_kind import UserKind
 from domain.channel.channel_type import ChannelType
 
-# 5分先にする
-NOW = Datetime.now() + timedelta(minutes=5)
-# NOW = Datetime(2024, 1, 22, 12, 0)
 IS_TEST = False
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
