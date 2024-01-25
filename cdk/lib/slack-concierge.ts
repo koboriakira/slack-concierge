@@ -49,7 +49,7 @@ export class SlackConcierge extends Stack {
       schedule: events.Schedule.cron({ minute: "*/5", hour: "21-14" }),
       targets: [
         new targets.LambdaFunction(lambda_notificate_schedule, {
-          retryAttempts: 2,
+          retryAttempts: 0,
         }),
       ],
     });
