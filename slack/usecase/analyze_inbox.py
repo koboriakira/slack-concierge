@@ -135,7 +135,7 @@ class AnalyzeInbox:
         tags = self.tag_analyzer.handle_for_prowrestling(text=description)
         tags.append(promotion_name)
         tags.append(venue)
-        page = self.notion_api.create_video_page(
+        page = self.notion_api.create_prowrestling_page(
             url=original_url,
             title=title,
             date=date,
