@@ -7,16 +7,24 @@ from util.logging_traceback import logging_traceback
 from usecase.upload_files_to_s3 import UploadFilesToS3
 from domain.channel import ChannelType
 
+
 def just_ack(ack: Ack):
     ack()
 
 def handle(body: dict, logger: logging.Logger, client: WebClient):
+    handler1 = logging.StreamHandler()
+    handler1.setFormatter(logging.Formatter(
+        "%(asctime)s %(levelname)8s %(message)s"))
+    handler1.setLevel(logging.INFO)
+    logger.addHandler(handler1)
+
+    logger.info("handle_message_event")
+
     try:
-        print(json.dumps(body, ensure_ascii=False))
+        logger.debug(json.dumps(body, ensure_ascii=False))
         event:dict = body["event"]
         if is_uploaded_file_in_share_channel(event):
-            print("uploaded file in share channel")
-            print(type(client))
+
             usecase = UploadFilesToS3(client, logger)
             usecase = usecase.execute(
                 channel=event["channel"],
