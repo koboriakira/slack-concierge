@@ -1,5 +1,6 @@
-from openai import OpenAI
+from typing import Optional
 import logging
+from usecase.service.openai_executer import OpenaiExecuter
 
 TEMPLATE = """「仕様」に則って「入力」に記載した文章の要約をしてください。
 
@@ -11,24 +12,15 @@ TEMPLATE = """「仕様」に則って「入力」に記載した文章の要約
 {context}"""
 
 class TextSummarizer:
-    def __init__(self, logger: logging.Logger):
-        self.logger = logger
-        self.client = OpenAI()
+    def __init__(self, logger: Optional[logging.Logger] = None):
+        self.logger = logger or logging.getLogger(__name__)
+        self.client = OpenaiExecuter(model="gpt-3.5-turbo-1106",
+                                     logger=logger)
 
     def handle(self, text: str) -> str:
-        print("TextSummarizer: " + text)
-        content = TEMPLATE.format(context=text)
-        messages = [
-            {"role": "user", "content": content}
-        ]
-        response = self.client.chat.completions.create(
-            model="gpt-4-turbo-preview",
-            messages=messages,
-        )
-        print(response)
-        response_message = response.choices[0].message
-        print(response_message)
-        return response_message.content
+        self.logger.debug("TextSummarizer: " + text)
+        user_content = TEMPLATE.format(context=text)
+        return self.client.simple_chat(user_content=user_content)
 
 if __name__ == "__main__":
     # python -m usecase.service.text_summarizer
