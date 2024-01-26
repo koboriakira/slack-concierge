@@ -1,14 +1,11 @@
 import logging
 from slack_sdk.web import WebClient
-from openai import OpenAI
 from datetime import date as Date
 import requests
 from usecase.service.text_summarizer import TextSummarizer
 from usecase.service.tag_analyzer import TagAnalyzer
 from usecase.service.simple_scraper import SimpleScraper
 from domain.infrastructure.api.notion_api import NotionApi
-from util.environment import Environment
-from util.logging_traceback import logging_traceback
 import json
 
 class AnalyzeInbox:
@@ -79,7 +76,7 @@ class AnalyzeInbox:
         original_url = attachment["original_url"]
         cover = attachment.get("image_url") or attachment.get("thumb_url")
         title = text[:50] # タイトルはtextの50文字目まで
-        tags = self.tag_analyzer.analyze_tags(text=text)
+        tags = self.tag_analyzer.handle(text=text)
         page = self.notion_api.create_webclip_page(
             url=original_url,
             title=title,
@@ -100,7 +97,7 @@ class AnalyzeInbox:
         title = attachment["title"] + " | " + attachment["author_name"]
         original_url = attachment["original_url"]
         cover = attachment.get("thumb_url")
-        tags = self.tag_analyzer.analyze_tags(text=title)
+        tags = self.tag_analyzer.handle(text=title)
         page = self.notion_api.create_video_page(
             url=original_url,
             title=title,
