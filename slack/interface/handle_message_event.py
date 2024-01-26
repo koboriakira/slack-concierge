@@ -6,18 +6,16 @@ from slack_bolt import App, Ack
 from util.logging_traceback import logging_traceback
 from usecase.upload_files_to_s3 import UploadFilesToS3
 from domain.channel import ChannelType
-
+from util.environment import Environment
 
 def just_ack(ack: Ack):
     ack()
 
 def handle(body: dict, logger: logging.Logger, client: WebClient):
-    handler1 = logging.StreamHandler()
-    handler1.setFormatter(logging.Formatter(
-        "%(asctime)s %(levelname)8s %(message)s"))
-    handler1.setLevel(logging.INFO)
-    logger.addHandler(handler1)
-
+    if Environment.is_dev():
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.DEBUG)
     logger.info("handle_message_event")
 
     try:
