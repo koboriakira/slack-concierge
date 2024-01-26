@@ -91,7 +91,7 @@ class AnalyzeInbox:
 
     def handle_youtube(self, attachment: dict, channel: str, thread_ts: str) -> None:
         """ 指定したURLの動画を登録する """
-        title = attachment["title"]
+        title = attachment["title"] + " | " + attachment["author_name"]
         original_url = attachment["original_url"]
         cover = attachment.get("thumb_url")
         tags = self.tag_analyzer.analyze_tags(text=title)
