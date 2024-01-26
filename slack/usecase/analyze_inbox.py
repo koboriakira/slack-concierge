@@ -23,7 +23,7 @@ class AnalyzeInbox:
             self._post_progress_if_dev(text=f"analyze_inbox: start ```{json.dumps(attachment)}", channel=channel, thread_ts=thread_ts)
             title = attachment["title"]
             original_url = attachment["original_url"]
-            page_text = self.simple_scraper.handle(url=original_url)
+            page_text, formatted_page_text = self.simple_scraper.handle(url=original_url)
             if page_text is None:
                 raise Exception("ページのスクレイピングに失敗しました。")
             self.logger.debug(page_text)
@@ -39,7 +39,7 @@ class AnalyzeInbox:
                 title=title,
                 summary=summary,
                 tags=tags,
-                text=page_text,
+                text=formatted_page_text,
                 cover=attachment.get("image_url"),
             )
             self._post_progress_if_dev(text=f"analyze_inbox: page ```{page}```", channel=channel, thread_ts=thread_ts)
