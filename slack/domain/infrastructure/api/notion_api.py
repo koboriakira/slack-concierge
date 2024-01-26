@@ -36,3 +36,13 @@ class NotionApi(metaclass=ABCMeta):
                             ) -> dict:
         """ NotionにWebclipのページを作成する """
         pass
+
+    @abstractmethod
+    def create_video_page(self,
+                            url: str,
+                            title: str,
+                            tags: list[str],
+                            cover: Optional[str] = None,
+                            ) -> dict:
+        """ Notionに動画のページを作成する """
+        pass

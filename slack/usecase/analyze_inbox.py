@@ -90,17 +90,15 @@ class AnalyzeInbox:
         )
 
     def handle_youtube(self, attachment: dict, channel: str, thread_ts: str) -> None:
-        """ 指定したURLのページをスクレイピングしてテキストを返す(X版) """
+        """ 指定したURLの動画を登録する """
         title = attachment["title"]
         original_url = attachment["original_url"]
         cover = attachment.get("thumb_url")
         tags = self.tag_analyzer.analyze_tags(text=title)
-        page = self.notion_api.create_webclip_page(
+        page = self.notion_api.create_video_page(
             url=original_url,
             title=title,
-            summary="",
             tags=tags,
-            text="",
             cover=cover,
         )
         page_url:str = page["url"]

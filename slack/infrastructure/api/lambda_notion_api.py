@@ -74,6 +74,22 @@ class LambdaNotionApi(NotionApi):
             data["cover"] = cover
         return self._post(url=api_url, data=data)
 
+    def create_video_page(self,
+                            url: str,
+                            title: str,
+                            tags: list[str],
+                            cover: Optional[str] = None,
+                            ) -> dict:
+        api_url = f"{self.domain}video"
+        data = {
+            "url": url,
+            "title": title,
+            "tags": tags,
+        }
+        if cover:
+            data["cover"] = cover
+        return self._post(url=api_url, data=data)
+
 
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """
