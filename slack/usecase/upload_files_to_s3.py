@@ -27,15 +27,16 @@ class UploadFilesToS3:
 
             cloudfront_url_list :list[str] = []
 
-            # サムネイルもあればアップロードする
+            name = file["name"]
+            file_url = file["url_private"]
+
+            # 先にサムネイルもあればアップロードする
             thumb_file_url = file["thumb_800"] if "thumb_800" in file else None
             if thumb_file_url is not None:
                 thumb_name = convert_thumb_filename(name)
                 self.s3_uploader.upload(file_name=thumb_name, file_url=thumb_file_url)
                 cloudfront_url_list.append(f"{CLOUDFRONT_URL}/{thumb_name}")
 
-            name = file["name"]
-            file_url = file["url_private"]
             self.s3_uploader.upload(file_name=name, file_url=file_url)
             cloudfront_url_list.append(f"{CLOUDFRONT_URL}/{name}")
 
