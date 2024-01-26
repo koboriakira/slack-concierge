@@ -60,7 +60,7 @@ class LambdaNotionApi(NotionApi):
                             status: Optional[str] = None,
                             cover: Optional[str] = None,
                             ) -> dict:
-        url = f"{self.domain}webclip"
+        api_url = f"{self.domain}webclip"
         data = {
             "url": url,
             "title": title,
@@ -72,7 +72,7 @@ class LambdaNotionApi(NotionApi):
             data["status"] = status
         if cover:
             data["cover"] = cover
-        return self._post(url=url, data=data)
+        return self._post(url=api_url, data=data)
 
 
     def _get(self, path: str, params: dict = {}) -> dict:
