@@ -11,6 +11,8 @@ jpholiday = "*"
 PyYAML = "*"
 boto3 = "*"
 openai = "==1.10.0"
+trafilatura = "*"
+lxml = "*"
 
 [requires]
 python_version = "3.11"
