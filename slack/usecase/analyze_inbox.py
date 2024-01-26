@@ -19,10 +19,15 @@ class AnalyzeInbox:
         self.simple_scraper = SimpleScraper()
 
     def handle(self, attachment: dict, channel: str, thread_ts: str) -> None:
+        """ 指定したURLのページをスクレイピングしてテキストを返す """
         try:
+            if "x.com" in attachment["original_url"]:
+                return self.handle_twitter(attachment=attachment, channel=channel, thread_ts=thread_ts)
+
             self._post_progress_if_dev(text=f"analyze_inbox: start ```{json.dumps(attachment)}", channel=channel, thread_ts=thread_ts)
             title = attachment["title"]
             original_url = attachment["original_url"]
+            cover = attachment.get("image_url")
             page_text, formatted_page_text = self.simple_scraper.handle(url=original_url)
             if page_text is None:
                 raise Exception("ページのスクレイピングに失敗しました。")
@@ -40,7 +45,7 @@ class AnalyzeInbox:
                 summary=summary,
                 tags=tags,
                 text=formatted_page_text,
-                cover=attachment.get("image_url"),
+                cover=cover,
             )
             self._post_progress_if_dev(text=f"analyze_inbox: page ```{page}```", channel=channel, thread_ts=thread_ts)
             page_url:str = page["url"]
@@ -58,6 +63,28 @@ class AnalyzeInbox:
             formatted_exception = "\n".join(
                 traceback.format_exception(t, v, tb))
             self._post_progress_if_dev(text=f"analyze_inbox: error ```{formatted_exception}```", channel=channel, thread_ts=thread_ts)
+
+    def handle_twitter(self, attachment: dict, channel: str, thread_ts: str) -> None:
+        """ 指定したURLのページをスクレイピングしてテキストを返す(X版) """
+        text = attachment["text"]
+        original_url = attachment["original_url"]
+        cover = attachment.get("image_url")
+        title = text[:50] # タイトルはtextの50文字目まで
+        tags = self.tag_analyzer.analyze_tags(text=text)
+        page = self.notion_api.create_webclip_page(
+            url=original_url,
+            title=title,
+            summary=text,
+            tags=tags,
+            text=text,
+            cover=cover,
+        )
+        page_url:str = page["url"]
+        self.client.chat_postMessage(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=page_url,
+        )
 
 
     def _post_progress_if_dev(self, text: str, channel: str, thread_ts: str):
@@ -79,18 +106,18 @@ if __name__ == "__main__":
         notion_api=LambdaNotionApi(),
     )
     attachment = {
-        "image_url": "https://assets.st-note.com/production/uploads/images/126014735/rectangle_large_type_2_a12108f8a67248cc00e888924d6a08dc.jpeg?fit=bounds&quality=85&width=1280",
-        "image_width": 1280,
-        "image_height": 670,
-        "image_bytes": 133563,
-        "from_url": "https://note.com/koboriakira/n/ne14eaa1c50d2?sub_rt=share_pb",
-        "service_icon": "https://assets.st-note.com/poc-image/manual/note-common-images/production/icons/apple-touch-icon.png",
+        "from_url": "https://x.com/ore_meshi29/status/1718592125993152918?s=20",
+        "image_url": "https://pbs.twimg.com/media/F9mqWFibEAACz8m.jpg:large",
+        "image_width": 2048,
+        "image_height": 1152,
+        "image_bytes": 470797,
+        "service_icon": "http://abs.twimg.com/favicons/twitter.3.ico",
         "id": 1,
-        "original_url": "https://note.com/koboriakira/n/ne14eaa1c50d2?sub_rt=share_pb",
-        "fallback": "note（ノート）: 東京女子プロレスのベストバウト29選 (2023)｜コボリアキラ",
-        "text": "（写真は&amp;nbsp;東京女子プロレス誕生10周年記念興行～We are TJPW～ | DDTプロレスリング公式サイト&amp;nbsp;より） 東京女子プロレスより、2023年ベストバウトの募集がありました。 今年もあなたが選ぶ2023年TJPWベストバウトを募集します！ 今年の #TJPW の試合であなたが思うベストバウトを1〜3位まで順位をつけてX(旧Twitter)に投稿してください！ 1位3点、2位2点、3位1点で集計します。 投票期間は12月31日23時59分までです。#tjpwBB23 のハッシュタグを必ずお願いします！ <http://pic.twitter.com/opOYbR|pic.twitter.com/opOYbR>",
-        "title": "東京女子プロレスのベストバウト29選 (2023)｜コボリアキラ",
-        "title_link": "https://note.com/koboriakira/n/ne14eaa1c50d2?sub_rt=share_pb",
-        "service_name": "note（ノート）"
-      }
-    usecase.handle(attachment)
+        "original_url": "https://x.com/ore_meshi29/status/1718592125993152918?s=20",
+        "fallback": "X (formerly Twitter): 俺ニキ:penguin:/コスパ最高のグルメ (@ore_meshi29) on X",
+        "text": "都内のコスパ最強焼肉なら、三田『ホルモンまさる』。メニューの多くが500円前後で、美味いのに安くて会計2度見。昼から通し営業で、昼飲みしながら食べる焼肉は至福だった…:pleading_face:メモ推奨。",
+        "title": "俺ニキ:penguin:/コスパ最高のグルメ (@ore_meshi29) on X",
+        "title_link": "https://x.com/ore_meshi29/status/1718592125993152918?s=20",
+        "service_name": "X (formerly Twitter)"
+    }
+    usecase.handle(attachment, "C05H3USHAJU", "1706271210.390809")
