@@ -4,3 +4,9 @@ dev:
 
 cdk-test:
 	cd cdk && npm run test
+
+ngrok:
+	ngrok http 10121
+
+run:
+	python slack/lazy_main.py
