@@ -31,7 +31,6 @@ class AnalyzeInbox:
             self.logger.debug(summary)
             self._post_progress_if_dev(text=f"analyze_inbox: summary ```{summary}```", channel=channel, thread_ts=thread_ts)
             tags = self.tag_analyzer.analyze_tags(text=summary)
-            self.logger.debug(tags)
             self._post_progress_if_dev(text=f"analyze_inbox: tags ```{tags}```", channel=channel, thread_ts=thread_ts)
 
             self._post_progress_if_dev(text=f"create_webclip_page: ```{original_url}\n{title}\n{summary}\n{tags}\n{page_text}\n{attachment.get('image_url')}````", channel=channel, thread_ts=thread_ts)
@@ -53,9 +52,12 @@ class AnalyzeInbox:
             )
         except Exception as e:
             import sys
-            self._post_progress_if_dev(text=f"analyze_inbox: error ```{e}```", channel=channel, thread_ts=thread_ts)
+            import traceback
             exc_info = sys.exc_info()
-            logging_traceback(e, exc_info)
+            t, v, tb = exc_info
+            formatted_exception = "\n".join(
+                traceback.format_exception(t, v, tb))
+            self._post_progress_if_dev(text=f"analyze_inbox: error ```{formatted_exception}```", channel=channel, thread_ts=thread_ts)
 
 
     def _post_progress_if_dev(self, text: str, channel: str, thread_ts: str):
