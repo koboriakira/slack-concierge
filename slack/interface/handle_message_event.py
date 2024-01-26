@@ -17,23 +17,38 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
     else:
         logger.setLevel(logging.DEBUG)
     logger.info("handle_message_event")
+    logger.debug(json.dumps(body, ensure_ascii=False))
 
     try:
-        logger.debug(json.dumps(body, ensure_ascii=False))
         event:dict = body["event"]
+        channel:str = event["channel"]
+        message: dict = event["message"]
         if is_uploaded_file_in_share_channel(event):
-
             usecase = UploadFilesToS3(client, logger)
             usecase = usecase.execute(
-                channel=event["channel"],
+                channel=channel,
                 files=event["files"],
                 thread_ts=event["ts"]
             )
+        if is_posted_link_in_inbox_channel(channel, message):
+            logger.info("inboxチャンネルへのリンク投稿")
 
     except Exception as e:
         import sys
         exc_info = sys.exc_info()
         logging_traceback(e, exc_info)
+
+
+def is_posted_link_in_inbox_channel(channel:str, message: dict) -> bool:
+    """
+    inboxチャンネルへのリンク投稿
+    """
+    if channel != ChannelType.INBOX.value:
+        return False
+    attachments = message.get("attachments")
+    if attachments is None or len(attachments) == 0:
+        return False
+    return True
 
 def is_uploaded_file_in_share_channel(event: dict) -> bool:
     """
