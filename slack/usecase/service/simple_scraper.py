@@ -13,4 +13,4 @@ class SimpleScraper:
 if __name__ == "__main__":
     # python -m usecase.service.simple_scraper
     scraper = SimpleScraper()
-    print(scraper.handle("https://qiita.com/kobori_akira/items/8f721c17b9340d7f4219"))
+    print(scraper.handle("https://youtube.com/watch?v=_PNyMj6hQeM&amp;si=9zQ3VM2TE1aLeCxH"))

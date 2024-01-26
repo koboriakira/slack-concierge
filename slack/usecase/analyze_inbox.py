@@ -24,6 +24,9 @@ class AnalyzeInbox:
             if "x.com" in attachment["original_url"]:
                 return self.handle_twitter(attachment=attachment, channel=channel, thread_ts=thread_ts)
 
+            if "youtube.com" in attachment["original_url"]:
+                return self.handle_youtube(attachment=attachment, channel=channel, thread_ts=thread_ts)
+
             self._post_progress_if_dev(text=f"analyze_inbox: start ```{json.dumps(attachment)}", channel=channel, thread_ts=thread_ts)
             title = attachment["title"]
             original_url = attachment["original_url"]
@@ -68,7 +71,7 @@ class AnalyzeInbox:
         """ 指定したURLのページをスクレイピングしてテキストを返す(X版) """
         text = attachment["text"]
         original_url = attachment["original_url"]
-        cover = attachment.get("image_url")
+        cover = attachment.get("image_url") or attachment.get("thumb_url")
         title = text[:50] # タイトルはtextの50文字目まで
         tags = self.tag_analyzer.analyze_tags(text=text)
         page = self.notion_api.create_webclip_page(
@@ -85,6 +88,28 @@ class AnalyzeInbox:
             thread_ts=thread_ts,
             text=page_url,
         )
+
+    def handle_youtube(self, attachment: dict, channel: str, thread_ts: str) -> None:
+        """ 指定したURLのページをスクレイピングしてテキストを返す(X版) """
+        title = attachment["title"]
+        original_url = attachment["original_url"]
+        cover = attachment.get("thumb_url")
+        tags = self.tag_analyzer.analyze_tags(text=title)
+        page = self.notion_api.create_webclip_page(
+            url=original_url,
+            title=title,
+            summary="",
+            tags=tags,
+            text="",
+            cover=cover,
+        )
+        page_url:str = page["url"]
+        self.client.chat_postMessage(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=page_url,
+        )
+
 
 
     def _post_progress_if_dev(self, text: str, channel: str, thread_ts: str):
@@ -106,18 +131,22 @@ if __name__ == "__main__":
         notion_api=LambdaNotionApi(),
     )
     attachment = {
-        "from_url": "https://x.com/ore_meshi29/status/1718592125993152918?s=20",
-        "image_url": "https://pbs.twimg.com/media/F9mqWFibEAACz8m.jpg:large",
-        "image_width": 2048,
-        "image_height": 1152,
-        "image_bytes": 470797,
-        "service_icon": "http://abs.twimg.com/favicons/twitter.3.ico",
+        "from_url": "https://youtube.com/watch?v=_PNyMj6hQeM&amp;si=9zQ3VM2TE1aLeCxH",
+        "thumb_url": "https://i.ytimg.com/vi/_PNyMj6hQeM/hqdefault.jpg",
+        "thumb_width": 480,
+        "thumb_height": 360,
+        "video_html": "<iframe width=\"400\" height=\"225\" src=\"https://www.youtube.com/embed/_PNyMj6hQeM?feature=oembed&autoplay=1&iv_load_policy=3\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen title=\"【究極のズボラ向け】一人鍋セットを作り置き冷凍！平日5日間の晩ごはんレシピ【夕飯1週間献立】\"></iframe>",
+        "video_html_width": 400,
+        "video_html_height": 225,
+        "service_icon": "https://a.slack-edge.com/80588/img/unfurl_icons/youtube.png",
         "id": 1,
-        "original_url": "https://x.com/ore_meshi29/status/1718592125993152918?s=20",
-        "fallback": "X (formerly Twitter): 俺ニキ:penguin:/コスパ最高のグルメ (@ore_meshi29) on X",
-        "text": "都内のコスパ最強焼肉なら、三田『ホルモンまさる』。メニューの多くが500円前後で、美味いのに安くて会計2度見。昼から通し営業で、昼飲みしながら食べる焼肉は至福だった…:pleading_face:メモ推奨。",
-        "title": "俺ニキ:penguin:/コスパ最高のグルメ (@ore_meshi29) on X",
-        "title_link": "https://x.com/ore_meshi29/status/1718592125993152918?s=20",
-        "service_name": "X (formerly Twitter)"
+        "original_url": "https://youtube.com/watch?v=_PNyMj6hQeM&amp;si=9zQ3VM2TE1aLeCxH",
+        "fallback": "YouTube Video: 【究極のズボラ向け】一人鍋セットを作り置き冷凍！平日5日間の晩ごはんレシピ【夕飯1週間献立】",
+        "title": "【究極のズボラ向け】一人鍋セットを作り置き冷凍！平日5日間の晩ごはんレシピ【夕飯1週間献立】",
+        "title_link": "https://youtube.com/watch?v=_PNyMj6hQeM&amp;si=9zQ3VM2TE1aLeCxH",
+        "author_name": "おすぎ(管理栄養士)",
+        "author_link": "https://www.youtube.com/@sugimeal",
+        "service_name": "YouTube",
+        "service_url": "https://www.youtube.com/"
     }
     usecase.handle(attachment, "C05H3USHAJU", "1706271210.390809")
