@@ -1,68 +1,40 @@
-from openai import OpenAI
-
+import logging
+from typing import Optional
+from usecase.service.openai_executer import OpenaiExecuter
 
 class TagAnalyzer:
-    def analyze_tags(self, text: str) -> list[str]:
-        return use_openai(text=text)
+    def __init__(self, logger: Optional[logging.Logger] = None):
+        self.logger = logger or logging.getLogger(__name__)
+        self.client = OpenaiExecuter(model="gpt-3.5-turbo-1106", logger=logger)
 
-def analyze_tags(tags: str) -> list[str]:
-    print("analyze_tags: " + tags)
-    return tags.split(",")
+    def handle(self, text: str) -> list[str]:
+        def analyze_tags(args: dict) -> list[str]:
+            tags = args.get("tags")
+            if tags is None:
+                return []
+            return tags.split(",")
 
-def use_openai(text: str) -> list[str]:
-    print("use_openai: " + text)
-    client = OpenAI()
-    messages = [
-        {"role": "user", "content": f"次の文章を解析して、タグをつけてください。\n\n{text}"}
-    ]
-    tools = [
-        {
-            "type": "function",
-            "function": {
-                "name": "analyze_tags",
-                "description": "タグをつける",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "tags": {
-                            "type": "string",
-                            "description": "タグのリスト。カンマ区切りで複数指定可能\n例) 文章術, プロレス, 資産運用",
-                        },
-                    },
-                    "required": ["tags"],
+        user_content = f"次の文章を解析して、タグをつけてください。\n\n{text}"
+        analyze_tags_parameters = {
+            "type": "object",
+            "properties": {
+                "tags": {
+                    "type": "string",
+                    "description": "タグのリスト。カンマ区切りで複数指定可能\n例) 文章術, プロレス, 資産運用",
                 },
-            }
-
+            },
+            "required": ["tags"],
         }
-    ]
-    response = client.chat.completions.create(
-        model="gpt-4-turbo-preview",
-        messages=messages,
-        tools=tools,
-        tool_choice="auto",
-    )
-    print(response)
-    response_message = response.choices[0].message
-    print(response_message)
-    tool_calls = response_message.tool_calls
-    print(tool_calls)
-
-    if not tool_calls:
-        return []
-
-    # Step 3: call the function
-    # Note: the JSON response may not always be valid; be sure to handle errors
-    available_functions = {
-        "analyze_tags": analyze_tags,
-    }  # only one function in this example, but you can have multiple
-    messages.append(response_message)  # extend conversation with assistant's reply
-    # Step 4: send the info for each function call and function response to the model
-    for tool_call in tool_calls:
-        function_name = tool_call.function.name
-        function_to_call = available_functions[function_name]
-        import json
-        function_args = json.loads(tool_call.function.arguments)
-        function_response = function_to_call(
-            tags=function_args.get("tags"),
+        tags:list[str] = self.client.simple_function_calling(
+            user_content=user_content,
+            func=analyze_tags,
+            func_description="タグをつける",
+            parameters=analyze_tags_parameters,
         )
-        return function_response
+        return tags
+
+if __name__ == "__main__":
+    # python -m usecase.service.tag_analyzer
+    logging.basicConfig(level=logging.DEBUG)
+    tag_analyzer = TagAnalyzer()
+    print(tag_analyzer.handle(text="切り干し大根はうまみや栄養が凝縮された食材で、煮物やサラダ、かき揚げなど様々な料理に使える。味付けも自由でお酒にも合う。水でもどす工程なしで手軽に作れる。"))

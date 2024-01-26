@@ -38,7 +38,7 @@ class AnalyzeInbox:
             summary = self.text_summarizer.handle(page_text)
             self.logger.debug(summary)
             self._post_progress_if_dev(text=f"analyze_inbox: summary ```{summary}```", channel=channel, thread_ts=thread_ts)
-            tags = self.tag_analyzer.analyze_tags(text=summary)
+            tags = self.tag_analyzer.handle(text=summary)
             self._post_progress_if_dev(text=f"analyze_inbox: tags ```{tags}```", channel=channel, thread_ts=thread_ts)
 
             self._post_progress_if_dev(text=f"create_webclip_page: ```{original_url}\n{title}\n{summary}\n{tags}\n{page_text}\n{attachment.get('image_url')}````", channel=channel, thread_ts=thread_ts)
