@@ -1,6 +1,8 @@
 import logging
 from slack_sdk.web import WebClient
 from openai import OpenAI
+from datetime import date as Date
+import requests
 from usecase.service.text_summarizer import TextSummarizer
 from usecase.service.tag_analyzer import TagAnalyzer
 from usecase.service.simple_scraper import SimpleScraper
@@ -26,6 +28,10 @@ class AnalyzeInbox:
 
             if "youtube.com" in attachment["original_url"]:
                 return self.handle_youtube(attachment=attachment, channel=channel, thread_ts=thread_ts)
+
+            if "wrestle-universe.com" in attachment["original_url"]:
+                return self.handle_wrestle_universe(attachment=attachment, channel=channel, thread_ts=thread_ts)
+
 
             self._post_progress_if_dev(text=f"analyze_inbox: start ```{json.dumps(attachment)}", channel=channel, thread_ts=thread_ts)
             title = attachment["title"]
@@ -108,6 +114,44 @@ class AnalyzeInbox:
             text=page_url,
         )
 
+    def handle_wrestle_universe(self, attachment: dict, channel: str, thread_ts: str) -> None:
+        """ 指定したURLの動画を登録する """
+        original_url:str = attachment["original_url"]
+        id = original_url.split("/")[-1]
+        event_url = f"https://api.wrestle-universe.com/v1/events/{id}?al=ja"
+        response = requests.get(event_url)
+        data:dict = response.json()
+        self.logger.debug(json.dumps(data, ensure_ascii=False))
+        title = data["displayName"]
+        description = data["description"]
+        date = Date.fromisoformat(data["labels"]["matchDate"].split("T")[0])
+        cover = data["keyVisualUrl"]
+
+        def get_promotion_name(group_key: str) -> str:
+            match group_key:
+                case "tjpw":
+                    return "東京女子プロレス"
+                case _:
+                    return group_key
+        promotion_name = get_promotion_name(data["labels"]["group"])
+        venue = data["labels"]["venue"]
+        tags = self.tag_analyzer.handle_for_prowrestling(text=description)
+        tags.append(promotion_name)
+        tags.append(venue)
+        page = self.notion_api.create_video_page(
+            url=original_url,
+            title=title,
+            date=date,
+            promotion=promotion_name,
+            tags=tags,
+            cover=cover,
+        )
+        page_url:str = page["url"]
+        self.client.chat_postMessage(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=page_url,
+        )
 
 
     def _post_progress_if_dev(self, text: str, channel: str, thread_ts: str):
@@ -129,22 +173,6 @@ if __name__ == "__main__":
         notion_api=LambdaNotionApi(),
     )
     attachment = {
-        "from_url": "https://youtube.com/watch?v=_PNyMj6hQeM&amp;si=9zQ3VM2TE1aLeCxH",
-        "thumb_url": "https://i.ytimg.com/vi/_PNyMj6hQeM/hqdefault.jpg",
-        "thumb_width": 480,
-        "thumb_height": 360,
-        "video_html": "<iframe width=\"400\" height=\"225\" src=\"https://www.youtube.com/embed/_PNyMj6hQeM?feature=oembed&autoplay=1&iv_load_policy=3\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen title=\"【究極のズボラ向け】一人鍋セットを作り置き冷凍！平日5日間の晩ごはんレシピ【夕飯1週間献立】\"></iframe>",
-        "video_html_width": 400,
-        "video_html_height": 225,
-        "service_icon": "https://a.slack-edge.com/80588/img/unfurl_icons/youtube.png",
-        "id": 1,
-        "original_url": "https://youtube.com/watch?v=_PNyMj6hQeM&amp;si=9zQ3VM2TE1aLeCxH",
-        "fallback": "YouTube Video: 【究極のズボラ向け】一人鍋セットを作り置き冷凍！平日5日間の晩ごはんレシピ【夕飯1週間献立】",
-        "title": "【究極のズボラ向け】一人鍋セットを作り置き冷凍！平日5日間の晩ごはんレシピ【夕飯1週間献立】",
-        "title_link": "https://youtube.com/watch?v=_PNyMj6hQeM&amp;si=9zQ3VM2TE1aLeCxH",
-        "author_name": "おすぎ(管理栄養士)",
-        "author_link": "https://www.youtube.com/@sugimeal",
-        "service_name": "YouTube",
-        "service_url": "https://www.youtube.com/"
+        "original_url": "https://www.wrestle-universe.com/ja/lives/a6LxWJxRVkMM8TqZanndgh",
     }
     usecase.handle(attachment, "C05H3USHAJU", "1706271210.390809")
