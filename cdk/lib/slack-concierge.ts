@@ -125,6 +125,7 @@ export class SlackConcierge extends Stack {
       role: role,
       layers: [myLayer],
       timeout: Duration.seconds(timeout),
+      retryAttempts: 0,
     });
 
     fn.addEnvironment(
