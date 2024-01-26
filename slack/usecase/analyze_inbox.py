@@ -98,6 +98,7 @@ class AnalyzeInbox:
         original_url = attachment["original_url"]
         cover = attachment.get("thumb_url")
         tags = self.tag_analyzer.handle(text=title)
+        tags.append(attachment["author_name"])
         page = self.notion_api.create_video_page(
             url=original_url,
             title=title,
