@@ -6,6 +6,7 @@ from usecase.service.tag_analyzer import TagAnalyzer
 from usecase.service.simple_scraper import SimpleScraper
 from domain.infrastructure.api.notion_api import NotionApi
 from util.environment import Environment
+from util.logging_traceback import logging_traceback
 import json
 
 class AnalyzeInbox:
@@ -18,37 +19,43 @@ class AnalyzeInbox:
         self.simple_scraper = SimpleScraper()
 
     def handle(self, attachment: dict, channel: str, thread_ts: str) -> None:
-        self._post_progress_if_dev(text=f"analyze_inbox: start ```{json.dumps(attachment)}", channel=channel, thread_ts=thread_ts)
-        title = attachment["title"]
-        original_url = attachment["original_url"]
-        page_text = self.simple_scraper.handle(url=original_url)
-        if page_text is None:
-            raise Exception("ページのスクレイピングに失敗しました。")
-        self.logger.debug(page_text)
-        summary = self.text_summarizer.handle(page_text)
-        self.logger.debug(summary)
-        self._post_progress_if_dev(text=f"analyze_inbox: summary ```{summary}```", channel=channel, thread_ts=thread_ts)
-        tags = self.tag_analyzer.analyze_tags(text=summary)
-        self.logger.debug(tags)
-        self._post_progress_if_dev(text=f"analyze_inbox: tags ```{tags}```", channel=channel, thread_ts=thread_ts)
+        try:
+            self._post_progress_if_dev(text=f"analyze_inbox: start ```{json.dumps(attachment)}", channel=channel, thread_ts=thread_ts)
+            title = attachment["title"]
+            original_url = attachment["original_url"]
+            page_text = self.simple_scraper.handle(url=original_url)
+            if page_text is None:
+                raise Exception("ページのスクレイピングに失敗しました。")
+            self.logger.debug(page_text)
+            summary = self.text_summarizer.handle(page_text)
+            self.logger.debug(summary)
+            self._post_progress_if_dev(text=f"analyze_inbox: summary ```{summary}```", channel=channel, thread_ts=thread_ts)
+            tags = self.tag_analyzer.analyze_tags(text=summary)
+            self.logger.debug(tags)
+            self._post_progress_if_dev(text=f"analyze_inbox: tags ```{tags}```", channel=channel, thread_ts=thread_ts)
 
-        self.logger.info("create_webclip_page")
-        page = self.notion_api.create_webclip_page(
-            url=original_url,
-            title=title,
-            summary=summary,
-            tags=tags,
-            text=page_text,
-            cover=attachment.get("image_url"),
-        )
-        self._post_progress_if_dev(text=f"analyze_inbox: page ```{page}```", channel=channel, thread_ts=thread_ts)
-        page_url:str = page["url"]
-        result_text = f"{page_url}\n\n```{summary}```"
-        self.client.chat_postMessage(
-            channel=channel,
-            thread_ts=thread_ts,
-            text=result_text,
-        )
+            self._post_progress_if_dev(text=f"create_webclip_page: ```{original_url}\n{title}\n{summary}\n{tags}\n{page_text}\n{attachment.get('image_url')}````", channel=channel, thread_ts=thread_ts)
+            page = self.notion_api.create_webclip_page(
+                url=original_url,
+                title=title,
+                summary=summary,
+                tags=tags,
+                text=page_text,
+                cover=attachment.get("image_url"),
+            )
+            self._post_progress_if_dev(text=f"analyze_inbox: page ```{page}```", channel=channel, thread_ts=thread_ts)
+            page_url:str = page["url"]
+            result_text = f"{page_url}\n\n```{summary}```"
+            self.client.chat_postMessage(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=result_text,
+            )
+        except Exception as e:
+            import sys
+            self._post_progress_if_dev(text=f"analyze_inbox: error ```{e}```", channel=channel, thread_ts=thread_ts)
+            exc_info = sys.exc_info()
+            logging_traceback(e, exc_info)
 
 
     def _post_progress_if_dev(self, text: str, channel: str, thread_ts: str):
