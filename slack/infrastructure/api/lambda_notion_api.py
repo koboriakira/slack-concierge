@@ -90,6 +90,26 @@ class LambdaNotionApi(NotionApi):
             data["cover"] = cover
         return self._post(url=api_url, data=data)
 
+    def create_prowrestling_page(self,
+                                 url: str,
+                                 title: str,
+                                 date: Date,
+                                 promotion: str,
+                                 tags: list[str],
+                                 cover: Optional[str] = None,
+                                ) -> dict:
+        api_url = f"{self.domain}prowrestling"
+        data = {
+            "url": url,
+            "title": title,
+            "date": date.strftime("%Y-%m-%d"),
+            "promotion": promotion,
+            "tags": tags,
+        }
+        if cover:
+            data["cover"] = cover
+        return self._post(url=api_url, data=data)
+
 
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """

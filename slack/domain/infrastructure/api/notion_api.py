@@ -46,3 +46,15 @@ class NotionApi(metaclass=ABCMeta):
                             ) -> dict:
         """ Notionに動画のページを作成する """
         pass
+
+    @abstractmethod
+    def create_prowrestling_page(self,
+                                 url: str,
+                                 title: str,
+                                 date: Date,
+                                 promotion: str,
+                                 tags: list[str],
+                                 cover: Optional[str] = None,
+                                ) -> dict:
+        """ Notionにプロレスのページを作成する """
+        pass
