@@ -10,6 +10,7 @@ from domain.channel import ChannelType
 from domain.user import UserKind
 from util.environment import Environment
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from infrastructure.slack.slack_client_wrapper import SlackClientWrapper
 
 def just_ack(ack: Ack):
     ack()
@@ -21,6 +22,7 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
         logger.setLevel(logging.DEBUG)
     logger.info("handle_message_event")
     logger.debug(json.dumps(body, ensure_ascii=False))
+    client_wrapper = SlackClientWrapper(client=client, logger=logger)
 
     try:
         event:dict = body["event"]
@@ -40,6 +42,10 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
             attachment = message["attachments"][0]
             channel = event["channel"]
             thread_ts = event["message"]["ts"]
+            if client_wrapper.is_reacted(name="white_check_mark", channel=channel, timestamp=thread_ts):
+                logger.info("既にリアクションがついているので処理をスキップします。")
+                return
+            client_wrapper.reactions_add(channel=channel, name="white_check_mark", timestamp=event["ts"])
             usecase = AnalyzeInbox(client=client, logger=logger, notion_api=LambdaNotionApi())
             usecase.handle(attachment=attachment,
                             channel=channel,
