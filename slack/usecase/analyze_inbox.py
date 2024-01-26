@@ -141,6 +141,7 @@ class AnalyzeInbox:
             title=title,
             date=date,
             promotion=promotion_name,
+            text=description,
             tags=tags,
             cover=cover,
         )

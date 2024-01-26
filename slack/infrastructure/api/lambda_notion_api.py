@@ -95,6 +95,7 @@ class LambdaNotionApi(NotionApi):
                                  title: str,
                                  date: Date,
                                  promotion: str,
+                                 text: str,
                                  tags: list[str],
                                  cover: Optional[str] = None,
                                 ) -> dict:
