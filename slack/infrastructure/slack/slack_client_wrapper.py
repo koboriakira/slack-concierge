@@ -7,7 +7,7 @@ class SlackClientWrapper:
         self.client = client
         self.logger = logger or logging.getLogger(__name__)
 
-    def reactions_add(self, channel: str, name: str, timestamp: str) -> None:
+    def reactions_add(self, name: str, channel: str, timestamp: str) -> None:
         try:
             self.client.reactions_add(
                 channel=channel,
@@ -26,12 +26,12 @@ class SlackClientWrapper:
             )
             message = response["message"]
             if "reactions" not in message:
-                return True
+                return False
             reactions = message["reactions"]
             for reaction in reactions:
                 if reaction["name"] == name:
-                    return False
-            return True
+                    return True
+            return False
         except Exception as e:
             self.logger.debug(e)
             self.logger.warning("リアクションをつけられませんでした。")
