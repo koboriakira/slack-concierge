@@ -37,11 +37,11 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
             )
         if is_posted_link_in_inbox_channel(channel, message):
             logger.info("inboxチャンネルへのリンク投稿")
-            attachments = message["attachments"][0]
+            attachment = message["attachments"][0]
             channel = event["channel"]
             thread_ts = event["message"]["ts"]
             usecase = AnalyzeInbox(client=client, logger=logger, notion_api=LambdaNotionApi())
-            usecase.handle(attachments=attachments,
+            usecase.handle(attachment=attachment,
                             channel=channel,
                             thread_ts=thread_ts)
     except Exception as e:

@@ -6,6 +6,7 @@ from usecase.service.tag_analyzer import TagAnalyzer
 from usecase.service.simple_scraper import SimpleScraper
 from domain.infrastructure.api.notion_api import NotionApi
 from util.environment import Environment
+import json
 
 class AnalyzeInbox:
     def __init__(self, client: WebClient, logger: logging.Logger, notion_api: NotionApi):
@@ -16,10 +17,10 @@ class AnalyzeInbox:
         self.tag_analyzer = TagAnalyzer()
         self.simple_scraper = SimpleScraper()
 
-    def handle(self, attachments: dict, channel: str, thread_ts: str) -> None:
-        self._post_progress_if_dev(text="analyze_inbox: start", channel=channel, thread_ts=thread_ts)
-        title = attachments["title"]
-        original_url = attachments["original_url"]
+    def handle(self, attachment: dict, channel: str, thread_ts: str) -> None:
+        self._post_progress_if_dev(text=f"analyze_inbox: start ```{json.dumps(attachment)}", channel=channel, thread_ts=thread_ts)
+        title = attachment["title"]
+        original_url = attachment["original_url"]
         page_text = self.simple_scraper.handle(url=original_url)
         if page_text is None:
             raise Exception("ページのスクレイピングに失敗しました。")
@@ -38,8 +39,9 @@ class AnalyzeInbox:
             summary=summary,
             tags=tags,
             text=page_text,
-            cover=attachments.get("image_url"),
+            cover=attachment.get("image_url"),
         )
+        self._post_progress_if_dev(text=f"analyze_inbox: page ```{page}```", channel=channel, thread_ts=thread_ts)
         page_url:str = page["url"]
         result_text = f"{page_url}\n\n```{summary}```"
         self.client.chat_postMessage(
@@ -50,12 +52,12 @@ class AnalyzeInbox:
 
 
     def _post_progress_if_dev(self, text: str, channel: str, thread_ts: str):
-        if Environment.is_dev():
-            self.client.chat_postMessage(
-                channel=channel,
-                thread_ts=thread_ts,
-                text=text,
-            )
+        # if Environment.is_dev():
+        self.client.chat_postMessage(
+            channel=channel,
+            thread_ts=thread_ts,
+            text=text,
+        )
 
 if __name__ == "__main__":
     # python -m usecase.analyze_inbox
