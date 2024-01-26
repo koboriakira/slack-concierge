@@ -37,9 +37,6 @@ class LambdaNotionApi(NotionApi):
                                 cover_url: Optional[str] = None,
                                 release_date: Optional[Date] = None,) -> dict:
         url = f"{self.domain}music"
-        headers = {
-            "access-token": NOTION_SECRET,
-        }
         data = {
             "track_name": track_name,
             "artists": artists,
@@ -50,12 +47,31 @@ class LambdaNotionApi(NotionApi):
             data["cover_url"] = cover_url
         if release_date:
             data["release_date"] = release_date.strftime("%Y-%m-%d")
-        respone = requests.post(url=url, headers=headers, json=data)
-        logging.debug(respone)
-        if respone.status_code != 200:
-            raise Exception(f"status_code: {respone.status_code}, message: {respone.text}")
-        response_json = respone.json()
-        return response_json["data"]
+        return self._post(url=url, data=data)
+
+    def create_webclip_page(self,
+                            url: str,
+                            title: str,
+                            summary: str,
+                            tags: list[str],
+                            text: str,
+                            status: Optional[str] = None,
+                            cover: Optional[str] = None,
+                            ) -> dict:
+        url = f"{self.domain}webclip"
+        data = {
+            "url": url,
+            "title": title,
+            "summary": summary,
+            "tags": tags,
+            "text": text,
+        }
+        if status:
+            data["status"] = status
+        if cover:
+            data["cover"] = cover
+        return self._post(url=url, data=data)
+
 
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """
@@ -69,6 +85,17 @@ class LambdaNotionApi(NotionApi):
             raise Exception(f"status_code: {response.status_code}, message: {response.text}")
         return response.json()
 
+    def _post(self, url: str, data: dict) -> dict:
+        headers = {
+            "access-token": NOTION_SECRET,
+        }
+        respone = requests.post(url=url, headers=headers, json=data)
+        logging.debug(respone)
+        if respone.status_code != 200:
+            raise Exception(f"status_code: {respone.status_code}, message: {respone.text}")
+        response_json = respone.json()
+        return response_json["data"]
+
 
 if __name__ == "__main__":
     # python -m infrastructure.api.lambda_notion_api
@@ -79,9 +106,30 @@ if __name__ == "__main__":
 
     # print(notion_api.list_recipes())
 
-    print(notion_api.create_track_page(
-        track_name="Plastic Love",
-        artists=["Friday Night Plans"],
-        spotify_url="https://open.spotify.com/intl-ja/track/2qxTmEfGbBGMSJrwu4Ez1v?si=c4750c498ac14c7c",
-        release_date=Date(2024, 1, 22)
-    ))
+    # print(notion_api.create_track_page(
+    #     track_name="Plastic Love",
+    #     artists=["Friday Night Plans"],
+    #     spotify_url="https://open.spotify.com/intl-ja/track/2qxTmEfGbBGMSJrwu4Ez1v?si=c4750c498ac14c7c",
+    #     release_date=Date(2024, 1, 22)
+    # ))
+
+
+# {
+#     "url": "https://note.com/koboriakira/n/ne14eaa1c50d2?sub_rt=share_pb",
+#     "title": "東京女子プロレスのベストバウト29選 (2023)｜コボリアキラ",
+#     "summary": "2023年にファンとなった筆者が、その年の東京女子プロレスのベストバウト29試合について熱く語る記事。筆者は東京女子プロレスの魔法にかけられたように熱中し、試合や選手への情熱的な愛情を語りつくす。多くの試合が印象的だったが、特に強調されるのは、選手たちのエネルギッシュなパフォーマンス、印象的なシーン、そしてファンの心を捉えるストーリーテリングである。筆者は、東京女子プロレスの独特の魅力を「東京女子プロレスだから好き」という言葉で表現し、彼らのプロレスへの深い愛情を読者に伝えている。",
+#     "cover": "https://assets.st-note.com/production/uploads/images/126014735/rectangle_large_type_2_a12108f8a67248cc00e888924d6a08dc.jpeg?fit=bounds&quality=85&width=1280",
+#     "tags": ["東京女子プロレス", "プロレス", "ベストバウト", "2023"],
+#     "status": "Inbox",
+#     "text": "テスト"
+# }
+
+    # print(notion_api.create_webclip_page(
+    #     url="https://note.com/koboriakira/n/ne14eaa1c50d2?sub_rt=share_pb",
+    #     title="東京女子プロレスのベストバウト29選 (2023)｜コボリアキラ",
+    #     summary="2023年にファンとなった筆者が、その年の東京女子プロレスのベストバウト29試合について熱く語る記事。筆者は東京女子プロレスの魔法にかけられたように熱中し、試合や選手への情熱的な愛情を語りつくす。多くの試合が印象的だったが、特に強調されるのは、選手たちのエネルギッシュなパフォーマンス、印象的なシーン、そしてファンの心を捉えるストーリーテリングである。筆者は、東京女子プロレスの独特の魅力を「東京女子プロレスだから好き」という言葉で表現し、彼らのプロレスへの深い愛情を読者に伝えている。",
+    #     cover="https://assets.st-note.com/production/uploads/images/126014735/rectangle_large_type_2_a12108f8a67248cc00e888924d6a08dc.jpeg?fit=bounds&quality=85&width=1280",
+    #     tags=["東京女子プロレス", "プロレス", "ベストバウト", "2023"],
+    #     status="Inbox",
+    #     text="テスト"
+    # ))

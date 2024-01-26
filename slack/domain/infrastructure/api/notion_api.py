@@ -23,3 +23,16 @@ class NotionApi(metaclass=ABCMeta):
                                 cover_url: Optional[str] = None,
                                 release_date: Optional[Date] = None,) -> dict:
         """ Notionに音楽のページを作成する """
+
+    @abstractmethod
+    def create_webclip_page(self,
+                            url: str,
+                            title: str,
+                            summary: str,
+                            tags: list[str],
+                            text: str,
+                            status: Optional[str] = None,
+                            cover: Optional[str] = None,
+                            ) -> dict:
+        """ NotionにWebclipのページを作成する """
+        pass
