@@ -2,7 +2,7 @@ from openai import OpenAI
 
 
 class TagAnalyzer:
-    def analyze_tags(text: str) -> list[str]:
+    def analyze_tags(self, text: str) -> list[str]:
         return use_openai(text=text)
 
 def analyze_tags(tags: str) -> list[str]:

@@ -1,5 +1,5 @@
 from openai import OpenAI
-
+import logging
 
 TEMPLATE = """「仕様」に則って「入力」に記載した文章の要約をしてください。
 
@@ -11,7 +11,8 @@ TEMPLATE = """「仕様」に則って「入力」に記載した文章の要約
 {context}"""
 
 class TextSummarizer:
-    def __init__(self):
+    def __init__(self, logger: logging.Logger):
+        self.logger = logger
         self.client = OpenAI()
 
     def handle(self, text: str) -> str:
@@ -27,3 +28,13 @@ class TextSummarizer:
         print(response)
         response_message = response.choices[0].message
         print(response_message)
+        return response_message.content
+
+if __name__ == "__main__":
+    # python -m usecase.service.text_summarizer
+    logging.basicConfig(level=logging.DEBUG)
+    usecase = TextSummarizer(logger=logging.getLogger(__name__))
+    text = """うまみや栄養がぎゅっと凝縮された「切り干し大根」。お醤油味の煮物もいいですが、サラダにしたりかき揚げにしたりと実は自由に楽しめる食材です。味付けもピリ辛やエスニック風味でパンチを効かせてお酒のよき相棒に！ 水でもどす工程なしのレシピなので、思い立ったらすぐ作れます。 """
+    summary = usecase.handle(text)
+    print(type(summary))
+    print(summary)

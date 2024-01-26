@@ -5,8 +5,11 @@ from slack_sdk.web import WebClient
 from slack_bolt import App, Ack
 from util.logging_traceback import logging_traceback
 from usecase.upload_files_to_s3 import UploadFilesToS3
+from usecase.analyze_inbox import AnalyzeInbox
 from domain.channel import ChannelType
+from domain.user import UserKind
 from util.environment import Environment
+from infrastructure.api.lambda_notion_api import LambdaNotionApi
 
 def just_ack(ack: Ack):
     ack()
@@ -21,6 +24,8 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
 
     try:
         event:dict = body["event"]
+        if event.get("subtype") == "message_deleted":
+            return
         channel:str = event["channel"]
         message: dict = event["message"]
         if is_uploaded_file_in_share_channel(event):
@@ -32,7 +37,13 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
             )
         if is_posted_link_in_inbox_channel(channel, message):
             logger.info("inboxチャンネルへのリンク投稿")
-
+            attachments = message["attachments"][0]
+            channel = event["channel"]
+            thread_ts = event["message"]["ts"]
+            usecase = AnalyzeInbox(client=client, logger=logger, notion_api=LambdaNotionApi())
+            usecase.handle(attachments=attachments,
+                            channel=channel,
+                            thread_ts=thread_ts)
     except Exception as e:
         import sys
         exc_info = sys.exc_info()
@@ -45,6 +56,9 @@ def is_posted_link_in_inbox_channel(channel:str, message: dict) -> bool:
     """
     if channel != ChannelType.INBOX.value:
         return False
+    user:str = message["user"]
+    if user != UserKind.KOBORI_AKIRA.value:
+        return False
     attachments = message.get("attachments")
     if attachments is None or len(attachments) == 0:
         return False
@@ -56,6 +70,9 @@ def is_uploaded_file_in_share_channel(event: dict) -> bool:
     """
     subtype = event.get("subtype")
     if subtype != "file_share":
+        return False
+    user:str = event["user"]
+    if user != UserKind.KOBORI_AKIRA.value:
         return False
     channel = event["channel"]
     if channel != ChannelType.SHARE.value:
