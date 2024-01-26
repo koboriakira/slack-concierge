@@ -79,6 +79,16 @@ export class SlackConcierge extends Stack {
         resources: ["*"],
       })
     );
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["s3:*"],
+        resources: [
+          "arn:aws:s3:::koboriakira-bucket",
+          "arn:aws:s3:::koboriakira-bucket/*",
+        ],
+      })
+    );
 
     return role;
   }
