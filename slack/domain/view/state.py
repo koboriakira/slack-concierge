@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import logging
 from datetime import date as DateObject
 from datetime import time as TimeObject
-
+from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -73,7 +73,9 @@ class State:
         selected_options = self.action_map[action_id]["selected_options"]
         return [{"text": option["text"]["text"], "value": option["value"]} for option in selected_options]
 
-    def get_static_select(self, action_id: str) -> tuple[str, str]:
+    def get_static_select(self, action_id: str) -> Optional[tuple[str, str]]:
         """ 静的セレクトの結果を取得する。text, value の順で返す """
         selected_option = self.action_map[action_id]["selected_option"]
+        if selected_option is None:
+            return None
         return selected_option["text"]["text"], selected_option["value"]

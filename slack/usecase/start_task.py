@@ -1,4 +1,5 @@
 from datetime import date as Date
+from typing import Optional
 import logging
 from slack_sdk.web import WebClient
 from domain.infrastructure.api.notion_api import NotionApi
@@ -29,6 +30,12 @@ class StartTask:
         block_builder = block_builder.add_static_select(
             action_id="task",
             options=task_options,
+            optional=True,
+        )
+        block_builder = block_builder.add_plain_text_input(
+            action_id="new-task",
+            label="タスクを起票して開始する場合",
+            optional=True,
         )
 
         blocks = block_builder.build()
@@ -40,8 +47,15 @@ class StartTask:
             view=view,
         )
 
-    def handle_prepare(self, task_id: str, task_title: str):
-        """ ポモドーロ開始ボタンを投稿して、タスクを開始できる状態にする """
+    def handle_prepare(self, task_id: Optional[str], task_title: str):
+        """
+        ポモドーロ開始ボタンを投稿して、タスクを開始できる状態にする
+        task_idが未指定の場合は、新規タスクとして起票する
+        """
+        if task_id is None:
+            page = self.notion_api.create_task(title=task_title, start_date=Date.today())
+            task_id = page["id"]
+
         task_url = f"https://www.notion.so/{task_id.replace('-', '')}"
         text = f"<{task_url}|{task_title}> を開始します"
         block_builder = BlockBuilder()

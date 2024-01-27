@@ -41,14 +41,22 @@ def start_modal_interaction(body: dict, client: WebClient):
 
 def start_task(logger: logging.Logger, view: dict, client: WebClient):
     try:
-        view_model = View(view)
-        state = view_model.get_state()
-        task_title, task_id = state.get_static_select("task")
-        logging.info(task_title)
-        logging.info(task_id)
         notion_api = LambdaNotionApi()
         usecase = StartTaskUsecase(notion_api=notion_api, client=client)
-        usecase.handle_prepare(task_id=task_id, task_title=task_title)
+        view_model = View(view)
+        state = view_model.get_state()
+        task_tuple = state.get_static_select("task")
+        if task_tuple is not None:
+            # 既存タスクから選んだ場合
+            task_title, task_id = task_tuple
+            logging.info(task_title)
+            logging.info(task_id)
+            usecase.handle_prepare(task_id=task_id, task_title=task_title)
+        else:
+            # 新規タスクを起票した場合
+            new_task_title = state.get_text_input_value("new-task")
+            logging.info(new_task_title)
+            usecase.handle_prepare(task_id=None, task_title=new_task_title)
     except Exception as err:
         import sys
         logging_traceback(err, sys.exc_info())
