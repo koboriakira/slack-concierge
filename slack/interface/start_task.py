@@ -9,13 +9,14 @@ from domain.view.view import View
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from usecase.create_calendar import CreateCalendar as CreateCalendarUsecase
-from usecase.start_task_modal import StartTaskModal as StartTaskModalUsecase
+from usecase.start_task import StartTask as StartTaskUsecase
 from util.logging_traceback import logging_traceback
 from domain.channel.channel_type import ChannelType
 from util.environment import Environment
 
 SHORTCUT_ID = "start-task"
 CALLBACK_ID = "start-task-modal"
+
 
 def just_ack(ack: Ack):
     ack()
@@ -31,8 +32,8 @@ def start_modal_interaction(body: dict, client: WebClient):
     try:
         logging.debug(json.dumps(body, ensure_ascii=False))
         notion_api = LambdaNotionApi()
-        usecase = StartTaskModalUsecase(notion_api=notion_api)
-        usecase.handle(client=client, trigger_id=body["trigger_id"], callback_id=CALLBACK_ID)
+        usecase = StartTaskUsecase(notion_api=notion_api, client=client)
+        usecase.handle_modal(client=client, trigger_id=body["trigger_id"], callback_id=CALLBACK_ID)
     except Exception as err:
         import sys
         logging_traceback(err, sys.exc_info())
@@ -45,10 +46,9 @@ def start_task(logger: logging.Logger, view: dict, client: WebClient):
         task_title, task_id = state.get_static_select("task")
         logging.info(task_title)
         logging.info(task_id)
-        text = f"「{task_title}」を開始します"
-        channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
-
-        client.chat_postMessage(text=text, channel=channel.value)
+        notion_api = LambdaNotionApi()
+        usecase = StartTaskUsecase(notion_api=notion_api, client=client)
+        usecase.handle_prepare(task_id=task_id, task_title=task_title)
     except Exception as err:
         import sys
         logging_traceback(err, sys.exc_info())

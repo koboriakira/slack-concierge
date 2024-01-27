@@ -68,3 +68,11 @@ class NotionApi(metaclass=ABCMeta):
                                 ) -> dict:
         """ Notionにプロレスのページを作成する """
         pass
+
+    @abstractmethod
+    def append_feeling(self,
+                       page_id: str,
+                       feeling: str,
+                       ) -> dict:
+        """ Notionのページの「気持ち」フィールドにテキストを追加 """
+        pass

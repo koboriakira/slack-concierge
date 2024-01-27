@@ -125,6 +125,17 @@ class LambdaNotionApi(NotionApi):
             data["cover"] = cover
         return self._post(url=api_url, data=data)
 
+    def append_feeling(self,
+                       page_id: str,
+                       feeling: str,
+                       ) -> dict:
+        api_url = f"{self.domain}page/feeling"
+        data = {
+            "page_id": page_id,
+            "value": feeling,
+        }
+        return self._post(url=api_url, data=data)
+
 
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """
