@@ -24,6 +24,11 @@ class NotionApi(metaclass=ABCMeta):
         """ Notionのタスクを取得する """
         pass
 
+    @abstractmethod
+    def find_task(self, task_id: str) -> NotionPage:
+        """ Notionのタスクを1つ取得する """
+        pass
+
 
     @abstractmethod
     def create_track_page(self, track_name: str,

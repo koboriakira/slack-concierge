@@ -46,6 +46,10 @@ class LambdaNotionApi(NotionApi):
         data = response["data"]
         return [NotionPage.from_dict(page) for page in data]
 
+    def find_task(self, task_id: str) -> NotionPage:
+        response = self._get(path=f"task/{task_id}")
+        data = response["data"]
+        return NotionPage.from_dict(data)
 
     def create_track_page(self, track_name: str,
                                 artists: list[str],
