@@ -17,6 +17,12 @@ class NotionApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def list_tasks(self, start_date: Optional[Date] = None) -> list[NotionPage]:
+        """ Notionのタスクを取得する """
+        pass
+
+
+    @abstractmethod
     def create_track_page(self, track_name: str,
                                 artists: list[str],
                                 spotify_url: Optional[str] = None,
