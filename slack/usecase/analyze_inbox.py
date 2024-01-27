@@ -133,9 +133,10 @@ class AnalyzeInbox:
                     return group_key
         promotion_name = get_promotion_name(data["labels"]["group"])
         venue = data["labels"]["venue"]
-        tags = self.tag_analyzer.handle_for_prowrestling(text=description)
-        tags.append(promotion_name)
-        tags.append(venue)
+        tags = [
+            promotion_name,
+            venue,
+        ]
         page = self.notion_api.create_prowrestling_page(
             url=original_url,
             title=title,
