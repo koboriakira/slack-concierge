@@ -14,12 +14,16 @@ class StartPomodoro:
 
     def handle(self, notion_page_block_id: str, channel: str, thread_ts: str):
         """ ポモドーロの開始を通達する """
+        # 開始を連絡
         block_builder = BlockBuilder()
         block_builder = block_builder.add_section(
             text=f"開始しました！"
         )
         blocks = block_builder.build()
         self.client.chat_postMessage(text="", blocks=blocks, channel=channel, thread_ts=thread_ts)
+
+        # ポモドーロカウンターをインクリメント
+        self.notion_api.update_pomodoro_count(page_id=notion_page_block_id)
 
         # TODO: 25分後に終了を通知したい。EventBridgeなどを使う必要がありそうで時間がかかるので、
         # とりあえず開始直後に通知するようにしておいて、机上のタイマーで測っておく
