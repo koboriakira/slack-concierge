@@ -84,3 +84,11 @@ class NotionApi(metaclass=ABCMeta):
                               ) -> dict:
         """ Notionのページの「ポモドーロカウンター」フィールドを更新 """
         pass
+
+    @abstractmethod
+    def update_status(self,
+                              page_id: str,
+                              value: str,
+                              ) -> dict:
+        """ Notionのページの「ステータス」フィールドを更新 """
+        pass

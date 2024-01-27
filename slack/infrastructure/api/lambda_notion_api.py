@@ -146,6 +146,18 @@ class LambdaNotionApi(NotionApi):
         }
         return self._post(url=api_url, data=data)
 
+    def update_status(self,
+                      page_id: str,
+                      value: str,
+                      ) -> dict:
+        api_url = f"{self.domain}page/status"
+        data = {
+            "page_id": page_id,
+            "value": value,
+        }
+        return self._post(url=api_url, data=data)
+
+
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """
         url = f"{self.domain}{path}"
