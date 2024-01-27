@@ -56,12 +56,13 @@ class StartTask:
             page = self.notion_api.create_task(title=task_title, start_date=Date.today())
             task_id = page["id"]
 
+        channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
         task_url = f"https://www.notion.so/{task_id.replace('-', '')}"
-        text = f"<{task_url}|{task_title}> を開始します"
+        text = f"<{task_url}|{task_title}>"
+        response = self.client.chat_postMessage(text=text, channel=channel.value)
+        thread_ts = response["ts"]
+
         block_builder = BlockBuilder()
-        block_builder = block_builder.add_section(
-            text=text,
-        )
         block_builder = block_builder.add_button_action(
             action_id="start-pomodoro",
             text="開始",
@@ -69,6 +70,4 @@ class StartTask:
             style="primary",
         )
         blocks = block_builder.build()
-        channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
-
-        self.client.chat_postMessage(text=text, blocks=blocks, channel=channel.value)
+        self.client.chat_postMessage(text="", blocks=blocks, channel=channel.value, thread_ts=thread_ts)
