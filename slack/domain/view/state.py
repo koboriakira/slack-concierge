@@ -72,3 +72,8 @@ class State:
             return []
         selected_options = self.action_map[action_id]["selected_options"]
         return [{"text": option["text"]["text"], "value": option["value"]} for option in selected_options]
+
+    def get_static_select(self, action_id: str) -> tuple[str, str]:
+        """ 静的セレクトの結果を取得する。text, value の順で返す """
+        selected_option = self.action_map[action_id]["selected_option"]
+        return selected_option["text"]["text"], selected_option["value"]

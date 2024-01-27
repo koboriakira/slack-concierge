@@ -33,10 +33,15 @@ class LambdaNotionApi(NotionApi):
         data = response["data"]
         return NotionPage.from_dict(data)
 
-    def list_tasks(self, start_date: Optional[Date] = None) -> list[NotionPage]:
+    def list_tasks(self,
+                   start_date: Optional[Date] = None,
+                   status: Optional[str] = None,
+                   ) -> list[NotionPage]:
         params = {}
         if start_date:
             params["start_date"] = start_date
+        if status:
+            params["status"] = status
         response = self._get(path="tasks", params=params)
         data = response["data"]
         return [NotionPage.from_dict(page) for page in data]

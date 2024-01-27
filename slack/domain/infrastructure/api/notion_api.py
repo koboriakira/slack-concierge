@@ -17,7 +17,10 @@ class NotionApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def list_tasks(self, start_date: Optional[Date] = None) -> list[NotionPage]:
+    def list_tasks(self,
+                   start_date: Optional[Date] = None,
+                   status: Optional[str] = None,
+                   ) -> list[NotionPage]:
         """ Notionのタスクを取得する """
         pass
 
