@@ -97,3 +97,11 @@ class NotionApi(metaclass=ABCMeta):
                               ) -> dict:
         """ Notionのページの「ステータス」フィールドを更新 """
         pass
+
+    @abstractmethod
+    def create_task(self,
+                    title: str,
+                    start_date: Optional[Date] = None,
+                    ) -> dict:
+        """ タスクページを新規作成する """
+        pass

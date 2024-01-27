@@ -148,6 +148,7 @@ class LambdaNotionApi(NotionApi):
         data = {
             "page_id": page_id,
         }
+        self.logger.debug(f"url: {api_url} data: {json.dumps(data, ensure_ascii=False)}")
         return self._post(url=api_url, data=data)
 
     def update_status(self,
@@ -159,6 +160,18 @@ class LambdaNotionApi(NotionApi):
             "page_id": page_id,
             "value": value,
         }
+        return self._post(url=api_url, data=data)
+
+    def create_task(self,
+                    title: str,
+                    start_date: Optional[Date] = None,
+                    ) -> dict:
+        api_url = f"{self.domain}task"
+        data = {
+            "title": title,
+        }
+        if start_date:
+            data["start_date"] = start_date.isoformat()
         return self._post(url=api_url, data=data)
 
 
