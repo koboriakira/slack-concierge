@@ -8,6 +8,7 @@ from interface.handle_message_event import handle_message_event
 from interface.start_task import shortcut_start_task
 from interface.start_pomodoro import action_start_pomodoro
 from interface.record_feeling import action_record_feeling
+from interface.complete_task import action_complete_task
 
 def create_lazy_app() -> App:
     app = App(
@@ -25,5 +26,6 @@ def create_lazy_app() -> App:
     app = shortcut_start_task(app)
     app = action_start_pomodoro(app)
     app = action_record_feeling(app)
+    app = action_complete_task(app)
 
     return app

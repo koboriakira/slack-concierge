@@ -1,11 +1,7 @@
-from datetime import date as Date
-import logging
 from slack_sdk.web import WebClient
 from domain.infrastructure.api.notion_api import NotionApi
 from domain_service.block.block_builder import BlockBuilder
 from domain_service.view.view_builder import ViewBuilder
-from util.environment import Environment
-
 
 
 class RecordFeeling:
@@ -47,10 +43,14 @@ class RecordFeeling:
             style="primary",
         )
         block_builder = block_builder.add_button_action(
-            action_id="complete",
+            action_id="complete-task",
             text="終了",
             value=block_id,
             style="danger",
+        )
+        block_builder = block_builder.add_context(
+            {"channel_id": channel,
+             "thread_ts": thread_ts}
         )
         blocks = block_builder.build()
         self.client.chat_postMessage(text="", blocks=blocks, channel=channel, thread_ts=thread_ts)
