@@ -1,4 +1,6 @@
 import json
+from typing import Optional
+from datetime import date as DateObject
 
 
 class NotionPage:
@@ -71,4 +73,29 @@ class RecipePage(NotionPage):
             ingredients=params["ingredients"],
             meal_categories=params["meal_categories"],
             status=params["status"],
+        )
+
+class TaskPage(NotionPage):
+    status: str
+    feeling: str
+    start_date: Optional[DateObject] = None
+    task_kind: Optional[str] = None
+
+    def __init__(self, id: str, url: str, title: str, status: str, feeling: str, start_date: Optional[DateObject] = None, task_kind: Optional[str] = None):
+        super().__init__(id, url, title)
+        self.status = status
+        self.feeling = feeling
+        self.start_date = start_date
+        self.task_kind = task_kind
+
+
+    def from_dict(params: dict) -> "TaskPage":
+        return TaskPage(
+            id=params["id"],
+            url=params["url"],
+            title=params["title"],
+            status=params["status"],
+            feeling=params["feeling"],
+            start_date=params["start_date"] if "start_date" in params else None,
+            task_kind=params["task_kind"] if "task_kind" in params else None,
         )

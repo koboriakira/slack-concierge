@@ -57,7 +57,7 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
         # return response.json()
 
     def post_schedule(self, schedule: Schedule) -> bool:
-        return self._post_gas_calendar(
+        return self.post_gas_calendar(
             start=schedule.start,
             end=schedule.end,
             category=schedule.category,
@@ -77,7 +77,7 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
         }
         return requests.delete(url=self.domain, params=params).json()
 
-    def _post_gas_calendar(self,
+    def post_gas_calendar(self,
                           start: DatetimeObject,
                           end: DatetimeObject,
                           category: str,
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     api = LambdaGoogleCalendarApi()
     # logging.info(api.get_gas_calendar(date=DateObject(2024, 1, 12)))
-    # logging.info(api._post_gas_calendar(
+    # logging.info(api.post_gas_calendar(
     #     start=DatetimeObject(2024, 1, 12, 10, 0),
     #     end=DatetimeObject(2024, 1, 12, 11, 0),
     #     category="プライベート",

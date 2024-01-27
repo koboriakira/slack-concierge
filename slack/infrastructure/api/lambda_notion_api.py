@@ -5,7 +5,7 @@ import logging
 import requests
 import json
 from domain.infrastructure.api.notion_api import NotionApi
-from domain.notion.notion_page import RecipePage, NotionPage
+from domain.notion.notion_page import RecipePage, NotionPage, TaskPage
 
 NOTION_SECRET = os.getenv("NOTION_SECRET")
 
@@ -36,7 +36,7 @@ class LambdaNotionApi(NotionApi):
     def list_tasks(self,
                    start_date: Optional[Date] = None,
                    status: Optional[str] = None,
-                   ) -> list[NotionPage]:
+                   ) -> list[TaskPage]:
         params = {}
         if start_date:
             params["start_date"] = start_date
@@ -44,12 +44,12 @@ class LambdaNotionApi(NotionApi):
             params["status"] = status
         response = self._get(path="tasks", params=params)
         data = response["data"]
-        return [NotionPage.from_dict(page) for page in data]
+        return [TaskPage.from_dict(page) for page in data]
 
-    def find_task(self, task_id: str) -> NotionPage:
+    def find_task(self, task_id: str) -> TaskPage:
         response = self._get(path=f"task/{task_id}")
         data = response["data"]
-        return NotionPage.from_dict(data)
+        return TaskPage.from_dict(data)
 
     def create_track_page(self, track_name: str,
                                 artists: list[str],

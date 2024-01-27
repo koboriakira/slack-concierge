@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import date as Date
 from abc import ABCMeta, abstractmethod
-from domain.notion.notion_page import RecipePage, NotionPage
+from domain.notion.notion_page import RecipePage, NotionPage, TaskPage
 
 class NotionApi(metaclass=ABCMeta):
     @abstractmethod
@@ -20,12 +20,12 @@ class NotionApi(metaclass=ABCMeta):
     def list_tasks(self,
                    start_date: Optional[Date] = None,
                    status: Optional[str] = None,
-                   ) -> list[NotionPage]:
+                   ) -> list[TaskPage]:
         """ Notionのタスクを取得する """
         pass
 
     @abstractmethod
-    def find_task(self, task_id: str) -> NotionPage:
+    def find_task(self, task_id: str) -> TaskPage:
         """ Notionのタスクを1つ取得する """
         pass
 

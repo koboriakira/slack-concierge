@@ -35,3 +35,12 @@ class GoogleCalendarApi(metaclass=ABCMeta):
     def post_schedule(self, schedule: Schedule) -> bool:
         """ カレンダーを追加する """
         pass
+
+    @abstractmethod
+    def post_gas_calendar(self,
+                          start: DatetimeObject,
+                          end: DatetimeObject,
+                          category: str,
+                          title: str,
+                          detail: Optional[str] = None) -> bool:
+        """ カレンダーを追加する """
