@@ -136,6 +136,15 @@ class LambdaNotionApi(NotionApi):
         }
         return self._post(url=api_url, data=data)
 
+    def update_pomodoro_count(self,
+                              page_id: str,
+                              count: Optional[int] = None,
+                              ) -> dict:
+        api_url = f"{self.domain}page/pomodoro-count"
+        data = {
+            "page_id": page_id,
+        }
+        return self._post(url=api_url, data=data)
 
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """
@@ -160,6 +169,7 @@ class LambdaNotionApi(NotionApi):
         response_json = respone.json()
         self.logger.debug(json.dumps(response_json, ensure_ascii=False))
         return response_json["data"]
+
 
 
 if __name__ == "__main__":

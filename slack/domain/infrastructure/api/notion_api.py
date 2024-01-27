@@ -76,3 +76,11 @@ class NotionApi(metaclass=ABCMeta):
                        ) -> dict:
         """ Notionのページの「気持ち」フィールドにテキストを追加 """
         pass
+
+    @abstractmethod
+    def update_pomodoro_count(self,
+                              page_id: str,
+                              count: Optional[int] = None,
+                              ) -> dict:
+        """ Notionのページの「ポモドーロカウンター」フィールドを更新 """
+        pass
