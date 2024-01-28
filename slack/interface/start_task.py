@@ -45,18 +45,23 @@ def start_task(logger: logging.Logger, view: dict, client: WebClient):
         usecase = StartTaskUsecase(notion_api=notion_api, client=client)
         view_model = View(view)
         state = view_model.get_state()
-        task_tuple = state.get_static_select("task")
-        if task_tuple is not None:
+        if (task := state.get_static_select("task")) is not None:
             # 既存タスクから選んだ場合
-            task_title, task_id = task_tuple
+            task_title, task_id = task
             logging.info(task_title)
             logging.info(task_id)
             usecase.handle_prepare(task_id=task_id, task_title=task_title)
-        else:
+            return
+        elif (new_task_title := state.get_text_input_value("new-task")) is not None:
             # 新規タスクを起票した場合
-            new_task_title = state.get_text_input_value("new-task")
             logging.info(new_task_title)
             usecase.handle_prepare(task_id=None, task_title=new_task_title)
+            return
+        elif (routine_task := state.get_static_select("routine-task")) is not None:
+            # ルーチンタスクを選択した場合
+            logging.info(routine_task)
+            usecase.handle_prepare(task_id=None, task_title=f"{routine_task}【ルーティン】")
+            return
     except Exception as err:
         import sys
         logging_traceback(err, sys.exc_info())

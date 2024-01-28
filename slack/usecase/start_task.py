@@ -8,6 +8,23 @@ from domain_service.view.view_builder import ViewBuilder
 from util.environment import Environment
 from domain.channel import ChannelType
 
+ROUTINE_TASK_OPTIONS = [
+    {"家事": "housework"},
+    {"料理": "cooking"},
+    {"買い物": "shopping"},
+    {"朝食": "breakfast"},
+    {"昼食": "lunch"},
+    {"夕食": "dinner"},
+    {"入浴": "bath"},
+    {"睡眠": "sleep"},
+    {"日次レビュー": "daily-review"},
+    {"週次レビュー": "weekly-review"},
+    {"月次レビュー": "monthly-review"},
+    {"その他": "other"},
+    # {"読書": "reading"},
+    # {"勉強": "study"},
+    # {"運動": "exercise"},
+]
 
 class StartTask:
     def __init__(self, notion_api: NotionApi, client: WebClient):
@@ -35,6 +52,12 @@ class StartTask:
         block_builder = block_builder.add_plain_text_input(
             action_id="new-task",
             label="タスクを起票して開始する場合",
+            optional=True,
+        )
+        block_builder = block_builder.add_static_select(
+            action_id="routine-task",
+            label="ルーチンタスクを開始する場合",
+            options=ROUTINE_TASK_OPTIONS,
             optional=True,
         )
 
