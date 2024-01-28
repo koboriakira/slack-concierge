@@ -1,3 +1,4 @@
+import json
 import logging
 from slack_sdk.web import WebClient
 from datetime import date as Date
@@ -6,7 +7,7 @@ from usecase.service.text_summarizer import TextSummarizer
 from usecase.service.tag_analyzer import TagAnalyzer
 from usecase.service.simple_scraper import SimpleScraper
 from domain.infrastructure.api.notion_api import NotionApi
-import json
+from util.environment import Environment
 
 class AnalyzeInbox:
     def __init__(self, client: WebClient, logger: logging.Logger, notion_api: NotionApi):
@@ -155,12 +156,12 @@ class AnalyzeInbox:
 
 
     def _post_progress_if_dev(self, text: str, channel: str, thread_ts: str):
-        # if Environment.is_dev():
-        self.client.chat_postMessage(
-            channel=channel,
-            thread_ts=thread_ts,
-            text=text,
-        )
+        if Environment.is_dev():
+            self.client.chat_postMessage(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=text,
+            )
 
 if __name__ == "__main__":
     # python -m usecase.analyze_inbox
