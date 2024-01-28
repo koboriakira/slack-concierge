@@ -19,13 +19,13 @@ def create_lazy_app() -> App:
 
     # 以下、扱える処理をusecase単位で追加
     app = shortcut_create_calendar(app)
-    app = message_react_user_post(app)
     app = shortcut_sync_times(app)
     app = shortcut_love_spotify_track(app)
-    app = handle_message_event(app)
     app = shortcut_start_task(app)
     app = action_start_pomodoro(app)
     app = action_record_feeling(app)
     app = action_complete_task(app)
+    app = handle_message_event(app)
+    app = message_react_user_post(app)
 
     return app

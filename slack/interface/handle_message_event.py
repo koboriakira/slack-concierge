@@ -26,17 +26,23 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
 
     try:
         event:dict = body["event"]
+
+        # メッセージ削除イベントは無視
         if event.get("subtype") == "message_deleted":
             return
-        channel:str = event["channel"]
-        message: dict = event["message"]
+
+        # shareチャンネルへのファイルアップロードイベントのみ処理
         if is_uploaded_file_in_share_channel(event):
             usecase = UploadFilesToS3(client, logger)
             usecase = usecase.execute(
-                channel=channel,
+                channel=event["channel"],
                 files=event["files"],
                 thread_ts=event["ts"]
             )
+            return
+
+        channel:str = event["channel"]
+        message: dict = event["message"]
         if is_posted_link_in_inbox_channel(channel, message):
             logger.info("inboxチャンネルへのリンク投稿")
             attachment = message["attachments"][0]
@@ -60,7 +66,7 @@ def is_posted_link_in_inbox_channel(channel:str, message: dict) -> bool:
     """
     inboxチャンネルへのリンク投稿
     """
-    if channel != ChannelType.INBOX.value:
+    if channel != ChannelType.INBOX.value and not Environment.is_dev():
         return False
     user:str = message["user"]
     if user != UserKind.KOBORI_AKIRA.value:
@@ -81,7 +87,7 @@ def is_uploaded_file_in_share_channel(event: dict) -> bool:
     if user != UserKind.KOBORI_AKIRA.value:
         return False
     channel = event["channel"]
-    if channel != ChannelType.SHARE.value:
+    if channel != ChannelType.SHARE.value and not Environment.is_dev():
         return False
     files = event.get("files")
     if files is None or len(files) == 0:
