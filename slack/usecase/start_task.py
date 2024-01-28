@@ -57,7 +57,7 @@ class StartTask:
         block_builder = block_builder.add_static_select(
             action_id="routine-task",
             label="ルーチンタスクを開始する場合",
-            options=ROUTINE_TASK_OPTIONS,
+            options=[{"text": k, "value": v} for d in ROUTINE_TASK_OPTIONS for k, v in d.items()],
             optional=True,
         )
 
