@@ -4,7 +4,7 @@ from slack_sdk.web import WebClient
 from domain.infrastructure.api.notion_api import NotionApi
 from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
 from domain_service.block.block_builder import BlockBuilder
-from domain.schedule import Schedule
+from util.datetime import now
 
 
 class StartPomodoro:
@@ -15,7 +15,7 @@ class StartPomodoro:
 
     def handle(self, notion_page_block_id: str, channel: str, thread_ts: str):
         """ ポモドーロの開始を通達する """
-        now = DateTime.now()
+        _now = now()
 
         # 開始を連絡
         self._chat_start_message(channel=channel, thread_ts=thread_ts)
@@ -26,8 +26,8 @@ class StartPomodoro:
         # Googleカレンダーに実績を記録
         self._record_google_calendar_achivement(
             page_id=notion_page_block_id,
-            start_datetime=now,
-            end_datetime=now + timedelta(minutes=25),
+            start_datetime=_now,
+            end_datetime=_now + timedelta(minutes=25),
         )
 
         # TODO: 25分後に終了を通知したい。EventBridgeなどを使う必要がありそうで時間がかかるので、
