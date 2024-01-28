@@ -59,8 +59,9 @@ def start_task(logger: logging.Logger, view: dict, client: WebClient):
             return
         elif (routine_task := state.get_static_select("routine-task")) is not None:
             # ルーチンタスクを選択した場合
-            logging.info(routine_task)
-            usecase.handle_prepare(task_id=None, task_title=f"{routine_task}【ルーティン】")
+            task_title, _ = routine_task
+            logging.info(task_title)
+            usecase.handle_prepare(task_id=None, task_title=f"{task_title}【ルーティン】")
             return
     except Exception as err:
         import sys
