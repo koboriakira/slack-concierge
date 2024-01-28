@@ -17,7 +17,7 @@ ROUTINE_TASK_OPTIONS = [
     {"夕食": "dinner"},
     {"入浴": "bath"},
     {"睡眠": "sleep"},
-    {"日次レビュー": "daily-review"},
+    {"日次レビュー": "daily-review"}, # Notionの更新ページ確認、Googleカレンダーの実績確認、Inbox整理、TODAYタスクの決定
     {"週次レビュー": "weekly-review"},
     {"月次レビュー": "monthly-review"},
     {"その他": "other"},
@@ -44,11 +44,12 @@ class StartTask:
             "text": t.title,
             "value": t.id
         } for t in tasks]
-        block_builder = block_builder.add_static_select(
-            action_id="task",
-            options=task_options,
-            optional=True,
-        )
+        if len(task_options) > 0:
+            block_builder = block_builder.add_static_select(
+                action_id="task",
+                options=task_options,
+                optional=True,
+            )
         block_builder = block_builder.add_plain_text_input(
             action_id="new-task",
             label="タスクを起票して開始する場合",
