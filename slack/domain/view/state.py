@@ -75,6 +75,8 @@ class State:
 
     def get_static_select(self, action_id: str) -> Optional[tuple[str, str]]:
         """ 静的セレクトの結果を取得する。text, value の順で返す """
+        if action_id not in self.action_map:
+            return None
         selected_option = self.action_map[action_id]["selected_option"]
         if selected_option is None:
             return None
