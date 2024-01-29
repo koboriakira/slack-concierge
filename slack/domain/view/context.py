@@ -36,6 +36,10 @@ class Context:
         return self.context.get("thread_ts")
 
     @property
+    def page_id(self) -> Optional[str]:
+        return self.context.get("page_id")
+
+    @property
     def date(self) -> Optional[DateObject]:
         if "date" not in self.context:
             return None
