@@ -6,6 +6,7 @@ from slack_bolt import App, Ack
 from util.logging_traceback import logging_traceback
 from usecase.upload_files_to_s3 import UploadFilesToS3
 from usecase.analyze_inbox import AnalyzeInbox
+from usecase.create_task_in_inbox import CreateTaskInInbox
 from domain.channel import ChannelType
 from domain.user import UserKind
 from util.environment import Environment
@@ -59,6 +60,8 @@ def _handle_message(channel:str, user:str, event_ts:str, thread_ts: str, text:st
         logger.info("既にリアクションがついているので処理をスキップします。")
         return
     client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts)
+    usecase = CreateTaskInInbox(notion_api=LambdaNotionApi(), client=client, logger=logger)
+    usecase.handle(text=text, event_ts=event_ts, thread_ts=thread_ts, blocks=blocks)
 
 def _handle_message_changed(event: dict, logger: logging.Logger, client: WebClient):
     # shareチャンネルへのファイルアップロードイベントのみ処理
