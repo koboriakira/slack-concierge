@@ -22,7 +22,6 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
         logger.setLevel(logging.DEBUG)
     logger.info("handle_message_event")
     logger.debug(json.dumps(body, ensure_ascii=False))
-    client_wrapper = SlackClientWrapper(client=client, logger=logger)
 
     try:
         event:dict = body["event"]
@@ -31,36 +30,45 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
         if event.get("subtype") == "message_deleted":
             return
 
-        # shareチャンネルへのファイルアップロードイベントのみ処理
-        if is_uploaded_file_in_share_channel(event):
-            usecase = UploadFilesToS3(client, logger)
-            usecase = usecase.execute(
-                channel=event["channel"],
-                files=event["files"],
-                thread_ts=event["ts"]
-            )
-            return
+        # メッセージ更新イベント
+        if event.get("subtype") == "message_changed":
+            return _handle_message_changed(event, logger, client)
 
-        channel:str = event["channel"]
-        message: dict = event["message"]
-        if is_posted_link_in_inbox_channel(channel, message):
-            logger.info("inboxチャンネルへのリンク投稿")
-            attachment = message["attachments"][0]
-            channel = event["channel"]
-            thread_ts = event["message"]["ts"]
-            if client_wrapper.is_reacted(name="white_check_mark", channel=channel, timestamp=thread_ts):
-                logger.info("既にリアクションがついているので処理をスキップします。")
-                return
-            client_wrapper.reactions_add(name="white_check_mark", channel=channel, timestamp=thread_ts)
-            usecase = AnalyzeInbox(client=client, logger=logger, notion_api=LambdaNotionApi())
-            usecase.handle(attachment=attachment,
-                            channel=channel,
-                            thread_ts=thread_ts)
     except Exception as e:
         import sys
         exc_info = sys.exc_info()
         logging_traceback(e, exc_info)
 
+def _handle_message_changed(event: dict, logger: logging.Logger, client: WebClient):
+    # shareチャンネルへのファイルアップロードイベントのみ処理
+    if is_uploaded_file_in_share_channel(event):
+        usecase = UploadFilesToS3(client, logger)
+        usecase = usecase.execute(
+            channel=event["channel"],
+            files=event["files"],
+            thread_ts=event["ts"]
+        )
+        return
+
+    channel:str = event["channel"]
+    message: dict = event["message"]
+    if is_posted_link_in_inbox_channel(channel, message):
+        logger.info("inboxチャンネルへのリンク投稿")
+        attachment = message["attachments"][0]
+        channel = event["channel"]
+        thread_ts = event["message"]["ts"]
+        client_wrapper = SlackClientWrapper(client=client, logger=logger)
+        if client_wrapper.is_reacted(name="white_check_mark", channel=channel, timestamp=thread_ts):
+            logger.info("既にリアクションがついているので処理をスキップします。")
+            return
+        client_wrapper.reactions_add(name="white_check_mark", channel=channel, timestamp=thread_ts)
+        usecase = AnalyzeInbox(client=client, logger=logger, notion_api=LambdaNotionApi())
+        if Environment.is_dev():
+            logger.info("開発環境のため、処理をスキップします。")
+            return
+        usecase.handle(attachment=attachment,
+                        channel=channel,
+                        thread_ts=thread_ts)
 
 def is_posted_link_in_inbox_channel(channel:str, message: dict) -> bool:
     """
