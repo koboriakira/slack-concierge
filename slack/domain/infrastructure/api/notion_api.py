@@ -100,7 +100,8 @@ class NotionApi(metaclass=ABCMeta):
 
     @abstractmethod
     def create_task(self,
-                    title: str,
+                    title: Optional[str] = None,
+                    mentioned_page_id: Optional[str] = None,
                     start_date: Optional[Date] = None,
                     ) -> dict:
         """ タスクページを新規作成する """
