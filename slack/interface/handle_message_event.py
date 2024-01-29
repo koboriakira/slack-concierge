@@ -49,19 +49,26 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
         logging_traceback(e, exc_info)
 
 def _handle_message(channel:str, user:str, event_ts:str, thread_ts: str, text:str, blocks:list[dict], logger: logging.Logger, client: WebClient):
-    if _is_only_url(blocks):
-        logger.info("URLのみのメッセージのため、message_changedで処理します")
-        return
+    if _is_inbox_post(channel=channel, blocks=blocks):
+        logger.debug(f"channel: {channel} user: {user} event_ts: {event_ts} thread_ts: {thread_ts} text: {text}")
+        logger.debug(f"blocks: {json.dumps(blocks, ensure_ascii=False)}")
+        client_wrapper = SlackClientWrapper(client=client, logger=logger)
+        if client_wrapper.is_reacted(name="inbox_tray", channel=channel, timestamp=event_ts):
+            logger.info("既にリアクションがついているので処理をスキップします。")
+            return
+        client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts)
+        usecase = CreateTaskInInbox(notion_api=LambdaNotionApi(), client=client, logger=logger)
+        usecase.handle(text=text, event_ts=event_ts, thread_ts=thread_ts, channel=channel)
 
-    logger.debug(f"channel: {channel} user: {user} event_ts: {event_ts} thread_ts: {thread_ts} text: {text}")
-    logger.debug(f"blocks: {json.dumps(blocks, ensure_ascii=False)}")
-    client_wrapper = SlackClientWrapper(client=client, logger=logger)
-    if client_wrapper.is_reacted(name="inbox_tray", channel=channel, timestamp=event_ts):
-        logger.info("既にリアクションがついているので処理をスキップします。")
-        return
-    client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts)
-    usecase = CreateTaskInInbox(notion_api=LambdaNotionApi(), client=client, logger=logger)
-    usecase.handle(text=text, event_ts=event_ts, thread_ts=thread_ts, blocks=blocks)
+def _is_inbox_post(channel: str, blocks: list[dict]) -> bool:
+    """
+    INBOXチャンネルへの投稿かどうか判断する
+    """
+    if channel != ChannelType.INBOX.value:
+        return False
+    if _is_only_url(blocks):
+        return False
+    return True
 
 def _handle_message_changed(event: dict, logger: logging.Logger, client: WebClient):
     # shareチャンネルへのファイルアップロードイベントのみ処理

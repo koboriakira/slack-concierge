@@ -1,6 +1,6 @@
+from logging import Logger
 from slack_sdk.web import WebClient
 from domain.infrastructure.api.notion_api import NotionApi
-from logging import Logger
 
 class CreateTaskInInbox:
     def __init__(self, notion_api: NotionApi, client: WebClient, logger: Logger):
@@ -8,7 +8,7 @@ class CreateTaskInInbox:
         self.client = client
         self.logger = logger
 
-    def handle(self, text: str, event_ts: str, thread_ts: str, blocks: list[dict]):
+    def handle(self, text: str, event_ts: str, thread_ts: str, channel: str):
         """ INBOXタスクを作成する """
         if event_ts == thread_ts:
             # スレッド開始の場合は、INBOXタスクとして新規起票する
@@ -16,12 +16,11 @@ class CreateTaskInInbox:
             return
         # スレッド返信の場合は、既存のINBOXタスクに対してブロックを追加する
 
+        # まずスレッドの親メッセージのtextを取得する。これがタスクのタイトルであるはず
+        response = self.client.conversations_replies(channel=channel, ts=thread_ts)
+        task_title = response["messages"][0]["text"]
 
-if __name__ == "__main__":
-    # python -m usecase.create_task_in_inbox
-    from infrastructure.api.lambda_notion_api import LambdaNotionApi
-    import os
-    notion_api = LambdaNotionApi()
-    client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
-    usecase = CreateTaskInInbox(notion_api=notion_api, client=client)
-    usecase.handle(text="テスト", event_ts="1706500982.880539", thread_ts="1706500982.880539")
+        tasks = self.notion_api.list_tasks(status="todo,inprogress")
+        for task in tasks:
+            if task.title == task_title:
+                self.notion_api.append_text_block(block_id=task.id, value=text)
