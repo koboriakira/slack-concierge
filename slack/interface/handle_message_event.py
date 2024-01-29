@@ -34,10 +34,31 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
         if event.get("subtype") == "message_changed":
             return _handle_message_changed(event, logger, client)
 
+        # メッセージ投稿イベント
+        channel:str = event["channel"]
+        user:str = event["user"]
+        event_ts:str = event["ts"]
+        thread_ts: str = event.get("thread_ts") or event_ts
+        text:str = event["text"]
+        blocks: list[dict] = event["blocks"]
+        _handle_message(channel=channel, user=user, event_ts=event_ts, thread_ts=thread_ts, text=text, blocks=blocks, logger=logger, client=client)
     except Exception as e:
         import sys
         exc_info = sys.exc_info()
         logging_traceback(e, exc_info)
+
+def _handle_message(channel:str, user:str, event_ts:str, thread_ts: str, text:str, blocks:list[dict], logger: logging.Logger, client: WebClient):
+    if _is_only_url(blocks):
+        logger.info("URLのみのメッセージのため、message_changedで処理します")
+        return
+
+    logger.debug(f"channel: {channel} user: {user} event_ts: {event_ts} thread_ts: {thread_ts} text: {text}")
+    logger.debug(f"blocks: {json.dumps(blocks, ensure_ascii=False)}")
+    client_wrapper = SlackClientWrapper(client=client, logger=logger)
+    if client_wrapper.is_reacted(name="inbox_tray", channel=channel, timestamp=event_ts):
+        logger.info("既にリアクションがついているので処理をスキップします。")
+        return
+    client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts)
 
 def _handle_message_changed(event: dict, logger: logging.Logger, client: WebClient):
     # shareチャンネルへのファイルアップロードイベントのみ処理
@@ -79,8 +100,32 @@ def is_posted_link_in_inbox_channel(channel:str, message: dict) -> bool:
     user:str = message["user"]
     if user != UserKind.KOBORI_AKIRA.value:
         return False
-    attachments = message.get("attachments")
-    if attachments is None or len(attachments) == 0:
+    if len(message["blocks"]) != 1: # リンク投稿はブロックが1つのみ
+        return False
+    if (attachments := message.get("attachments")) is None or len(attachments) == 0:
+        return False
+    return True
+
+def _is_only_url(blocks: list[dict]) -> bool:
+    """
+    ブロックがURLのみかどうか判断する
+    """
+    if len(blocks) != 1:
+        return False
+    block = blocks[0]
+    if block["type"] != "rich_text":
+        return False
+    elements = block["elements"]
+    if len(elements) != 1:
+        return False
+    element = elements[0]
+    if element["type"] != "rich_text_section":
+        return False
+    elements = element["elements"]
+    if len(elements) != 1:
+        return False
+    element = elements[0]
+    if element["type"] != "link":
         return False
     return True
 
