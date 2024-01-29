@@ -174,6 +174,17 @@ class LambdaNotionApi(NotionApi):
             data["start_date"] = start_date.isoformat()
         return self._post(url=api_url, data=data)
 
+    def append_text_block(self,
+                          block_id: str,
+                          value: str,
+                          ) -> dict:
+        api_url = f"{self.domain}page/block/text"
+        data = {
+            "page_id": block_id,
+            "value": value,
+        }
+        return self._post(url=api_url, data=data)
+
 
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """

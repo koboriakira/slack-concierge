@@ -105,3 +105,11 @@ class NotionApi(metaclass=ABCMeta):
                     ) -> dict:
         """ タスクページを新規作成する """
         pass
+
+    @abstractmethod
+    def append_text_block(self,
+                          block_id: str,
+                          value: str,
+                          ) -> dict:
+        """ テキストブロックを追加する """
+        pass
