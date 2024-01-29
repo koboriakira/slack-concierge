@@ -94,9 +94,9 @@ def _handle_message_changed(event: dict, logger: logging.Logger, client: WebClie
             return
         client_wrapper.reactions_add(name="white_check_mark", channel=channel, timestamp=thread_ts)
         usecase = AnalyzeInbox(client=client, logger=logger, notion_api=LambdaNotionApi())
-        if Environment.is_dev():
-            logger.info("開発環境のため、処理をスキップします。")
-            return
+        # if Environment.is_dev():
+        #     logger.info("開発環境のため、処理をスキップします。")
+        #     return
         usecase.handle(attachment=attachment,
                         channel=channel,
                         thread_ts=thread_ts)
