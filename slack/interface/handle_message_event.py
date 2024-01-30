@@ -56,15 +56,11 @@ def _handle_message(event: dict, logger: logging.Logger, client: WebClient):
         # スレッド開始
         logger.info("スレッド開始")
         if _is_inbox_post(channel=channel, blocks=blocks):
-            logger.debug(f"channel: {channel} user: {user} event_ts: {event_ts} thread_ts: {thread_ts} text: {text}")
-            logger.debug(f"blocks: {json.dumps(blocks, ensure_ascii=False)}")
             client_wrapper = SlackClientWrapper(client=client, logger=logger)
-            if client_wrapper.is_reacted(name="inbox_tray", channel=channel, timestamp=event_ts):
-                logger.info("既にリアクションがついているので処理をスキップします。")
-                return
-            client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts)
+            client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts, exception_enabled=True)
             usecase = CreateTaskInInbox(notion_api=LambdaNotionApi())
             usecase.handle(text=text, event_ts=event_ts, channel=channel)
+            return
     else:
         # スレッド返信
         logger.info("スレッド返信")
