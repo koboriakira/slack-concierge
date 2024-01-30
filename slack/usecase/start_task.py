@@ -7,6 +7,7 @@ from domain_service.block.block_builder import BlockBuilder
 from domain_service.view.view_builder import ViewBuilder
 from util.environment import Environment
 from domain.channel import ChannelType
+from util.cache import Cache
 
 ROUTINE_TASK_OPTIONS = [
     {"家事": "housework"},
@@ -21,9 +22,6 @@ ROUTINE_TASK_OPTIONS = [
     {"週次レビュー": "weekly-review"},
     {"月次レビュー": "monthly-review"},
     {"その他": "other"},
-    # {"読書": "reading"},
-    # {"勉強": "study"},
-    # {"運動": "exercise"},
 ]
 
 class StartTask:
@@ -37,7 +35,11 @@ class StartTask:
         block_builder = BlockBuilder()
 
         # タスクの選択肢を作成する。今日の未了タスクが対象
-        tasks = self.notion_api.list_tasks(start_date=today, status="ToDo,InProgress")
+        tasks = Cache.get("today_tasks")
+        if tasks is None:
+            tasks = self.notion_api.list_tasks(start_date=today, status="ToDo,InProgress")
+            Cache.set("today_tasks", tasks)
+
         # タイトルが無題のものは除外する
         tasks = [t for t in tasks if t.title != ""]
         task_options = [{
