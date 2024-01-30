@@ -71,7 +71,7 @@ class StartTask:
             view=view,
         )
 
-    def handle_prepare(self, task_id: Optional[str], task_title: str):
+    def handle_prepare(self, task_id: Optional[str], task_title: str) -> dict:
         """
         ポモドーロ開始ボタンを投稿して、タスクを開始できる状態にする
         task_idが未指定の場合は、新規タスクとして起票する
@@ -83,15 +83,13 @@ class StartTask:
         channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
         task_url = f"https://www.notion.so/{task_id.replace('-', '')}"
         text = f"<{task_url}|{task_title}>"
-        response = self.client.chat_postMessage(text=text, channel=channel.value)
-        thread_ts = response["ts"]
-
         block_builder = BlockBuilder()
-        block_builder = block_builder.add_button_action(
-            action_id="start-pomodoro",
-            text="開始",
-            value=task_id,
-            style="primary",
-        )
+        block_builder = block_builder.add_section(text=text)
+        block_builder = block_builder.add_context({"page_id": task_id})
         blocks = block_builder.build()
-        self.client.chat_postMessage(text="", blocks=blocks, channel=channel.value, thread_ts=thread_ts)
+
+        response = self.client.chat_postMessage(text=text, channel=channel.value, blocks=blocks)
+        return {
+            "thread_ts": response["ts"],
+            "page_id": task_id,
+        }

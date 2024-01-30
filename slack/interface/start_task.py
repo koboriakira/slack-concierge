@@ -6,8 +6,11 @@ from slack_bolt import App, Ack
 from domain.view.view import View, State
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from usecase.start_task import StartTask as StartTaskUsecase
+from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
 from util.logging_traceback import logging_traceback
+from domain.channel import ChannelType
+from util.environment import Environment
 
 SHORTCUT_ID = "start-task"
 CALLBACK_ID = "start-task-modal"
@@ -42,7 +45,14 @@ def start_task(logger: logging.Logger, view: dict, client: WebClient):
         state = view_model.get_state()
 
         task_title, task_id = _get_task_title_and_id(state)
-        usecase.handle_prepare(task_id=task_id, task_title=task_title)
+        response = usecase.handle_prepare(task_id=task_id, task_title=task_title)
+        thread_ts = response["thread_ts"]
+        page_id = response["page_id"]
+
+        channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
+
+        start_pomodoro = StartPomodoroUsecase(notion_api=notion_api, google_api=LambdaGoogleCalendarApi(), client=client)
+        start_pomodoro.handle(notion_page_block_id=page_id, channel=channel.value, thread_ts=thread_ts)
     except Exception as err:
         import sys
         logging_traceback(err, sys.exc_info())
