@@ -1,95 +1,38 @@
 import os
 import json
 import logging
+from datetime import datetime as Datetime
+from datetime import timedelta
 from slack_sdk.web import WebClient
-from domain.schedule.schedule import Schedule
-from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
-from domain_service.block.block_builder import BlockBuilder
-from domain.user.user_kind import UserKind
-from domain.channel.channel_type import ChannelType
-
-IS_TEST = False
-
-SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
-SLACK_BOT = WebClient(token=SLACK_BOT_TOKEN)
+from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from domain.notion.notion_page import TaskPage
+from util.datetime import now as _now
+from usecase.start_task import StartTask
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 if os.environ.get("ENVIRONMENT") == "dev":
     logger.setLevel(logging.DEBUG)
 
+notion_api=LambdaNotionApi()
+start_task_usecase = StartTask(notion_api=notion_api,
+                               client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]))
 
-google_calendar_api = LambdaGoogleCalendarApi()
 def handler(event, context):
-    """
-    AWS Lambda での実行に対応するハンドラー関数
-    """
-    data = google_calendar_api.get_current_schedules()
-    if data is None:
-        return {"message": "no schedule"}
-
-    schedules = [Schedule.from_entity(d) for d in data]
-    for schedule in schedules:
-        post_schedule(schedule)
+    now = _now()
+    after_5minutes = now + timedelta(minutes=5)
+    tasks = notion_api.list_tasks(start_date=now.date())
+    for task in tasks:
+        if task.start_date is None:
+            continue
+        if now.timestamp() < task.start_date.timestamp() < after_5minutes.timestamp():
+            post_task(task)
     return {"message": "success"}
 
-def post_schedule(schedule: Schedule, is_debug:bool = False) -> None:
-    block_builder = BlockBuilder()
-    user_mention = UserKind.KOBORI_AKIRA.mention()
-    schedule_memo = "\n".join(schedule.get_memo())
-    block_builder = block_builder.add_mrkdwn_section(
-        text=f"{user_mention}\n{schedule.title}を開始しましょう！\n{schedule_memo}")
-    block_builder = block_builder.add_divider()
-    block_builder = block_builder.add_timepicker(action_id="start-time",
-                                                 placeholder="開始",
-                                                 label="開始",
-                                                 initial_time=schedule.start.strftime("%H:%M"))
-    block_builder = block_builder.add_timepicker(action_id="end-time",
-                                                 placeholder="開始",
-                                                 label="終了",
-                                                 initial_time=schedule.end.strftime("%H:%M"))
-    sub_task_options = []
-    for sub_task in schedule.sub_tasks:
-        sub_task_option = {
-            "text": sub_task.name,
-            "value": sub_task.name,
-        }
-        if len(sub_task.get_memo()) > 0:
-            description = "\n".join(sub_task.get_memo())
-            sub_task_option["description"] = description
-        sub_task_options.append(sub_task_option)
+def post_task(task: TaskPage) -> None:
+    start_task_usecase.handle_prepare(task_id=task.id, task_title=task.title)
+    pass
 
-    if len(sub_task_options) > 0:
-        block_builder = block_builder.add_checkboxes_action(action_id="sub-task-checked",
-                                                            options=sub_task_options)
-    block_builder = block_builder.add_button_action(action_id="schedule-button",
-                                                    text="完了",
-                                                    value="complete-task",
-                                                    style="primary")
-    block_builder = block_builder.add_button_action(action_id="change",
-                                                    text="変更",
-                                                    value="change-schedule",
-                                                    style="danger")
-
-    context = {
-        "category": schedule.category,
-        "task_name": schedule.title,
-        "date": schedule.start.date().isoformat(),
-    }
-    block_builder = block_builder.add_context(text=json.dumps(context))
-
-    blocks = block_builder.build()
-    logger.info(blocks)
-
-    channel = ChannelType.SCHEDULE if not IS_TEST else ChannelType.TEST
-    if not is_debug:
-        SLACK_BOT.chat_postMessage(channel=channel.value,
-                                text=schedule.title,
-                                blocks=blocks)
-    else:
-        logger.info(channel.value)
-        logger.info(schedule.title)
-        logger.info(blocks)
 
 if __name__ == "__main__":
     logger.debug("debug mode")
