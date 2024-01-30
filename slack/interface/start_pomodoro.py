@@ -18,16 +18,9 @@ def just_ack(ack: Ack):
 def start_pomodoro(body: dict, client: WebClient):
     logger.info("start_pomodoro")
     try:
-        # usecase = LoveSpotifyTrack(
-        #     client=client,
-        #     notion_api=LambdaNotionApi(),
-        #     spotify_api=LambdaSpotifyApi(),
-        # )
-
         action = body["actions"][0]
         notion_page_block_id = action["value"]
 
-        # # 返信用にchannel_id、thread_tsを取得
         channel_id = body["channel"]["id"]
         thread_ts = body["message"]["ts"]
 
