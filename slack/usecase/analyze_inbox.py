@@ -7,7 +7,6 @@ from usecase.service.text_summarizer import TextSummarizer
 from usecase.service.tag_analyzer import TagAnalyzer
 from usecase.service.simple_scraper import SimpleScraper
 from domain.infrastructure.api.notion_api import NotionApi
-from util.environment import Environment
 
 class AnalyzeInbox:
     def __init__(self, client: WebClient, logger: logging.Logger, notion_api: NotionApi):
