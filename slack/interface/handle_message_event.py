@@ -63,8 +63,8 @@ def _handle_message(event: dict, logger: logging.Logger, client: WebClient):
                 logger.info("既にリアクションがついているので処理をスキップします。")
                 return
             client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts)
-            usecase = CreateTaskInInbox(notion_api=LambdaNotionApi(), client=client, logger=logger)
-            usecase.handle(text=text, event_ts=event_ts, thread_ts=thread_ts, channel=channel)
+            usecase = CreateTaskInInbox(notion_api=LambdaNotionApi())
+            usecase.handle(text=text, event_ts=event_ts, channel=channel)
     else:
         # スレッド返信
         logger.info("スレッド返信")
