@@ -12,6 +12,8 @@ from domain.user import UserKind
 from util.environment import Environment
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from infrastructure.slack.slack_client_wrapper import SlackClientWrapper
+from domain.block import Blocks
+from usecase.append_text_in_notion_page import AppendTextInNotionPage
 
 def just_ack(ack: Ack):
     ack()
@@ -36,29 +38,47 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
             return _handle_message_changed(event, logger, client)
 
         # メッセージ投稿イベント
-        channel:str = event["channel"]
-        user:str = event["user"]
-        event_ts:str = event["ts"]
-        thread_ts: str = event.get("thread_ts") or event_ts
-        text:str = event["text"]
-        blocks: list[dict] = event["blocks"]
-        _handle_message(channel=channel, user=user, event_ts=event_ts, thread_ts=thread_ts, text=text, blocks=blocks, logger=logger, client=client)
+        _handle_message(event, logger=logger, client=client)
     except Exception as e:
         import sys
         exc_info = sys.exc_info()
         logging_traceback(e, exc_info)
 
-def _handle_message(channel:str, user:str, event_ts:str, thread_ts: str, text:str, blocks:list[dict], logger: logging.Logger, client: WebClient):
-    if _is_inbox_post(channel=channel, blocks=blocks):
-        logger.debug(f"channel: {channel} user: {user} event_ts: {event_ts} thread_ts: {thread_ts} text: {text}")
-        logger.debug(f"blocks: {json.dumps(blocks, ensure_ascii=False)}")
-        client_wrapper = SlackClientWrapper(client=client, logger=logger)
-        if client_wrapper.is_reacted(name="inbox_tray", channel=channel, timestamp=event_ts):
-            logger.info("既にリアクションがついているので処理をスキップします。")
+def _handle_message(event: dict, logger: logging.Logger, client: WebClient):
+    channel:str = event["channel"]
+    user:str = event["user"]
+    event_ts:str = event["ts"]
+    thread_ts: str = event.get("thread_ts") or event_ts
+    text:str = event["text"]
+    blocks: list[dict] = event["blocks"]
+
+    if event_ts == thread_ts:
+        # スレッド開始
+        logger.info("スレッド開始")
+        if _is_inbox_post(channel=channel, blocks=blocks):
+            logger.debug(f"channel: {channel} user: {user} event_ts: {event_ts} thread_ts: {thread_ts} text: {text}")
+            logger.debug(f"blocks: {json.dumps(blocks, ensure_ascii=False)}")
+            client_wrapper = SlackClientWrapper(client=client, logger=logger)
+            if client_wrapper.is_reacted(name="inbox_tray", channel=channel, timestamp=event_ts):
+                logger.info("既にリアクションがついているので処理をスキップします。")
+                return
+            client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts)
+            usecase = CreateTaskInInbox(notion_api=LambdaNotionApi(), client=client, logger=logger)
+            usecase.handle(text=text, event_ts=event_ts, thread_ts=thread_ts, channel=channel)
+    else:
+        # スレッド返信
+        logger.info("スレッド返信")
+        # 親スレッドの投稿を取得
+        parent_message_response = client.conversations_replies(channel=channel, ts=thread_ts)
+        parent_message_blocks = Blocks.from_values(parent_message_response["messages"][0]["blocks"])
+        parent_message_context = parent_message_blocks.get_context()
+        if parent_message_context is not None and (page_id := parent_message_context.page_id) is not None:
+            # 親スレッドがNotionページとひもづいている場合
+            append_text_usecase = AppendTextInNotionPage(notion_api=LambdaNotionApi())
+            append_text_usecase.handle(text=text, page_id=page_id)
             return
-        client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts)
-        usecase = CreateTaskInInbox(notion_api=LambdaNotionApi(), client=client, logger=logger)
-        usecase.handle(text=text, event_ts=event_ts, thread_ts=thread_ts, channel=channel)
+
+
 
 def _is_inbox_post(channel: str, blocks: list[dict]) -> bool:
     """
