@@ -20,12 +20,13 @@ start_task_usecase = StartTask(notion_api=notion_api,
 
 def handler(event, context):
     now = _now()
+    now = Datetime(year=now.year, month=now.month, day=now.day, hour=16, minute=0)
     after_5minutes = now + timedelta(minutes=5)
     tasks = notion_api.list_tasks(start_date=now.date())
     for task in tasks:
         if task.start_date is None:
             continue
-        if now.timestamp() < task.start_date.timestamp() < after_5minutes.timestamp():
+        if now.timestamp() <= task.start_date.timestamp() <= after_5minutes.timestamp():
             post_task(task)
     return {"message": "success"}
 

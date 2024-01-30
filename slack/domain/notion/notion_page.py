@@ -99,7 +99,7 @@ class TaskPage(NotionPage):
             title=params["title"],
             status=params["status"],
             feeling=params["feeling"],
-            start_date=DatetimeObject.fromisoformat(params["start_date"]) if "start_date" in params else None,
-            end_date=DatetimeObject.fromisoformat(params["end_date"]) if "end_date" in params else None,
+            start_date=DatetimeObject.fromisoformat(params["start_date"]) if params["start_date"] else None,
+            end_date=DatetimeObject.fromisoformat(params["end_date"]) if params["end_date"] else None,
             task_kind=params["task_kind"] if "task_kind" in params else None,
         )
