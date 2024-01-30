@@ -1,18 +1,13 @@
 import logging
 import json
-from datetime import date as Date
+from typing import Optional
 from slack_sdk.web import WebClient
 from slack_bolt import App, Ack
-from domain_service.block.block_builder import BlockBuilder
-from domain_service.view.view_builder import ViewBuilder
-from domain.view.view import View
-from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
+from domain.view.view import View, State
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from usecase.create_calendar import CreateCalendar as CreateCalendarUsecase
 from usecase.start_task import StartTask as StartTaskUsecase
+from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
 from util.logging_traceback import logging_traceback
-from domain.channel.channel_type import ChannelType
-from util.environment import Environment
 
 SHORTCUT_ID = "start-task"
 CALLBACK_ID = "start-task-modal"
@@ -45,27 +40,24 @@ def start_task(logger: logging.Logger, view: dict, client: WebClient):
         usecase = StartTaskUsecase(notion_api=notion_api, client=client)
         view_model = View(view)
         state = view_model.get_state()
-        if (task := state.get_static_select("task")) is not None:
-            # 既存タスクから選んだ場合
-            task_title, task_id = task
-            logging.info(task_title)
-            logging.info(task_id)
-            usecase.handle_prepare(task_id=task_id, task_title=task_title)
-            return
-        elif (new_task_title := state.get_text_input_value("new-task")) is not None:
-            # 新規タスクを起票した場合
-            logging.info(new_task_title)
-            usecase.handle_prepare(task_id=None, task_title=new_task_title)
-            return
-        elif (routine_task := state.get_static_select("routine-task")) is not None:
-            # ルーチンタスクを選択した場合
-            task_title, _ = routine_task
-            logging.info(task_title)
-            usecase.handle_prepare(task_id=None, task_title=f"{task_title}【ルーティン】")
-            return
+
+        task_title, task_id = _get_task_title_and_id(state)
+        usecase.handle_prepare(task_id=task_id, task_title=task_title)
     except Exception as err:
         import sys
         logging_traceback(err, sys.exc_info())
+
+def _get_task_title_and_id(state: State) -> tuple[str, Optional[str]]:
+        if (task := state.get_static_select("task")) is not None:
+            # 既存タスクから選んだ場合
+            return task
+        elif (new_task_title := state.get_text_input_value("new-task")) is not None:
+            # 新規タスクを起票した場合
+            return new_task_title, None
+        elif (routine_task := state.get_static_select("routine-task")) is not None:
+            # ルーチンタスクを選択した場合
+            task_title, _ = routine_task
+            return f"{task_title}【ルーティン】", None
 
 def shortcut_start_task(app: App):
     app.shortcut(SHORTCUT_ID)(
