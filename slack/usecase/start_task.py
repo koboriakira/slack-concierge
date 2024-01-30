@@ -24,6 +24,8 @@ ROUTINE_TASK_OPTIONS = [
     {"その他": "other"},
 ]
 
+TODAY_TASK_OPTIONS = "today_task_options"
+
 class StartTask:
     def __init__(self, notion_api: NotionApi, client: WebClient):
         self.notion_api = notion_api
@@ -35,17 +37,17 @@ class StartTask:
         block_builder = BlockBuilder()
 
         # タスクの選択肢を作成する。今日の未了タスクが対象
-        tasks = Cache.get("today_tasks")
+        task_options = Cache.get(TODAY_TASK_OPTIONS)
         if tasks is None:
             tasks = self.notion_api.list_tasks(start_date=today, status="ToDo,InProgress")
-            Cache.set("today_tasks", tasks)
+            # タイトルが無題のものは除外する
+            tasks = [t for t in tasks if t.title != ""]
+            task_options = [{
+                "text": t.title,
+                "value": t.id
+            } for t in tasks]
+            Cache.set(TODAY_TASK_OPTIONS, task_options)
 
-        # タイトルが無題のものは除外する
-        tasks = [t for t in tasks if t.title != ""]
-        task_options = [{
-            "text": t.title,
-            "value": t.id
-        } for t in tasks]
         if len(task_options) > 0:
             block_builder = block_builder.add_static_select(
                 action_id="task",
