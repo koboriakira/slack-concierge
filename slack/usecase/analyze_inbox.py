@@ -164,12 +164,13 @@ class AnalyzeInbox:
 
 
     def _post_progress_if_dev(self, text: str, channel: str, thread_ts: str):
-        if Environment.is_dev():
-            self.client.chat_postMessage(
-                channel=channel,
-                thread_ts=thread_ts,
-                text=text,
-            )
+        pass
+        # if Environment.is_dev():
+        #     self.client.chat_postMessage(
+        #         channel=channel,
+        #         thread_ts=thread_ts,
+        #         text=text,
+        #     )
 
 if __name__ == "__main__":
     # python -m usecase.analyze_inbox
