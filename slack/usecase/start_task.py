@@ -38,7 +38,7 @@ class StartTask:
 
         # タスクの選択肢を作成する。今日の未了タスクが対象
         task_options = Cache.get(TODAY_TASK_OPTIONS)
-        if tasks is None:
+        if task_options is None:
             tasks = self.notion_api.list_tasks(start_date=today, status="ToDo,InProgress")
             # タイトルが無題のものは除外する
             tasks = [t for t in tasks if t.title != ""]
