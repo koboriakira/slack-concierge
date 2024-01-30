@@ -1,5 +1,6 @@
 from typing import Optional
 from datetime import date as Date
+from datetime import datetime as Datetime
 from abc import ABCMeta, abstractmethod
 from domain.notion.notion_page import RecipePage, NotionPage, TaskPage
 
@@ -102,7 +103,8 @@ class NotionApi(metaclass=ABCMeta):
     def create_task(self,
                     title: Optional[str] = None,
                     mentioned_page_id: Optional[str] = None,
-                    start_date: Optional[Date] = None,
+                    start_date: Optional[Date|Datetime] = None,
+                    end_date: Optional[Date|Datetime] = None,
                     ) -> dict:
         """ タスクページを新規作成する """
         pass

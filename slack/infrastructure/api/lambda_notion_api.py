@@ -1,5 +1,6 @@
 from typing import Optional
 from datetime import date as Date
+from datetime import datetime as Datetime
 import os
 import logging
 import requests
@@ -165,7 +166,8 @@ class LambdaNotionApi(NotionApi):
     def create_task(self,
                     title: Optional[str] = None,
                     mentioned_page_id: Optional[str] = None,
-                    start_date: Optional[Date] = None,
+                    start_date: Optional[Date|Datetime] = None,
+                    end_date: Optional[Date|Datetime] = None,
                     ) -> dict:
         api_url = f"{self.domain}task"
         data = {}
@@ -175,6 +177,8 @@ class LambdaNotionApi(NotionApi):
             data["mentioned_page_id"] = mentioned_page_id
         if start_date:
             data["start_date"] = start_date.isoformat()
+        if end_date:
+            data["end_date"] = end_date.isoformat()
         return self._post(url=api_url, data=data)
 
     def append_text_block(self,
@@ -257,4 +261,3 @@ if __name__ == "__main__":
     #     cover= "https://res.cloudinary.com/zenn/image/upload/s--Zg_PKBou--/c_fit%2Cg_north_west%2Cl_text:notosansjp-medium.otf_55:LangChain%2520%25E3%2581%25AE%25E6%2596%25B0%25E8%25A8%2598%25E6%25B3%2595%25E3%2580%258CLangChain%2520Expression%2520Language%2520%2528LCEL%2529%25E3%2580%258D%25E5%2585%25A5%25E9%2596%2580%2Cw_1010%2Cx_90%2Cy_100/g_south_west%2Cl_text:notosansjp-medium.otf_37:oshima_123%2Cx_203%2Cy_121/g_south_west%2Ch_90%2Cl_fetch:aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL3plbm4tdXNlci11cGxvYWQvYXZhdGFyLzY1ZjAzMGZmOTcuanBlZw==%2Cr_max%2Cw_90%2Cx_87%2Cy_95/v1627283836/default/og-base-w1200-v2.png"
     # ))
     # print(notion_api.list_tasks(start_date=Date.today()))
-    print(notion_api.create_task(mentioned_page_id="a7f51ee8c99745d5b85bdfb3f94e2967"))
