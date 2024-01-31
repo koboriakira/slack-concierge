@@ -33,12 +33,12 @@ export class SlackConcierge extends Stack {
       true
     );
 
-    // scheduled_post
-    const scheduledPost = this.createLambdaFunction(
-      "ScheduledPost",
+    // pomodoro_timer
+    const pomodoroTimer = this.createLambdaFunction(
+      "PomodoroTimer",
       role,
       myLayer,
-      "scheduled_post.handler",
+      "pomodoro_timer.handler",
       15,
       false
     );

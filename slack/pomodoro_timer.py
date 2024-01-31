@@ -23,6 +23,8 @@ notion_api = LambdaNotionApi()
 
 def handler(event, context):
     print("Hello")
+    page_id = event["page_id"]
+    print(page_id)
 
 if __name__ == "__main__":
     # python -m sync_schedule_to_task
