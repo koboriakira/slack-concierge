@@ -33,6 +33,16 @@ export class SlackConcierge extends Stack {
       true
     );
 
+    // scheduled_post
+    const scheduledPost = this.createLambdaFunction(
+      "ScheduledPost",
+      role,
+      myLayer,
+      "scheduled_post.handler",
+      15,
+      false
+    );
+
     // notificate_schedule
     const lambda_notificate_schedule = this.createLambdaFunction(
       "NotificateSchedule",
