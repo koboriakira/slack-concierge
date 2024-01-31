@@ -10,5 +10,5 @@ class CreateTaskInInbox:
 
     def handle(self, text: str, event_ts: str, channel: str):
         """ INBOXタスクを作成する """
-        page = self.notion_api.create_task(title=text)
+        page = self.notion_api.create_task(title=text if "\n" not in text else text.split("\n")[0])
         self.user_client.handle(page_id=page["id"], channel=channel, thread_ts=event_ts)
