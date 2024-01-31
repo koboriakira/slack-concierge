@@ -70,7 +70,7 @@ export class SlackConcierge extends Stack {
       role,
       myLayer,
       "love_spotify_track.handler",
-      15,
+      60,
       false
     );
     const queue = new sqs.Queue(this, "LoveSpotifyTrackQueue", {
