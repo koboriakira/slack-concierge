@@ -101,7 +101,7 @@ export class SlackConcierge extends Stack {
     );
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ["events:*"],
+        actions: ["scheduler:*", "events:*"],
         resources: ["*"],
       })
     );
