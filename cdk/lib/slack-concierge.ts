@@ -8,6 +8,7 @@ import {
   aws_iam as iam,
   aws_events as events,
   aws_events_targets as targets,
+  aws_sqs as sqs,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -23,7 +24,7 @@ export class SlackConcierge extends Stack {
     const role = this.makeRole();
     const myLayer = this.makeLayer();
 
-    // lazy_main
+    // lazy_main: API Gatewayから呼び出される
     const lambda_lazy_main = this.createLambdaFunction(
       "Lambda",
       role,
@@ -33,7 +34,7 @@ export class SlackConcierge extends Stack {
       true
     );
 
-    // pomodoro_timer
+    // pomodoro_timer: 任意に作成されるEventBridgeSchedulerで実行される
     const pomodoroTimer = this.createLambdaFunction(
       "PomodoroTimer",
       role,
@@ -43,7 +44,7 @@ export class SlackConcierge extends Stack {
       false
     );
 
-    // notificate_schedule
+    // notificate_schedule: EventBridgeで呼び出される
     const lambda_notificate_schedule = this.createLambdaFunction(
       "NotificateSchedule",
       role,
@@ -52,7 +53,6 @@ export class SlackConcierge extends Stack {
       60,
       false
     );
-    // notificate_schedule: EventBridgeのルール
     new events.Rule(this, "NotificateScheduleRule", {
       // JSTで、AM6:00からPM11:00までの間、5分おきに実行
       // see https://docs.aws.amazon.com/ja_jp/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions
@@ -62,6 +62,25 @@ export class SlackConcierge extends Stack {
           retryAttempts: 0,
         }),
       ],
+    });
+
+    // love_spotify_track: SQSから呼び出される
+    const loveSpotifyTrack = this.createLambdaFunction(
+      "LoveSpotifyTrack",
+      role,
+      myLayer,
+      "love_spotify_track.handler",
+      15,
+      false
+    );
+    const queue = new sqs.Queue(this, "LoveSpotifyTrackQueue", {
+      visibilityTimeout: Duration.seconds(300),
+    });
+    queue.grantConsumeMessages(loveSpotifyTrack);
+    queue.grantSendMessages(lambda_lazy_main);
+    loveSpotifyTrack.addEventSourceMapping("LoveSpotifyTrackEventSource", {
+      eventSourceArn: queue.queueArn,
+      batchSize: 1,
     });
 
     // test
