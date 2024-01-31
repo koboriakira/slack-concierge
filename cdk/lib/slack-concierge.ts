@@ -109,9 +109,17 @@ export class SlackConcierge extends Stack {
         ],
       })
     );
+    // スケジューラを作成するために必要な権限
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["scheduler:*", "events:*"],
+        resources: ["*"],
+      })
+    );
+    // スケジューラを作成するために必要な権限（CreateScheduleするときにiam:PassRoleが必要らしい）
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["iam:PassRole"],
         resources: ["*"],
       })
     );
