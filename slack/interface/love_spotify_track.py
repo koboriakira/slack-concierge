@@ -3,12 +3,10 @@ from slack_sdk.web import WebClient
 from slack_bolt import App, Ack
 from util.logging_traceback import logging_traceback
 from util.custom_logging import get_logger
-from domain.message import BaseMessage
-from domain.channel import Channel
 from usecase.love_spotify_track import LoveSpotifyTrack
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from infrastructure.api.lambda_spotify_api import LambdaSpotifyApi
-
+from usecase.service.sqs_service import SqsService
 
 ACTION_ID = "LOVE_SPOTIFY_TRACK"
 
@@ -35,9 +33,14 @@ def love_spotify_track(body: dict, client: WebClient):
         thread_ts = body["message"]["ts"]
 
         logger.debug(json.dumps(body))
-        usecase.handle(track_id=track_id,
-                       channel_id=channel_id,
-                       thread_ts=thread_ts)
+        service = SqsService()
+        service.send(
+            queue_url="https://sqs.ap-northeast-1.amazonaws.com/743218050155/SlackConcierge-LoveSpotifyTrackQueue80A7F4D3-W3eMtBDoeTka",
+            message={
+                "track_id": track_id,
+                "channel_id": channel_id,
+                "thread_ts": thread_ts
+            })
     except Exception as err:
         import sys
         logging_traceback(err, sys.exc_info())

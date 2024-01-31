@@ -16,35 +16,16 @@ POMODORO_MINUTES = 25
 
 class SqsService:
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        self.events_client = boto3.client('sqs')
+        self.sqs_client = boto3.client('sqs')
         self.logger = logger or logging.getLogger(__name__)
 
-    def set_pomodoro_timer(self,
-                            page_id: str,
-                            channel: str,
-                            thread_ts:str,
-                            future_datetime: Optional[Datetime] = None) -> None:
+    def send(self,
+                            queue_url: str,
+                            message: str|dict) -> None:
         try:
-            input_json = json.dumps({
-                "page_id": page_id,
-                "channel": channel,
-                "thread_ts": thread_ts,
-            })
-            future_datetime = datetime_now() + timedelta(minutes=POMODORO_MINUTES) if future_datetime is None else future_datetime
-
-            # スケジューラの作成
-            response = self.events_client.create_schedule(
-                Name=f"pomodoro-timer-{future_datetime.strftime('%H%M')}",
-                ActionAfterCompletion='DELETE',
-                ScheduleExpressionTimezone="Asia/Tokyo",
-                ScheduleExpression=future_datetime.strftime("cron(%M %H %d %m ? %Y)"),
-                Target={
-                    'Arn': POMODORO_TIMER_LAMBDA_ARN,
-                    'RoleArn': ROLE_ARN,
-                    'Input': input_json
-                },
-                State='ENABLED',
-                FlexibleTimeWindow={"Mode": "OFF"},
+            response = self.sqs_client.send_message(
+                QueueUrl=queue_url,
+                MessageBody=message if isinstance(message, str) else json.dumps(message),
             )
         except NoCredentialsError as e:
             self.logger.error("認証情報が不足しています。")
@@ -55,8 +36,12 @@ class SqsService:
 
 
 if __name__ == "__main__":
-    # python -m usecase.service.event_bridge_scheduler_service
-    service = EventBridgeSchedulerService(logger=logging.getLogger(__name__))
-    service.set_pomodoro_timer(page_id="738c86f9-dd70-4b44-99ca-32192f1d8eb9",
-                                channel="C05F6AASERZ",
-                                thread_ts="1706682095.204639")
+    # python -m usecase.service.sqs_service
+    service = SqsService(logger=logging.getLogger(__name__))
+    service.send(
+        queue_url="https://sqs.ap-northeast-1.amazonaws.com/743218050155/SlackConcierge-LoveSpotifyTrackQueue80A7F4D3-W3eMtBDoeTka",
+        message={
+            "track_id": "2kxvZpUI34KVcVuVkaKi7d",
+            "channel_id": "C05HGA2TK26",
+            "thread_ts": "1706691140.672939"
+        })
