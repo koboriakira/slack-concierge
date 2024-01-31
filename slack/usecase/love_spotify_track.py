@@ -19,16 +19,6 @@ class LoveSpotifyTrack:
         cover_url = track_info["cover_url"]
         release_date = Date.fromisoformat(track_info["release_date"]) if track_info["release_date"] else None
 
-        # Reactionのスタンプをつける
-        try:
-            self.client.reactions_add(
-                channel=channel_id,
-                name="heart",
-                timestamp=thread_ts,
-            )
-        except Exception as e:
-            pass
-
         # Spotify上で「いいね」する
         self.spotify_api.love_track(track_id=track_id)
 

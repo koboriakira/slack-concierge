@@ -20,8 +20,8 @@ class SqsService:
         self.logger = logger or logging.getLogger(__name__)
 
     def send(self,
-                            queue_url: str,
-                            message: str|dict) -> None:
+                queue_url: str,
+                message: str|dict) -> None:
         try:
             response = self.sqs_client.send_message(
                 QueueUrl=queue_url,
