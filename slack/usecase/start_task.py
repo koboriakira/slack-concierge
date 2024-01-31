@@ -8,6 +8,7 @@ from domain_service.view.view_builder import ViewBuilder
 from util.environment import Environment
 from domain.channel import ChannelType
 from util.cache import Cache
+from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
 
 ROUTINE_TASK_OPTIONS = [
     {"家事": "housework"},
@@ -30,6 +31,7 @@ class StartTask:
     def __init__(self, notion_api: NotionApi, client: WebClient):
         self.notion_api = notion_api
         self.client = client
+        self.scheduler_service = EventBridgeSchedulerService()
 
     def handle_modal(self, client: WebClient, trigger_id: str, callback_id: str):
         """ 最初のタスク選択のモーダルを表示する """
@@ -93,6 +95,13 @@ class StartTask:
         blocks = block_builder.build()
 
         response = self.client.chat_postMessage(text=text, channel=channel.value, blocks=blocks)
+
+        self.scheduler_service.set_pomodoro_timer(
+            page_id=task_id,
+            channel=channel.value,
+            thread_ts=response["ts"],
+        )
+
         return {
             "thread_ts": response["ts"],
             "page_id": task_id,

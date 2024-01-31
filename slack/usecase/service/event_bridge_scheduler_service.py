@@ -20,9 +20,9 @@ POMODORO_TIMER_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:fun
 ROLE_ARN = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_ce49a1e7be"
 
 class EventBridgeSchedulerService:
-    def __init__(self, logger: logging.Logger) -> None:
+    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.events_client = boto3.client('scheduler')
-        self.logger = logger
+        self.logger = logger or logging.getLogger(__name__)
 
     def set_pomodoro_timer(self,
                             page_id: str,
