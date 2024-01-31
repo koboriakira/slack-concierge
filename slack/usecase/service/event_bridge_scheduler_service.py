@@ -57,6 +57,6 @@ class EventBridgeSchedulerService:
 if __name__ == "__main__":
     # python -m usecase.service.event_bridge_scheduler_service
     service = EventBridgeSchedulerService(logger=logging.getLogger(__name__))
-    service.set_pomodoro_timer(page_id="62273ee7-be18-4b75-9b52-ca118214c8b5",
+    service.set_pomodoro_timer(page_id="738c86f9-dd70-4b44-99ca-32192f1d8eb9",
                                 channel="C05F6AASERZ",
-                                thread_ts="1706668465.883669")
+                                thread_ts="1706682095.204639")

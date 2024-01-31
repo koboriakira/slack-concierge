@@ -63,6 +63,16 @@ export class SlackConcierge extends Stack {
         }),
       ],
     });
+
+    // test
+    const test = this.createLambdaFunction(
+      "Test",
+      role,
+      myLayer,
+      "test_handler.handler",
+      60,
+      false
+    );
   }
 
   /**
