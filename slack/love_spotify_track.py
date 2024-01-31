@@ -22,7 +22,8 @@ love_spotify_track = LoveSpotifyTrack(
 
 def handler(event, context):
     print("event", event)
-    request = json.loads(event["body"])
+    print("records", event["Records"])
+    request = json.loads(event["Records"][0]["body"])
     print("request", request)
     track_id = request["track_id"]
     channel_id = request["channel_id"]
