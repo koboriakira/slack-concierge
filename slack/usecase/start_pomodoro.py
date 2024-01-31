@@ -20,7 +20,7 @@ class StartPomodoro:
         _now = now()
 
         # 開始を連絡
-        self._chat_start_message(channel=channel, thread_ts=thread_ts)
+        event_ts = self._chat_start_message(channel=channel, thread_ts=thread_ts)
 
         # ポモドーロカウンターをインクリメント
         self.notion_api.update_pomodoro_count(page_id=notion_page_block_id)
@@ -38,14 +38,18 @@ class StartPomodoro:
             thread_ts=thread_ts,
         )
 
+        self.client.reactions_add(channel=channel, timestamp=event_ts, name="tomato")
 
-    def _chat_start_message(self, channel: str, thread_ts: str):
+
+    def _chat_start_message(self, channel: str, thread_ts: str) -> str:
         block_builder = BlockBuilder()
         block_builder = block_builder.add_section(
             text=f"開始しました！"
         )
         blocks = block_builder.build()
-        self.client.chat_postMessage(text="", blocks=blocks, channel=channel, thread_ts=thread_ts)
+        response = self.client.chat_postMessage(text="", blocks=blocks, channel=channel, thread_ts=thread_ts)
+        event_ts = response["ts"]
+        return event_ts
 
     def _record_google_calendar_achivement(self, page_id: str, start_datetime: DateTime, end_datetime: DateTime):
         task = self.notion_api.find_task(page_id)
