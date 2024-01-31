@@ -1,19 +1,12 @@
 import boto3
 from botocore.exceptions import NoCredentialsError
 import logging
-import requests
-import pathlib
 import json
 import os
 from datetime import datetime as Datetime
 from datetime import timedelta
 from typing import Optional
 from util.datetime import now as datetime_now
-
-# BUCKET_NAME = "koboriakira-bucket"
-# DIR = "/tmp/slack-concierge"
-# /tmp/slack-conciergeがなければ作成する
-# pathlib.Path(DIR).mkdir(exist_ok=True)
 
 AWS_ACCOUNT_ID = os.environ['AWS_ACCOUNT_ID']
 POMODORO_TIMER_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-PomodoroTimer792E3BDD-ZLqpMmL1PeGo"
@@ -51,7 +44,6 @@ class EventBridgeSchedulerService:
                 State='ENABLED',
                 FlexibleTimeWindow={"Mode": "OFF"},
             )
-
         except NoCredentialsError as e:
             self.logger.error("認証情報が不足しています。")
             raise e
