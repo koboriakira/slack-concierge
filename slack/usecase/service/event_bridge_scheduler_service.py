@@ -12,6 +12,8 @@ AWS_ACCOUNT_ID = os.environ['AWS_ACCOUNT_ID']
 POMODORO_TIMER_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-PomodoroTimer792E3BDD-ZLqpMmL1PeGo"
 ROLE_ARN = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_ce49a1e7be"
 
+POMODORO_MINUTES = 25
+
 class EventBridgeSchedulerService:
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.events_client = boto3.client('scheduler')
@@ -28,7 +30,7 @@ class EventBridgeSchedulerService:
                 "channel": channel,
                 "thread_ts": thread_ts,
             })
-            future_datetime = datetime_now() + timedelta(minutes=2) if future_datetime is None else future_datetime
+            future_datetime = datetime_now() + timedelta(minutes=POMODORO_MINUTES) if future_datetime is None else future_datetime
 
             # スケジューラの作成
             response = self.events_client.create_schedule(
