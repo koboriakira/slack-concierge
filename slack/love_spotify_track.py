@@ -22,9 +22,11 @@ love_spotify_track = LoveSpotifyTrack(
 
 def handler(event, context):
     print("event", event)
-    track_id = event["track_id"]
-    channel_id = event["channel_id"]
-    thread_ts = event["thread_ts"]
+    request = json.loads(event["body"])
+    print("request", request)
+    track_id = request["track_id"]
+    channel_id = request["channel_id"]
+    thread_ts = request["thread_ts"]
     love_spotify_track.handle(track_id=track_id, channel_id=channel_id, thread_ts=thread_ts)
 
 if __name__ == "__main__":
