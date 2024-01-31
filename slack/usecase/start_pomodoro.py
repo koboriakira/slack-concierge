@@ -5,6 +5,7 @@ from domain.infrastructure.api.notion_api import NotionApi
 from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
 from domain_service.block.block_builder import BlockBuilder
 from util.datetime import now
+from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
 
 
 class StartPomodoro:
@@ -12,6 +13,7 @@ class StartPomodoro:
         self.notion_api = notion_api
         self.google_api = google_api
         self.client = client
+        self.scheduler_service = EventBridgeSchedulerService()
 
     def handle(self, notion_page_block_id: str, channel: str, thread_ts: str):
         """ ポモドーロの開始を通達する """
@@ -28,6 +30,12 @@ class StartPomodoro:
             page_id=notion_page_block_id,
             start_datetime=_now,
             end_datetime=_now + timedelta(minutes=25),
+        )
+
+        self.scheduler_service.set_pomodoro_timer(
+            page_id=notion_page_block_id,
+            channel=channel,
+            thread_ts=thread_ts,
         )
 
 
