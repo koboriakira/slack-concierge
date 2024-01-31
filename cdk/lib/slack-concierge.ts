@@ -169,6 +169,7 @@ export class SlackConcierge extends Stack {
       process.env.SPOTIFY_CLIENT_SECRET || ""
     );
     fn.addEnvironment("OPENAI_API_KEY", process.env.OPENAI_API_KEY || "");
+    fn.addEnvironment("AWS_ACCOUNT_ID", process.env.AWS_ACCOUNT_ID || "");
 
     if (function_url_enabled) {
       fn.addFunctionUrl({

@@ -40,3 +40,4 @@ jobs:
           BUSINESS_SLACK_USER_TOKEN: ${{ secrets.BUSINESS_SLACK_USER_TOKEN }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
