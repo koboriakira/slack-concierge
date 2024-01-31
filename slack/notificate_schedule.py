@@ -5,18 +5,25 @@ from datetime import datetime as Datetime
 from datetime import timedelta
 from slack_sdk.web import WebClient
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from domain.notion.notion_page import TaskPage
 from util.datetime import now as _now
 from usecase.start_task import StartTask
+from usecase.start_pomodoro import StartPomodoro
+from domain.channel import ChannelType
+from util.environment import Environment
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 if os.environ.get("ENVIRONMENT") == "dev":
     logger.setLevel(logging.DEBUG)
 
+client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
 notion_api=LambdaNotionApi()
+google_api=LambdaGoogleCalendarApi()
 start_task_usecase = StartTask(notion_api=notion_api,
-                               client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]))
+                                client=client)
+start_pomodoro = StartPomodoro(notion_api=notion_api, google_api=google_api, client=client)
 
 def handler(event, context):
     now = _now()
@@ -31,7 +38,13 @@ def handler(event, context):
     return {"message": "success"}
 
 def post_task(task: TaskPage) -> None:
-    start_task_usecase.handle_prepare(task_id=task.id, task_title=task.title)
+    # タスクの投稿
+    response = start_task_usecase.handle_prepare(task_id=task.id, task_title=task.title)
+
+    # ポモドーロの開始
+    channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
+    thread_ts = response["thread_ts"]
+    start_pomodoro.handle(notion_page_block_id=task.id, channel=channel.value, thread_ts=thread_ts)
     pass
 
 
