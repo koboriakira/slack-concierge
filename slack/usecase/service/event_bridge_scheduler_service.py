@@ -24,15 +24,22 @@ class EventBridgeSchedulerService:
         self.events_client = boto3.client('scheduler')
         self.logger = logger
 
-    def set_pomodoro_timer(self, page_id: str, future_datetime: Optional[Datetime] = None) -> None:
+    def set_pomodoro_timer(self,
+                            page_id: str,
+                            channel: str,
+                            thread_ts:str,
+                            future_datetime: Optional[Datetime] = None) -> None:
         try:
-            input_json = json.dumps({"page_id": "page_id"})
-            rule_name = self._get_rule_name(page_id=page_id)
+            input_json = json.dumps({
+                "page_id": page_id,
+                "channel": channel,
+                "thread_ts": thread_ts,
+            })
             future_datetime = datetime_now() + timedelta(minutes=2) if future_datetime is None else future_datetime
 
             # スケジューラの作成
             response = self.events_client.create_schedule(
-                Name=rule_name,
+                Name=f"pomodoro-timer-{future_datetime.strftime('%H%M')}",
                 ActionAfterCompletion='DELETE',
                 ScheduleExpressionTimezone="Asia/Tokyo",
                 ScheduleExpression=future_datetime.strftime("cron(%M %H %d %m ? %Y)"),
@@ -53,11 +60,9 @@ class EventBridgeSchedulerService:
             raise e
 
 
-    def _get_rule_name(self, page_id: str) -> str:
-        return f"SlackConcierge-PomodoroTimer-{page_id}"
-
 if __name__ == "__main__":
     # python -m usecase.service.event_bridge_scheduler_service
     service = EventBridgeSchedulerService(logger=logging.getLogger(__name__))
-    page_id = "page_id"
-    service.set_pomodoro_timer(page_id=page_id)
+    service.set_pomodoro_timer(page_id="62273ee7-be18-4b75-9b52-ca118214c8b5",
+                                channel="C05F6AASERZ",
+                                thread_ts="1706668465.883669")

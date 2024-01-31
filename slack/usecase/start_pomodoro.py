@@ -30,46 +30,6 @@ class StartPomodoro:
             end_datetime=_now + timedelta(minutes=25),
         )
 
-        # TODO: 25分後に終了を通知したい。EventBridgeなどを使う必要がありそうで時間がかかるので、
-        # とりあえず開始直後に通知するようにしておいて、机上のタイマーで測っておく
-        # そのため以下はEventBridge実装後に移行する
-        block_builder = BlockBuilder()
-        block_builder = block_builder.add_section(
-            text=f"25分が経過しました！\n「気持ち」を記録して休憩してください"
-        )
-        block_builder = block_builder.add_button_action(
-            action_id="start-pomodoro",
-            text="再開",
-            value=notion_page_block_id,
-            style="primary",
-        )
-        block_builder = block_builder.add_button_action(
-            action_id="complete-task",
-            text="終了",
-            value=notion_page_block_id,
-            style="danger",
-        )
-        block_builder = block_builder.add_context({
-            "channel_id": channel,
-            "thread_ts": thread_ts,
-            })
-        blocks = block_builder.build()
-        self.client.chat_postMessage(text="", blocks=blocks, channel=channel, thread_ts=thread_ts)
-
-
-        # TODO: record-feelingは削除する
-        # block_builder = BlockBuilder()
-        # block_builder = block_builder.add_section(
-        #     text=f"25分が経過しました！\n「気持ち」を記録して休憩してください"
-        # )
-        # block_builder = block_builder.add_button_action(
-        #     action_id="record-feeling",
-        #     text="気持ちを記録",
-        #     value=notion_page_block_id,
-        #     style="primary",
-        # )
-        # blocks = block_builder.build()
-        # self.client.chat_postMessage(text="", blocks=blocks, channel=channel, thread_ts=thread_ts)
 
     def _chat_start_message(self, channel: str, thread_ts: str):
         block_builder = BlockBuilder()
