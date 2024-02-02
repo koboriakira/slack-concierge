@@ -17,7 +17,7 @@ class PomodoroTimer:
         block_builder = block_builder.add_section(
             text=f"{user_mention}\n25分が経過しました！\n進捗や気持ちをメモして休憩してください。"
         )
-        video_5minutes = _select_video()
+        video_5minutes = _suggest_rest_action()
         block_builder = block_builder.add_section(
             text=f"休憩時にオススメ！\n{video_5minutes}"
         )
@@ -41,26 +41,42 @@ class PomodoroTimer:
 
         self.client.chat_postMessage(text="", blocks=blocks, channel=channel, thread_ts=thread_ts)
 
-def _select_video() -> str:
+def _suggest_rest_action() -> str:
     hour = now().time().hour
+    action = random.choice(["家事の確認", "ストレッチ"])
     if hour < 12:
         # 朝活、ヨガ系の動画
-        urls = [
-            "https://youtube.com/watch?v=8FX9ZwDvf_0&si=Bw3P_R-ki7I3RnUo"
-        ]
-        return random.choice(urls)
+        url = random.choice([
+            "https://youtube.com/watch?v=8FX9ZwDvf_0&si=Bw3P_R-ki7I3RnUo" # 5分ヨガ
+        ])
+        return f"休憩時のオススメ！\n{url}"
     elif 12 <= hour < 18:
-        # 筋トレなどの動画
-        urls = [
-            "https://youtube.com/watch?v=8FX9ZwDvf_0&si=Bw3P_R-ki7I3RnUo" # あとで差し替える
-        ]
-        return random.choice(urls)
+        if action == "家事の確認":
+            housework = random.choice(["洗濯",
+                                       "トイレ掃除",
+                                       "リビング掃除",
+                                       "食器洗い"])
+            return f"休憩時のオススメ！\n{housework}はやりましたか？"
+        elif action == "ストレッチ":
+            url = random.choice([
+                "https://youtube.com/watch?v=8FX9ZwDvf_0&si=Bw3P_R-ki7I3RnUo" # FIXME: あとで差し替える
+            ])
+            return f"休憩時のオススメ！\n{url}"
+        else:
+            raise ValueError(f"Unexpected action: {action}")
     else:
-        # リラックス系の動画
-        urls = [
-            "https://youtube.com/watch?v=8FX9ZwDvf_0&si=Bw3P_R-ki7I3RnUo" # あとで差し替える
-        ]
-        return random.choice(urls)
+        if action == "家事の確認":
+            housework = random.choice(["洗濯",
+                                       "リビング掃除",
+                                       "食器洗い"])
+            return f"休憩時のオススメ！\n{housework}はやりましたか？"
+        elif action == "ストレッチ":
+            url = random.choice([
+                "https://youtube.com/watch?v=8FX9ZwDvf_0&si=Bw3P_R-ki7I3RnUo" # FIXME: あとで差し替える
+            ])
+            return f"休憩時のオススメ！\n{url}"
+        else:
+            raise ValueError(f"Unexpected action: {action}")
 
 if __name__ == "__main__":
     # python -m usecase.pomodoro_timer
