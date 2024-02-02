@@ -3,6 +3,7 @@ from botocore.exceptions import NoCredentialsError
 import logging
 import json
 import os
+import uuid
 from datetime import datetime as Datetime
 from datetime import timedelta
 from typing import Optional
@@ -11,8 +12,7 @@ from util.datetime import now as datetime_now
 AWS_ACCOUNT_ID = os.environ['AWS_ACCOUNT_ID']
 ROLE_ARN = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_ce49a1e7be"
 POMODORO_TIMER_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-PomodoroTimer792E3BDD-ZLqpMmL1PeGo"
-CREATE_TASK_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:DUMMY"
-
+CREATE_TASK_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-CreateTask0C1E0090-em9csrKc0K9T"
 POMODORO_MINUTES = 25
 
 class EventBridgeSchedulerService:
@@ -36,14 +36,20 @@ class EventBridgeSchedulerService:
             }
         )
 
-    def set_create_task(self,
-                      task_title: str,
-                        future_datetime: Optional[Datetime] = None) -> None:
+    def set_create_task(
+            self,
+            task_title: str,
+            datetime: Datetime) -> None:
+        # イベント実行（タスク起票）は予定日の前日
+        future_datetime = datetime - timedelta(days=1)
+        future_datetime = future_datetime.replace(hour=19, minute=0, second=0, microsecond=0)
         self._create_schedule(
-            name=f"create_task-{future_datetime.strftime('%H%M')}",
+            name=f"create_task-{uuid.uuid4()}",
             future_datetime=future_datetime,
             data={
-                "task_title": task_title
+                "task_title": task_title,
+                # 0時の場合は日付のみが指定されたとする
+                "datetime": datetime.isoformat() if datetime.hour == 0 else datetime.date().isoformat
             }
         )
 
