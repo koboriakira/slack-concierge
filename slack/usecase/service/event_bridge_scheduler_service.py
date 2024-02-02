@@ -9,8 +9,9 @@ from typing import Optional
 from util.datetime import now as datetime_now
 
 AWS_ACCOUNT_ID = os.environ['AWS_ACCOUNT_ID']
-POMODORO_TIMER_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-PomodoroTimer792E3BDD-ZLqpMmL1PeGo"
 ROLE_ARN = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_ce49a1e7be"
+POMODORO_TIMER_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-PomodoroTimer792E3BDD-ZLqpMmL1PeGo"
+CREATE_TASK_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:DUMMY"
 
 POMODORO_MINUTES = 25
 
@@ -24,24 +25,42 @@ class EventBridgeSchedulerService:
                             channel: str,
                             thread_ts:str,
                             future_datetime: Optional[Datetime] = None) -> None:
-        try:
-            input_json = json.dumps({
+        future_datetime = datetime_now() + timedelta(minutes=POMODORO_MINUTES) if future_datetime is None else future_datetime
+        self._create_schedule(
+            name=f"pomodoro_timer-{future_datetime.strftime('%H%M')}",
+            future_datetime=future_datetime,
+            data={
                 "page_id": page_id,
                 "channel": channel,
                 "thread_ts": thread_ts,
-            })
-            future_datetime = datetime_now() + timedelta(minutes=POMODORO_MINUTES) if future_datetime is None else future_datetime
+            }
+        )
 
-            # スケジューラの作成
-            response = self.events_client.create_schedule(
-                Name=f"pomodoro-timer-{future_datetime.strftime('%H%M')}",
+    def set_create_task(self,
+                      task_title: str,
+                        future_datetime: Optional[Datetime] = None) -> None:
+        self._create_schedule(
+            name=f"create_task-{future_datetime.strftime('%H%M')}",
+            future_datetime=future_datetime,
+            data={
+                "task_title": task_title
+            }
+        )
+
+    def _create_schedule(self,
+                        name: str,
+                        future_datetime: Datetime,
+                        data: dict) -> None:
+        try:
+            self.events_client.create_schedule(
+                Name=name,
                 ActionAfterCompletion='DELETE',
                 ScheduleExpressionTimezone="Asia/Tokyo",
                 ScheduleExpression=future_datetime.strftime("cron(%M %H %d %m ? %Y)"),
                 Target={
-                    'Arn': POMODORO_TIMER_LAMBDA_ARN,
+                    'Arn': CREATE_TASK_LAMBDA_ARN,
                     'RoleArn': ROLE_ARN,
-                    'Input': input_json
+                    'Input': json.dumps(data)
                 },
                 State='ENABLED',
                 FlexibleTimeWindow={"Mode": "OFF"},
@@ -52,7 +71,6 @@ class EventBridgeSchedulerService:
         except Exception as e:
             self.logger.error(e)
             raise e
-
 
 if __name__ == "__main__":
     # python -m usecase.service.event_bridge_scheduler_service
