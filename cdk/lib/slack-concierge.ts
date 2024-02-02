@@ -65,23 +65,14 @@ export class SlackConcierge extends Stack {
     });
 
     // love_spotify_track: SQSから呼び出される
-    const loveSpotifyTrack = this.createLambdaFunction(
+    const loveSpotifyTrack = this.createLambdaAndSqs(
       "LoveSpotifyTrack",
       role,
       myLayer,
       "love_spotify_track.handler",
       60,
-      false
+      lambda_lazy_main
     );
-    const queue = new sqs.Queue(this, "LoveSpotifyTrackQueue", {
-      visibilityTimeout: Duration.seconds(300),
-    });
-    queue.grantConsumeMessages(loveSpotifyTrack);
-    queue.grantSendMessages(lambda_lazy_main);
-    loveSpotifyTrack.addEventSourceMapping("LoveSpotifyTrackEventSource", {
-      eventSourceArn: queue.queueArn,
-      batchSize: 1,
-    });
 
     // test
     const test = this.createLambdaFunction(
@@ -92,6 +83,34 @@ export class SlackConcierge extends Stack {
       60,
       false
     );
+  }
+
+  createLambdaAndSqs(
+    name: string,
+    role: iam.Role,
+    myLayer: lambda.LayerVersion,
+    handler: string,
+    timeout: number = 30,
+    lambda_lazy_main: lambda.Function
+  ) {
+    const functionForSqs = this.createLambdaFunction(
+      name,
+      role,
+      myLayer,
+      handler,
+      timeout,
+      false
+    );
+    const queue = new sqs.Queue(this, name + "Queue", {
+      visibilityTimeout: Duration.seconds(300),
+    });
+    queue.grantConsumeMessages(functionForSqs);
+    queue.grantSendMessages(lambda_lazy_main);
+    functionForSqs.addEventSourceMapping(name + "EventSource", {
+      eventSourceArn: queue.queueArn,
+      batchSize: 1,
+    });
+    return functionForSqs;
   }
 
   /**
