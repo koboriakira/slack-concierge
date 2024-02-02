@@ -44,6 +44,16 @@ export class SlackConcierge extends Stack {
       false
     );
 
+    // create_task: 任意に作成されるEventBridgeSchedulerで実行される
+    const createTask = this.createLambdaFunction(
+      "CreateTask",
+      role,
+      myLayer,
+      "create_task.handler",
+      15,
+      false
+    );
+
     // notificate_schedule: EventBridgeで呼び出される
     const lambda_notificate_schedule = this.createLambdaFunction(
       "NotificateSchedule",
