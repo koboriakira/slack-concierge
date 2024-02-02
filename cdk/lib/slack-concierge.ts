@@ -74,6 +74,16 @@ export class SlackConcierge extends Stack {
       lambda_lazy_main
     );
 
+    // complete_task: SQSから呼び出される
+    const completeTask = this.createLambdaAndSqs(
+      "CompleteTask",
+      role,
+      myLayer,
+      "complete_task.handler",
+      60,
+      lambda_lazy_main
+    );
+
     // test
     const test = this.createLambdaFunction(
       "Test",
