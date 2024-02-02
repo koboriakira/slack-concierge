@@ -91,7 +91,6 @@ class TaskPage(NotionPage):
         self.end_date = end_date
         self.task_kind = task_kind
 
-
     def from_dict(params: dict) -> "TaskPage":
         return TaskPage(
             id=params["id"],
@@ -103,3 +102,7 @@ class TaskPage(NotionPage):
             end_date=DatetimeObject.fromisoformat(params["end_date"]) if params["end_date"] else None,
             task_kind=params["task_kind"] if "task_kind" in params else None,
         )
+
+    @property
+    def is_routine(self) -> bool:
+        return self.title.startswith("【ルーティン】")
