@@ -6,10 +6,6 @@ from util.datetime import now as datetime_now
 
 class RoutineTask(Enum):
     """ ルーティンタスク """
-    CLEANING_BATHROOM = "風呂掃除"
-    LAUNDRY = "洗濯"
-    DAILY_REVIEW = "日次レビュー"
-    CLEANING_TOILET = "トイレ掃除"
     # {"家事": "housework"},
     # {"料理": "cooking"},
     # {"買い物": "shopping"},
@@ -18,10 +14,14 @@ class RoutineTask(Enum):
     # {"夕食": "dinner"},
     # {"入浴": "bath"},
     # {"睡眠": "sleep"},
-    # {"日次レビュー": "daily-review"},
     # {"週次レビュー": "weekly-review"},
     # {"月次レビュー": "monthly-review"},
     # {"その他": "other"},
+    CLEANING_BATHROOM = "風呂掃除"
+    LAUNDRY = "洗濯"
+    DAILY_REVIEW = "日次レビュー"
+    CLEANING_TOILET = "トイレ掃除"
+
 
     @property
     def datetime_creates_next_task(self) -> Datetime:
@@ -37,6 +37,9 @@ class RoutineTask(Enum):
             case RoutineTask.DAILY_REVIEW:
                 target_datetime = now + timedelta(days=1)
                 return target_datetime.replace(hour=22, minute=0, second=0, microsecond=0)
+            case RoutineTask.CLEANING_TOILET:
+                target_datetime = now + timedelta(days=7)
+                return target_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
             case _:
                 raise NotImplementedError(f"未実装のルーティンタスクです: {self.value}")
 
