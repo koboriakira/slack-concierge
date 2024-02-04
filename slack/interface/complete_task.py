@@ -1,10 +1,7 @@
 import logging
-import json
 import os
 from slack_sdk.web import WebClient
 from slack_bolt import App, Ack
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from usecase.complete_task import CompleteTask as CompleteTaskUsecase
 from usecase.service.sqs_service import SqsService
 from util.logging_traceback import logging_traceback
 
