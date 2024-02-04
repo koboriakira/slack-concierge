@@ -1,8 +1,7 @@
 import os
-import json
 import logging
 from slack_sdk.web import WebClient
-from usecase.create_task import CreateTask
+from usecase.service.task_generator import TaskGenerator
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
@@ -15,8 +14,8 @@ if os.environ.get("ENVIRONMENT") == "dev":
 
 def handler(event, context):
     print(event)
-    create_task = CreateTask(notion_api=LambdaNotionApi())
-    create_task.handle(title=event["title"])
+    task_generator = TaskGenerator(notion_api=LambdaNotionApi())
+    task_generator.add_to_inbox(title=event["title"])
 
 if __name__ == "__main__":
     # python -m sync_schedule_to_task
