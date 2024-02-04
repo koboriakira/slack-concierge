@@ -39,6 +39,14 @@ def get_current_day_and_tomorrow(date_str: Optional[str] = None) -> tuple[float,
     unix_tomorrow = unix_today + 86400
     return unix_today, unix_tomorrow
 
+def convert_to_datetime_or_date(date_str: str) -> DatetimeObject|DateObject:
+    """
+    日付文字列をdatetimeオブジェクトもしくはdateオブジェクトに変換する。
+    """
+    if "T" in date_str:
+        return DatetimeObject.fromisoformat(date_str)
+    return DateObject.fromisoformat(date_str)
+
 
 def is_holiday(date: DateObject) -> bool:
     """

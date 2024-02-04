@@ -36,7 +36,7 @@ class EventBridgeSchedulerService:
 
     def set_create_task(
             self,
-            task_title: str,
+            title: str,
             datetime: Datetime) -> None:
         # イベント実行（タスク起票）は予定日の前日
         future_datetime = datetime - timedelta(days=1)
@@ -46,7 +46,7 @@ class EventBridgeSchedulerService:
             name=f"create_task-{uuid.uuid4()}",
             future_datetime=future_datetime,
             data={
-                "task_title": task_title,
+                "title": title,
                 # 0時の場合は日付のみが指定されたとする
                 "datetime": datetime.isoformat() if datetime.hour == 0 else datetime.date().isoformat()
             }
@@ -84,4 +84,4 @@ if __name__ == "__main__":
     # service.set_pomodoro_timer(page_id="738c86f9-dd70-4b44-99ca-32192f1d8eb9",
     #                             channel="C05F6AASERZ",
     #                             thread_ts="1706682095.204639")
-    service.set_create_task(task_title="風呂掃除【ルーティン】", datetime=datetime_now() + timedelta(days=7))
+    service.set_create_task(title="風呂掃除【ルーティン】", datetime=datetime_now() + timedelta(days=7))

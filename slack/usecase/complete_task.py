@@ -27,7 +27,7 @@ class CompleteTask:
         """ 次回のタスクの起票予約を行う """
         routine_task = RoutineTask.from_name(name=task_title)
         self.scheduler_client.set_create_task(
-            task_title=task_title,
+            title=task_title,
             datetime=routine_task.datetime_creates_next_task)
 
 if __name__ == "__main__":
