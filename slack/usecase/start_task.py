@@ -8,21 +8,12 @@ from domain_service.view.view_builder import ViewBuilder
 from util.environment import Environment
 from domain.channel import ChannelType
 from util.cache import Cache
+from domain.routine.routine_task import RoutineTask
 
-ROUTINE_TASK_OPTIONS = [
-    {"家事": "housework"},
-    {"料理": "cooking"},
-    {"買い物": "shopping"},
-    {"朝食": "breakfast"},
-    {"昼食": "lunch"},
-    {"夕食": "dinner"},
-    {"入浴": "bath"},
-    {"睡眠": "sleep"},
-    {"日次レビュー": "daily-review"}, # Notionの更新ページ確認、Googleカレンダーの実績確認、Inbox整理、TODAYタスクの決定
-    {"週次レビュー": "weekly-review"},
-    {"月次レビュー": "monthly-review"},
-    {"その他": "other"},
-]
+ROUTINE_TASK_OPTIONS = [{
+        "text": task.value,
+        "value": task.name
+    } for task in RoutineTask]
 
 TODAY_TASK_OPTIONS = "today_task_options"
 
@@ -62,7 +53,7 @@ class StartTask:
         block_builder = block_builder.add_static_select(
             action_id="routine-task",
             label="ルーチンタスクを開始する場合",
-            options=[{"text": k, "value": v} for d in ROUTINE_TASK_OPTIONS for k, v in d.items()],
+            options=ROUTINE_TASK_OPTIONS,
             optional=True,
         )
 

@@ -1,32 +1,11 @@
-from enum import Enum
-from datetime import datetime as Datetime
-from datetime import timedelta
-from typing import Optional
-from slack_sdk.web import WebClient
+sfrom slack_sdk.web import WebClient
 from domain.infrastructure.api.notion_api import NotionApi
 from domain.notion.notion_page import TaskPage
 from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
 from util.datetime import now as datetime_now
+from domain.routine.routine_task import RoutineTask
 
 
-class RoutineTask(Enum):
-    """ ルーティンタスク """
-    CLEANING_BATHROOM = "風呂掃除"
-
-    @property
-    def datetime_creates_next_task(self) -> Datetime:
-        """ 次回のタスクの起票予約日時。00:00は日付のみの指定とする """
-        now = datetime_now()
-        match self:
-            case RoutineTask.CLEANING_BATHROOM:
-                target_datetime = now + timedelta(days=7)
-                return target_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
-            case _:
-                raise NotImplementedError(f"未実装のルーティンタスクです: {self.value}")
-
-    @staticmethod
-    def from_name(name: str) -> 'RoutineTask':
-        return RoutineTask(name.replace("【ルーティン】", ""))
 
 class CompleteTask:
     def __init__(self, notion_api: NotionApi, client: WebClient):
