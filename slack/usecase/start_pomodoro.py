@@ -23,7 +23,7 @@ class StartPomodoro:
         event_ts = self._chat_start_message(channel=request.channel, thread_ts=request.thread_ts)
 
         # ポモドーロカウンターをインクリメント
-        self.notion_api.update_pomodoro_count(page_id=request.notion_page_block_id)
+        self.notion_api.update_pomodoro_count(page_id=request.page_id)
 
         # Googleカレンダーに実績を記録
         self._record_google_calendar_achivement(
@@ -34,7 +34,7 @@ class StartPomodoro:
 
         self.scheduler_service.set_pomodoro_timer(request=request)
 
-        self.client.reactions_add(channel=channel, timestamp=event_ts, name="tomato")
+        self.client.reactions_add(channel=request.channel, timestamp=event_ts, name="tomato")
 
 
     def _chat_start_message(self, channel: str, thread_ts: str) -> str:
