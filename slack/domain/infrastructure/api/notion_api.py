@@ -63,6 +63,14 @@ class NotionApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def add_book(
+        self,
+        google_book_id: Optional[str] = None,
+        title: Optional[str] = None,) -> dict:
+        """ Notionに本のページを作成する """
+        pass
+
+    @abstractmethod
     def create_prowrestling_page(self,
                                  url: str,
                                  title: str,

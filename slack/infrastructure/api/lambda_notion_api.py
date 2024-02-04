@@ -109,6 +109,18 @@ class LambdaNotionApi(NotionApi):
             data["cover"] = cover
         return self._post(url=api_url, data=data)
 
+    def add_book(
+        self,
+        google_book_id: Optional[str] = None,
+        title: Optional[str] = None,) -> dict:
+        api_url = f"{self.domain}books/regist"
+        data = {}
+        if google_book_id:
+            data["google_book_id"] = google_book_id
+        if title:
+            data["title"] = title
+        return self._post(url=api_url, data=data)
+
     def create_prowrestling_page(self,
                                  url: str,
                                  title: str,
@@ -261,3 +273,5 @@ if __name__ == "__main__":
     #     cover= "https://res.cloudinary.com/zenn/image/upload/s--Zg_PKBou--/c_fit%2Cg_north_west%2Cl_text:notosansjp-medium.otf_55:LangChain%2520%25E3%2581%25AE%25E6%2596%25B0%25E8%25A8%2598%25E6%25B3%2595%25E3%2580%258CLangChain%2520Expression%2520Language%2520%2528LCEL%2529%25E3%2580%258D%25E5%2585%25A5%25E9%2596%2580%2Cw_1010%2Cx_90%2Cy_100/g_south_west%2Cl_text:notosansjp-medium.otf_37:oshima_123%2Cx_203%2Cy_121/g_south_west%2Ch_90%2Cl_fetch:aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL3plbm4tdXNlci11cGxvYWQvYXZhdGFyLzY1ZjAzMGZmOTcuanBlZw==%2Cr_max%2Cw_90%2Cx_87%2Cy_95/v1627283836/default/og-base-w1200-v2.png"
     # ))
     # print(notion_api.list_tasks(start_date=Date.today()))
+
+    print(notion_api.add_book(title="大切なことだけをやりなさい"))
