@@ -26,7 +26,7 @@ class RoutineTask(Enum):
 
     @staticmethod
     def from_name(name: str) -> 'RoutineTask':
-        return RoutineTask[name.replace("【ルーティン】", "")]
+        return RoutineTask(name.replace("【ルーティン】", ""))
 
 class CompleteTask:
     def __init__(self, notion_api: NotionApi, client: WebClient):
@@ -46,13 +46,14 @@ class CompleteTask:
 
     def _reserve_next_task(self, task_title: str):
         """ 次回のタスクの起票予約を行う """
-        routine_task = RoutineTask[task_title]
+        routine_task = RoutineTask.from_name(name=task_title)
         self.scheduler_client.set_create_task(
             task_title=task_title,
-            future_datetime=routine_task.datetime_creates_next_task)
+            datetime=routine_task.datetime_creates_next_task)
 
 if __name__ == "__main__":
     # python -m usecase.complete_task
+    from infrastructure.api.lambda_notion_api import LambdaNotionApi
     import os
-    usecase = CompleteTask(notion_api=NotionApi(), client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]))
+    usecase = CompleteTask(notion_api=LambdaNotionApi(), client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]))
     usecase._reserve_next_task(task_title="【ルーティン】風呂掃除")
