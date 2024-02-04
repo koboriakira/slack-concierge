@@ -12,6 +12,7 @@ from usecase.start_task import StartTask
 from usecase.start_pomodoro import StartPomodoro
 from domain.channel import ChannelType
 from util.environment import Environment
+from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -44,7 +45,13 @@ def post_task(task: TaskPage) -> None:
     # ポモドーロの開始
     channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
     thread_ts = response["thread_ts"]
-    start_pomodoro.handle(notion_page_block_id=task.id, channel=channel.value, thread_ts=thread_ts)
+
+    event_scheduler_request = PomodoroTimerRequest(
+        page_id=task.id,
+        channel=channel.value,
+        thread_ts=thread_ts,
+    )
+    start_pomodoro.handle(request=event_scheduler_request)
     pass
 
 

@@ -8,6 +8,7 @@ from datetime import datetime as Datetime
 from datetime import timedelta
 from typing import Optional
 from util.datetime import now as datetime_now
+from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 
 AWS_ACCOUNT_ID = os.environ['AWS_ACCOUNT_ID']
 ROLE_ARN = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_ce49a1e7be"
@@ -20,19 +21,15 @@ class EventBridgeSchedulerService:
         self.events_client = boto3.client('scheduler')
         self.logger = logger or logging.getLogger(__name__)
 
-    def set_pomodoro_timer(self,
-                            page_id: str,
-                            channel: str,
-                            thread_ts:str,
-                            future_datetime: Optional[Datetime] = None) -> None:
-        future_datetime = datetime_now() + timedelta(minutes=POMODORO_MINUTES) if future_datetime is None else future_datetime
+    def set_pomodoro_timer(self, request: PomodoroTimerRequest) -> None:
+        future_datetime = datetime_now() + timedelta(minutes=POMODORO_MINUTES)
         self._create_schedule(
             name=f"pomodoro_timer-{future_datetime.strftime('%H%M')}",
             future_datetime=future_datetime,
             data={
-                "page_id": page_id,
-                "channel": channel,
-                "thread_ts": thread_ts,
+                "page_id": request.page_id,
+                "channel": request.channel,
+                "thread_ts": request.thread_ts,
             }
         )
 

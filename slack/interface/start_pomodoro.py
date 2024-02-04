@@ -6,7 +6,7 @@ from util.custom_logging import get_logger
 from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
-
+from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 
 ACTION_ID = "start-pomodoro"
 
@@ -26,7 +26,13 @@ def start_pomodoro(body: dict, client: WebClient):
 
         logger.debug(json.dumps(body))
         usecase = StartPomodoroUsecase(notion_api=LambdaNotionApi(), google_api=LambdaGoogleCalendarApi(), client=client)
-        usecase.handle(notion_page_block_id=notion_page_block_id, channel=channel_id, thread_ts=thread_ts)
+
+        event_scheduler_request = PomodoroTimerRequest(
+            page_id=notion_page_block_id,
+            channel=channel_id,
+            thread_ts=thread_ts,
+        )
+        usecase.handle(request=event_scheduler_request)
     except Exception as err:
         import sys
         logging_traceback(err, sys.exc_info())

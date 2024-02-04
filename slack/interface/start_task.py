@@ -11,6 +11,7 @@ from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
 from util.logging_traceback import logging_traceback
 from domain.channel import ChannelType
 from util.environment import Environment
+from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 
 SHORTCUT_ID = "start-task"
 CALLBACK_ID = "start-task-modal"
@@ -52,7 +53,12 @@ def start_task(logger: logging.Logger, view: dict, client: WebClient):
         channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
 
         start_pomodoro = StartPomodoroUsecase(notion_api=notion_api, google_api=LambdaGoogleCalendarApi(), client=client)
-        start_pomodoro.handle(notion_page_block_id=page_id, channel=channel.value, thread_ts=thread_ts)
+        event_scheduler_request = PomodoroTimerRequest(
+            page_id=page_id,
+            channel=channel.value,
+            thread_ts=thread_ts,
+        )
+        start_pomodoro.handle(request=event_scheduler_request)
     except Exception as err:
         import sys
         logging_traceback(err, sys.exc_info())

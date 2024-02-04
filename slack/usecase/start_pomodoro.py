@@ -6,7 +6,7 @@ from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
 from domain_service.block.block_builder import BlockBuilder
 from util.datetime import now
 from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
-
+from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 
 class StartPomodoro:
     def __init__(self, notion_api: NotionApi, google_api: GoogleCalendarApi, client: WebClient):
@@ -15,28 +15,24 @@ class StartPomodoro:
         self.client = client
         self.scheduler_service = EventBridgeSchedulerService()
 
-    def handle(self, notion_page_block_id: str, channel: str, thread_ts: str):
+    def handle(self, request: PomodoroTimerRequest):
         """ ポモドーロの開始を通達する """
         _now = now()
 
         # 開始を連絡
-        event_ts = self._chat_start_message(channel=channel, thread_ts=thread_ts)
+        event_ts = self._chat_start_message(channel=request.channel, thread_ts=request.thread_ts)
 
         # ポモドーロカウンターをインクリメント
-        self.notion_api.update_pomodoro_count(page_id=notion_page_block_id)
+        self.notion_api.update_pomodoro_count(page_id=request.notion_page_block_id)
 
         # Googleカレンダーに実績を記録
         self._record_google_calendar_achivement(
-            page_id=notion_page_block_id,
+            page_id=request.page_id,
             start_datetime=_now,
             end_datetime=_now + timedelta(minutes=25),
         )
 
-        self.scheduler_service.set_pomodoro_timer(
-            page_id=notion_page_block_id,
-            channel=channel,
-            thread_ts=thread_ts,
-        )
+        self.scheduler_service.set_pomodoro_timer(request=request)
 
         self.client.reactions_add(channel=channel, timestamp=event_ts, name="tomato")
 
