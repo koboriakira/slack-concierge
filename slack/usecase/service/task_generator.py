@@ -11,6 +11,10 @@ class TaskGenerator:
         """ INBOXタスクに追加する """
         return self.notion_api.create_task(title=title)
 
+    def add_to_inbox_by_page_id(self, page_id: str) -> dict:
+        """ INBOXタスクに追加する(ページメンション) """
+        return self.notion_api.create_task(mentioned_page_id=page_id)
+
     def add_scheduled_task(self, title: str, start_datetime: Datetime|Date) -> dict:
         """ INBOXタスクに追加する """
         return self.notion_api.create_task(title=title, start_date=start_datetime)

@@ -9,6 +9,7 @@ from interface.start_task import shortcut_start_task
 from interface.start_pomodoro import action_start_pomodoro
 from interface.record_feeling import action_record_feeling
 from interface.complete_task import action_complete_task
+from interface.regist import shortcut_regist
 
 def create_lazy_app() -> App:
     app = App(
@@ -21,6 +22,7 @@ def create_lazy_app() -> App:
     app = shortcut_create_calendar(app)
     app = shortcut_sync_times(app)
     app = shortcut_love_spotify_track(app)
+    app = shortcut_regist(app)
     app = shortcut_start_task(app)
     app = action_start_pomodoro(app)
     app = action_record_feeling(app)
