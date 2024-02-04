@@ -17,9 +17,8 @@ class PomodoroTimer:
         block_builder = block_builder.add_section(
             text=f"{user_mention}\n25分が経過しました！\n進捗や気持ちをメモして休憩してください。"
         )
-        video_5minutes = _suggest_rest_action()
         block_builder = block_builder.add_section(
-            text=f"休憩時にオススメ！\n{video_5minutes}"
+            text=_suggest_rest_action()
         )
         block_builder = block_builder.add_button_action(
             action_id="start-pomodoro",
@@ -39,7 +38,7 @@ class PomodoroTimer:
             })
         blocks = block_builder.build()
 
-        self.client.chat_postMessage(text="", blocks=blocks, channel=channel, thread_ts=thread_ts)
+        self.client.chat_postMessage(text="25分が経過しました！", blocks=blocks, channel=channel, thread_ts=thread_ts)
 
 def _suggest_rest_action() -> str:
     hour = now().time().hour
