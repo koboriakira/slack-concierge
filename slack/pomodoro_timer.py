@@ -22,8 +22,12 @@ def handler(event, context):
     )
 
 if __name__ == "__main__":
-    # python -m sync_schedule_to_task
+    # python -m pomodoro_timer
     logger.debug("debug mode")
-    event = {}
+    event = {
+        "page_id": "89af7291-62d4-4079-a450-78f1d455cd15",
+        "channel": "C05F6AASERZ",
+        "thread_ts": "1707010671.541529"
+    }
     context = {}
     print(handler(event, context))
