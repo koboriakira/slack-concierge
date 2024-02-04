@@ -3,13 +3,14 @@ from slack_sdk.web import WebClient
 from domain_service.block.block_builder import BlockBuilder
 from domain.user import UserKind
 from util.datetime import now
+from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 
 
 class PomodoroTimer:
     def __init__(self, client: WebClient):
         self.client = client
 
-    def handle(self, notion_page_block_id: str, channel: str, thread_ts: str):
+    def handle(self, request: PomodoroTimerRequest):
         """ ポモドーロの終了を通達する """
         user_mention = UserKind.KOBORI_AKIRA.mention()
 
@@ -23,22 +24,26 @@ class PomodoroTimer:
         block_builder = block_builder.add_button_action(
             action_id="start-pomodoro",
             text="再開",
-            value=notion_page_block_id,
+            value=request.page_id,
             style="primary",
         )
         block_builder = block_builder.add_button_action(
             action_id="complete-task",
             text="終了",
-            value=notion_page_block_id,
+            value=request.page_id,
             style="danger",
         )
         block_builder = block_builder.add_context({
-            "channel_id": channel,
-            "thread_ts": thread_ts,
+            "channel_id": request.channel,
+            "thread_ts": request.thread_ts,
             })
         blocks = block_builder.build()
 
-        self.client.chat_postMessage(text="25分が経過しました！", blocks=blocks, channel=channel, thread_ts=thread_ts)
+        self.client.chat_postMessage(
+            text="25分が経過しました！",
+            blocks=blocks,
+            channel=request.channel,
+            thread_ts=request.thread_ts)
 
 def _suggest_rest_action() -> str:
     hour = now().time().hour
