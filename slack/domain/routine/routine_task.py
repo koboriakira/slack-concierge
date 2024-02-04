@@ -41,9 +41,9 @@ class RoutineTask(Enum):
     LAUNDRY = "洗濯"
     DAILY_REVIEW = "日次レビュー"
     CLEANING_TOILET = "トイレ掃除"
-    BURNABLE_GARBAGE = "可燃ゴミ"
-    # UNBURNABLE_GARBAGE = "不燃ゴミ"
-    RECYCLABLE_GARBAGE = "資源ゴミ"
+    BURNABLE_GARBAGE = "可燃ごみ"
+    # UNBURNABLE_GARBAGE = "不燃ごみ"
+    RECYCLABLE_GARBAGE = "資源ごみ"
 
 
     @property
