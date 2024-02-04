@@ -20,7 +20,10 @@ class StartPomodoro:
         _now = now()
 
         # 開始を連絡
-        event_ts = self._chat_start_message(channel=request.channel, thread_ts=request.thread_ts)
+        event_ts = self._chat_start_message(
+            task_id=request.page_id,
+            channel=request.channel,
+            thread_ts=request.thread_ts)
 
         # ポモドーロカウンターをインクリメント
         self.notion_api.update_pomodoro_count(page_id=request.page_id)
@@ -37,10 +40,16 @@ class StartPomodoro:
         self.client.reactions_add(channel=request.channel, timestamp=event_ts, name="tomato")
 
 
-    def _chat_start_message(self, channel: str, thread_ts: str) -> str:
+    def _chat_start_message(self, task_id:str, channel: str, thread_ts: str) -> str:
         block_builder = BlockBuilder()
         block_builder = block_builder.add_section(
             text=f"開始しました！"
+        )
+        block_builder = block_builder.add_button_action(
+            action_id="complete-task",
+            text="終了",
+            value=task_id,
+            style="danger",
         )
         blocks = block_builder.build()
         response = self.client.chat_postMessage(text="", blocks=blocks, channel=channel, thread_ts=thread_ts)
