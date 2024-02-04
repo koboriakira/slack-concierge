@@ -108,6 +108,9 @@ class TaskPage(NotionPage):
             return self.title
         return self.title[:50] + "..."
 
+    def is_completed(self) -> bool:
+        return self.status == "Done"
+
     @property
     def is_routine(self) -> bool:
         return self.title.endswith("【ルーティン】")

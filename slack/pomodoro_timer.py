@@ -4,6 +4,7 @@ import logging
 from slack_sdk.web import WebClient
 from usecase.pomodoro_timer import PomodoroTimer
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
+from infrastructure.api.lambda_notion_api import LambdaNotionApi
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_BOT = WebClient(token=SLACK_BOT_TOKEN)
@@ -15,7 +16,7 @@ if os.environ.get("ENVIRONMENT") == "dev":
 
 def handler(event, context):
     print(event)
-    pomodoro_timer = PomodoroTimer(client=SLACK_BOT)
+    pomodoro_timer = PomodoroTimer(client=SLACK_BOT, notion_api=LambdaNotionApi())
     request = PomodoroTimerRequest(
         page_id=event["page_id"],
         channel=event["channel"],

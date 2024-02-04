@@ -4,14 +4,18 @@ from domain_service.block.block_builder import BlockBuilder
 from domain.user import UserKind
 from util.datetime import now
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
-
+from domain.infrastructure.api.notion_api import NotionApi
 
 class PomodoroTimer:
-    def __init__(self, client: WebClient):
+    def __init__(self, client: WebClient, notion_api: NotionApi):
         self.client = client
+        self.notion_api = notion_api
 
     def handle(self, request: PomodoroTimerRequest):
         """ ポモドーロの終了を通達する """
+        if self._is_completed(request.page_id):
+            return
+
         user_mention = UserKind.KOBORI_AKIRA.mention()
 
         block_builder = BlockBuilder()
@@ -44,6 +48,12 @@ class PomodoroTimer:
             blocks=blocks,
             channel=request.channel,
             thread_ts=request.thread_ts)
+
+    def _is_completed(self, task_id: str):
+        """ タスクがすでに完了しているかどうか """
+        task = self.notion_api.find_task(task_id)
+        return task.is_completed()
+
 
 def _suggest_rest_action() -> str:
     hour = now().time().hour
