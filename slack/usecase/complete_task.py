@@ -56,4 +56,4 @@ if __name__ == "__main__":
     from infrastructure.api.lambda_notion_api import LambdaNotionApi
     import os
     usecase = CompleteTask(notion_api=LambdaNotionApi(), client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]))
-    usecase._reserve_next_task(task_title="【ルーティン】風呂掃除")
+    usecase._reserve_next_task(task_title="風呂掃除【ルーティン】")

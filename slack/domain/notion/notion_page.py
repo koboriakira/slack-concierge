@@ -110,4 +110,4 @@ class TaskPage(NotionPage):
 
     @property
     def is_routine(self) -> bool:
-        return self.title.startswith("【ルーティン】")
+        return self.title.endswith("【ルーティン】")
