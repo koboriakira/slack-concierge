@@ -103,6 +103,11 @@ class TaskPage(NotionPage):
             task_kind=params["task_kind"] if "task_kind" in params else None,
         )
 
+    def title_within_50_chars(self) -> str:
+        if len(self.title) <= 50:
+            return self.title
+        return self.title[:50] + "..."
+
     @property
     def is_routine(self) -> bool:
         return self.title.startswith("【ルーティン】")

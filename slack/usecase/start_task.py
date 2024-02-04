@@ -43,7 +43,7 @@ class StartTask:
             # タイトルが無題のものは除外する
             tasks = [t for t in tasks if t.title != ""]
             task_options = [{
-                "text": t.title,
+                "text": t.title_within_50_chars(),
                 "value": t.id
             } for t in tasks]
             Cache.set(TODAY_TASK_OPTIONS, task_options)
