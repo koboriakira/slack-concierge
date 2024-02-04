@@ -24,6 +24,7 @@ class EventBridgeSchedulerService:
     def set_pomodoro_timer(self, request: PomodoroTimerRequest) -> None:
         future_datetime = datetime_now() + timedelta(minutes=POMODORO_MINUTES)
         self._create_schedule(
+            arn=POMODORO_TIMER_LAMBDA_ARN,
             name=f"pomodoro_timer-{future_datetime.strftime('%H%M')}",
             future_datetime=future_datetime,
             data={
@@ -41,16 +42,18 @@ class EventBridgeSchedulerService:
         future_datetime = datetime - timedelta(days=1)
         future_datetime = future_datetime.replace(hour=19, minute=0, second=0, microsecond=0)
         self._create_schedule(
+            arn=CREATE_TASK_LAMBDA_ARN,
             name=f"create_task-{uuid.uuid4()}",
             future_datetime=future_datetime,
             data={
                 "task_title": task_title,
                 # 0時の場合は日付のみが指定されたとする
-                "datetime": datetime.isoformat() if datetime.hour == 0 else datetime.date().isoformat
+                "datetime": datetime.isoformat() if datetime.hour == 0 else datetime.date().isoformat()
             }
         )
 
     def _create_schedule(self,
+                         arn: str,
                         name: str,
                         future_datetime: Datetime,
                         data: dict) -> None:
@@ -61,7 +64,7 @@ class EventBridgeSchedulerService:
                 ScheduleExpressionTimezone="Asia/Tokyo",
                 ScheduleExpression=future_datetime.strftime("cron(%M %H %d %m ? %Y)"),
                 Target={
-                    'Arn': CREATE_TASK_LAMBDA_ARN,
+                    'Arn': arn,
                     'RoleArn': ROLE_ARN,
                     'Input': json.dumps(data)
                 },
@@ -78,6 +81,7 @@ class EventBridgeSchedulerService:
 if __name__ == "__main__":
     # python -m usecase.service.event_bridge_scheduler_service
     service = EventBridgeSchedulerService(logger=logging.getLogger(__name__))
-    service.set_pomodoro_timer(page_id="738c86f9-dd70-4b44-99ca-32192f1d8eb9",
-                                channel="C05F6AASERZ",
-                                thread_ts="1706682095.204639")
+    # service.set_pomodoro_timer(page_id="738c86f9-dd70-4b44-99ca-32192f1d8eb9",
+    #                             channel="C05F6AASERZ",
+    #                             thread_ts="1706682095.204639")
+    service.set_create_task(task_title="風呂掃除【ルーティン】", datetime=datetime_now() + timedelta(days=7))

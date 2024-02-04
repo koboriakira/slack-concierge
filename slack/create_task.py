@@ -15,11 +15,13 @@ if os.environ.get("ENVIRONMENT") == "dev":
 def handler(event, context):
     print(event)
     task_generator = TaskGenerator(notion_api=LambdaNotionApi())
-    task_generator.add_to_inbox(title=event["title"])
+    task_generator.add_scheduled_task(
+        title=event["title"],
+        start_datetime=event["datetime"])
 
 if __name__ == "__main__":
     # python -m sync_schedule_to_task
     logger.debug("debug mode")
-    event = {}
+    event = {"task_title": "\u98a8\u5442\u6383\u9664\u3010\u30eb\u30fc\u30c6\u30a3\u30f3\u3011", "datetime": "2024-02-11"}
     context = {}
     print(handler(event, context))
