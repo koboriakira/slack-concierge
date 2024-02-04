@@ -19,7 +19,7 @@ class CompleteTask:
         self.notion_api.update_status(page_id=block_id, value="Done")
 
         # ルーティンタスクであれば、次回のタスクの起票予約を行う
-        task:TaskPage = self.notion_api.find_task(page_id=block_id)
+        task:TaskPage = self.notion_api.find_task(task_id=block_id)
         if task.is_routine:
             self._reserve_next_task(task_title=task.title)
 
