@@ -1,4 +1,4 @@
-sfrom slack_sdk.web import WebClient
+from slack_sdk.web import WebClient
 from domain.infrastructure.api.notion_api import NotionApi
 from domain.notion.notion_page import TaskPage
 from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
