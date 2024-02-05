@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from datetime import date as Date
+from datetime import timedelta
 from slack_sdk.web import WebClient
 from domain.schedule.schedule import Schedule
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
@@ -25,7 +26,7 @@ def handler(event, context):
     """
     AWS Lambda での実行に対応するハンドラー関数
     """
-    date = now().date()
+    date = now().date() + timedelta(days=1) if event.get("date") is None else Date.fromisoformat(event["date"])
 
     data = google_calendar_api.get_gas_calendar(date=date)
     if data is None:
