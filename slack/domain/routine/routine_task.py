@@ -37,8 +37,8 @@ class RoutineTask(Enum):
     # {"週次レビュー": "weekly-review"},
     # {"月次レビュー": "monthly-review"},
     # {"その他": "other"},
+    MORNING_HOUSEWORK = "朝の家事"
     CLEANING_BATHROOM = "風呂掃除"
-    LAUNDRY = "洗濯"
     DAILY_REVIEW = "日次レビュー"
     WEEKLY_REVIEW = "週次レビュー"
     CLEANING_TOILET = "トイレ掃除"
@@ -56,7 +56,7 @@ class RoutineTask(Enum):
                 # 翌週
                 target_datetime = now + timedelta(days=7)
                 return target_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
-            case RoutineTask.LAUNDRY:
+            case RoutineTask.MORNING_HOUSEWORK:
                 # 翌日9:30
                 target_datetime = now + timedelta(days=1)
                 return target_datetime.replace(hour=9, minute=30, second=0, microsecond=0)
@@ -69,8 +69,8 @@ class RoutineTask(Enum):
                 target_datetime = now + timedelta(days=(5 - now.weekday() + 7) % 7)
                 return target_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
             case RoutineTask.CLEANING_TOILET:
-                # 翌週
-                target_datetime = now + timedelta(days=7)
+                # 2日後
+                target_datetime = now + timedelta(days=2)
                 return target_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
             case RoutineTask.BURNABLE_GARBAGE:
                 # 今日が金、土、日、月の場合は火曜日、火、水、木の場合は金曜日
