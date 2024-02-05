@@ -38,7 +38,7 @@ class EventBridgeSchedulerService:
             self,
             title: str,
             datetime: Datetime) -> None:
-        # イベント実行（タスク起票）は予定日の前日
+        # イベント実行（タスク起票）は予定日の前日19:00
         future_datetime = datetime - timedelta(days=1)
         future_datetime = future_datetime.replace(hour=19, minute=0, second=0, microsecond=0)
         self._create_schedule(
