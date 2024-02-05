@@ -26,19 +26,11 @@ def burnable_garbate_date() -> Datetime:
 
 class RoutineTask(Enum):
     """ ルーティンタスク """
-    # {"家事": "housework"},
     # {"料理": "cooking"},
     # {"買い物": "shopping"},
-    # {"朝食": "breakfast"},
-    # {"昼食": "lunch"},
-    # {"夕食": "dinner"},
-    # {"入浴": "bath"},
-    # {"睡眠": "sleep"},
-    # {"週次レビュー": "weekly-review"},
-    # {"月次レビュー": "monthly-review"},
-    # {"その他": "other"},
     MORNING_HOUSEWORK = "朝の家事"
     AFTERNOON_HOUSEWORK = "昼の家事"
+    EVENING_HOUSEWORK = "夜の家事"
     CLEANING_BATHROOM = "風呂掃除"
     DAILY_REVIEW = "日次レビュー"
     WEEKLY_REVIEW = "週次レビュー"
@@ -58,13 +50,17 @@ class RoutineTask(Enum):
                 target_datetime = now + timedelta(days=7)
                 return target_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
             case RoutineTask.MORNING_HOUSEWORK:
-                # 翌日9:30
+                # 翌日
                 target_datetime = now + timedelta(days=1)
-                return target_datetime.replace(hour=9, minute=30, second=0, microsecond=0)
+                return target_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
             case RoutineTask.AFTERNOON_HOUSEWORK:
-                # 翌日12:00
+                # 翌日
                 target_datetime = now + timedelta(days=1)
-                return target_datetime.replace(hour=12, minute=0, second=0, microsecond=0)
+                return target_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+            case RoutineTask.EVENING_HOUSEWORK:
+                # 翌日
+                target_datetime = now + timedelta(days=1)
+                return target_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
             case RoutineTask.DAILY_REVIEW:
                 # 翌日22:00
                 target_datetime = now + timedelta(days=1)
