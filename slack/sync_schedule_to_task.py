@@ -25,10 +25,7 @@ def handler(event, context):
     """
     AWS Lambda での実行に対応するハンドラー関数
     """
-    date = event.get("date")
-    date = Date.fromisoformat(date) if date else None
-    if date is None:
-        raise ValueError("date is required")
+    date = now().date()
 
     data = google_calendar_api.get_gas_calendar(date=date)
     if data is None:
@@ -50,6 +47,6 @@ if __name__ == "__main__":
     # python -m sync_schedule_to_task
     logger.debug("debug mode")
     event = {
-        "date": "2024-02-02"
+        "date": "2024-02-05"
     }
     print(handler(event, {}))
