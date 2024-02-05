@@ -55,24 +55,16 @@ export class SlackConcierge extends Stack {
     );
 
     // notificate_schedule: EventBridgeで呼び出される
-    const lambda_notificate_schedule = this.createLambdaFunction(
+    const lambda_notificate_schedule = this.createEventLambda(
       "NotificateSchedule",
       role,
       myLayer,
       "notificate_schedule.handler",
       60,
-      false
-    );
-    new events.Rule(this, "NotificateScheduleRule", {
       // JSTで、AM6:00からPM11:00までの間、5分おきに実行
       // see https://docs.aws.amazon.com/ja_jp/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions
-      schedule: events.Schedule.cron({ minute: "*/5", hour: "21-14" }),
-      targets: [
-        new targets.LambdaFunction(lambda_notificate_schedule, {
-          retryAttempts: 0,
-        }),
-      ],
-    });
+      events.Schedule.cron({ minute: "*/5", hour: "21-14" })
+    );
 
     // love_spotify_track: SQSから呼び出される
     const loveSpotifyTrack = this.createLambdaAndSqs(
@@ -103,6 +95,32 @@ export class SlackConcierge extends Stack {
       60,
       false
     );
+  }
+
+  createEventLambda(
+    name: string,
+    role: iam.Role,
+    myLayer: lambda.LayerVersion,
+    handler: string,
+    timeout: number = 30,
+    schedule: events.Schedule
+  ) {
+    const fn = this.createLambdaFunction(
+      name,
+      role,
+      myLayer,
+      handler,
+      timeout,
+      false
+    );
+    new events.Rule(this, name + "Rule", {
+      schedule: schedule,
+      targets: [
+        new targets.LambdaFunction(fn, {
+          retryAttempts: 0,
+        }),
+      ],
+    });
   }
 
   createLambdaAndSqs(
