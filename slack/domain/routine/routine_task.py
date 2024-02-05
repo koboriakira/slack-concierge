@@ -38,6 +38,7 @@ class RoutineTask(Enum):
     # {"月次レビュー": "monthly-review"},
     # {"その他": "other"},
     MORNING_HOUSEWORK = "朝の家事"
+    AFTERNOON_HOUSEWORK = "昼の家事"
     CLEANING_BATHROOM = "風呂掃除"
     DAILY_REVIEW = "日次レビュー"
     WEEKLY_REVIEW = "週次レビュー"
@@ -60,6 +61,10 @@ class RoutineTask(Enum):
                 # 翌日9:30
                 target_datetime = now + timedelta(days=1)
                 return target_datetime.replace(hour=9, minute=30, second=0, microsecond=0)
+            case RoutineTask.AFTERNOON_HOUSEWORK:
+                # 翌日12:00
+                target_datetime = now + timedelta(days=1)
+                return target_datetime.replace(hour=12, minute=0, second=0, microsecond=0)
             case RoutineTask.DAILY_REVIEW:
                 # 翌日22:00
                 target_datetime = now + timedelta(days=1)
