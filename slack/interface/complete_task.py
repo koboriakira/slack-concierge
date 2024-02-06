@@ -25,6 +25,9 @@ def complete_task(body: dict, client: WebClient, logger:logging.Logger):
         channel_id = body["channel"]["id"]
         thread_ts = body["message"]["ts"]
 
+        # タスク完了を返信
+        client.chat_postMessage(text="タスクを完了しました！", channel=channel_id, thread_ts=thread_ts)
+
         # SQSにメッセージを送信
         sqs_service = SqsService()
         sqs_service.send(QUEUE_URL, {
@@ -32,9 +35,6 @@ def complete_task(body: dict, client: WebClient, logger:logging.Logger):
             "channel": channel_id,
             "thread_ts": thread_ts
         })
-
-        # タスク完了を返信
-        client.chat_postMessage(text="タスクを完了しました！", channel=channel_id, thread_ts=thread_ts)
     except Exception as err:
         import sys
         logging_traceback(err, sys.exc_info())

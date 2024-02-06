@@ -103,6 +103,7 @@ class RoutineTask(Enum):
                     "・昼食の準備",
                     "・食器をしまう",
                     "・昼食後に食器を片付ける",
+                    "・ゴミ出せるなら準備しておく"
                 ])
             case RoutineTask.EVENING_HOUSEWORK:
                 return "\n".join([
