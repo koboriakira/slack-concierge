@@ -104,7 +104,10 @@ export class SlackConcierge extends Stack {
     scheduleExecutionRole.addToPolicy(
       new iam.PolicyStatement({
         actions: ["lambda:InvokeFunction"],
-        resources: [pomodoroTimer.functionArn],
+        resources: [
+          pomodoroTimer.functionArn,
+          pomodoroTimer.functionArn + ":*",
+        ],
       })
     );
 
@@ -117,7 +120,7 @@ export class SlackConcierge extends Stack {
     scheduleExecutionRole.addToPolicy(
       new iam.PolicyStatement({
         actions: ["lambda:InvokeFunction"],
-        resources: [createTask.functionArn],
+        resources: [createTask.functionArn, createTask.functionArn + ":*"],
       })
     );
   }
