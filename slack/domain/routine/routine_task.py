@@ -99,9 +99,20 @@ class RoutineTask(Enum):
                     "・洗濯が終わっているはずなので、乾燥機に入れる",
                 ])
             case RoutineTask.AFTERNOON_HOUSEWORK:
-                return "昼の家事は毎日行います。"
+                return "\n".join([
+                    "・昼食の準備",
+                    "・食器をしまう",
+                    "・昼食後に食器を片付ける",
+                ])
             case RoutineTask.EVENING_HOUSEWORK:
-                return "夜の家事は毎日行います。"
+                return "\n".join([
+                    "・食器を片付ける",
+                    "・お風呂準備",
+                    "・乾燥機から服を出して収納する",
+                    "・明日のカバンを準備",
+                    "・天気を確認して明日の服を準備",
+                    "・明日のコーヒーを準備"
+                ])
             case RoutineTask.DAILY_REVIEW:
                 return "日次レビューは毎日22:00に行います。"
             case RoutineTask.WEEKLY_REVIEW:
