@@ -13,7 +13,7 @@ class CompleteTask:
         self.client = client
         self.scheduler_client = EventBridgeSchedulerService()
 
-    def handle(self, block_id: str, channel: str, thread_ts: str):
+    def handle(self, block_id: str):
         """ タスクを完了する """
         # ステータスを更新
         self.notion_api.update_status(page_id=block_id, value="Done")
@@ -35,4 +35,4 @@ if __name__ == "__main__":
     from infrastructure.api.lambda_notion_api import LambdaNotionApi
     import os
     usecase = CompleteTask(notion_api=LambdaNotionApi(), client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]))
-    usecase._reserve_next_task(task_title="風呂掃除【ルーティン】")
+    usecase.handle(block_id="86eafe45018d418eb83fcbef4e5fcea3")

@@ -24,9 +24,9 @@ def handler(event, context):
     request = json.loads(event["Records"][0]["body"])
     print("request", request)
     page_id = request["page_id"]
-    channel = request["channel"]
-    thread_ts = request["thread_ts"]
-    complete_task.handle(block_id=page_id, channel=channel, thread_ts=thread_ts)
+    # channel = request["channel"]
+    # thread_ts = request["thread_ts"]
+    complete_task.handle(block_id=page_id)
 
 if __name__ == "__main__":
     # python -m love_spotify_track
