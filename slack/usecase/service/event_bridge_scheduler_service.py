@@ -11,9 +11,11 @@ from util.datetime import now as datetime_now
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 
 AWS_ACCOUNT_ID = os.environ['AWS_ACCOUNT_ID']
-ROLE_ARN = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_ce49a1e7be"
+ROLE_ARN = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/SlackConcierge-ScheduleExecutionRoleDFA6D9DF-rsvhjcIYlV8r"
+
 POMODORO_TIMER_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-PomodoroTimer792E3BDD-ZLqpMmL1PeGo"
 CREATE_TASK_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-CreateTask0C1E0090-em9csrKc0K9T"
+
 POMODORO_MINUTES = 25
 
 class EventBridgeSchedulerService:
