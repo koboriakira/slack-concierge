@@ -26,6 +26,11 @@ class NotionApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def list_current_tasks(self) -> list[TaskPage]:
+        """ Notionの「やる予定」のタスクを取得する """
+        pass
+
+    @abstractmethod
     def find_task(self, task_id: str) -> TaskPage:
         """ Notionのタスクを1つ取得する """
         pass

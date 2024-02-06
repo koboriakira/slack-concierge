@@ -47,6 +47,12 @@ class LambdaNotionApi(NotionApi):
         data = response["data"]
         return [TaskPage.from_dict(page) for page in data]
 
+    def list_current_tasks(self) -> list[TaskPage]:
+        response = self._get(path="tasks/current")
+        data = response["data"]
+        return [TaskPage.from_dict(page) for page in data]
+
+
     def find_task(self, task_id: str) -> TaskPage:
         response = self._get(path=f"task/{task_id}")
         data = response["data"]
