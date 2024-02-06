@@ -49,7 +49,7 @@ class EventBridgeSchedulerService:
             data={
                 "title": title,
                 # 0時の場合は日付のみが指定されたとする
-                "datetime": datetime.isoformat() if datetime.hour == 0 else datetime.date().isoformat()
+                "datetime": datetime.isoformat() if datetime.hour > 0 else datetime.date().isoformat()
             }
         )
 
@@ -85,4 +85,4 @@ if __name__ == "__main__":
     # service.set_pomodoro_timer(page_id="738c86f9-dd70-4b44-99ca-32192f1d8eb9",
     #                             channel="C05F6AASERZ",
     #                             thread_ts="1706682095.204639")
-    service.set_create_task(title="風呂掃除【ルーティン】", datetime=datetime_now() + timedelta(days=7))
+    service.set_create_task(title="朝の家事【ルーティン】", datetime=(datetime_now() + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0))
