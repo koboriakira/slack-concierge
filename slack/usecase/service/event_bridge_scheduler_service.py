@@ -66,7 +66,7 @@ class EventBridgeSchedulerService:
                 Target={
                     'Arn': arn,
                     'RoleArn': ROLE_ARN,
-                    'Input': json.dumps(data)
+                    'Input': json.dumps(data, ensure_ascii=False)
                 },
                 State='ENABLED',
                 FlexibleTimeWindow={"Mode": "OFF"},
