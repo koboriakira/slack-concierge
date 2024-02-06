@@ -39,9 +39,7 @@ export class SlackConcierge extends Stack {
       "PomodoroTimer",
       role,
       myLayer,
-      "pomodoro_timer.handler",
-      15,
-      false
+      "pomodoro_timer.handler"
     );
 
     // create_task: 任意に作成されるEventBridgeSchedulerで実行される
@@ -49,9 +47,7 @@ export class SlackConcierge extends Stack {
       "CreateTask",
       role,
       myLayer,
-      "create_task.handler",
-      15,
-      false
+      "create_task.handler"
     );
 
     // notificate_schedule: EventBridgeで呼び出される
@@ -60,7 +56,6 @@ export class SlackConcierge extends Stack {
       role,
       myLayer,
       "notificate_schedule.handler",
-      60,
       // JSTで、AM6:00からPM11:00までの間、5分おきに実行
       // see https://docs.aws.amazon.com/ja_jp/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions
       events.Schedule.cron({ minute: "*/5", hour: "21-14" })
@@ -71,7 +66,6 @@ export class SlackConcierge extends Stack {
       role,
       myLayer,
       "sync_schedule_to_task.handler",
-      60,
       // JSTで、PM9:00に実行
       events.Schedule.cron({ minute: "0", hour: "12" })
     );
@@ -82,7 +76,6 @@ export class SlackConcierge extends Stack {
       role,
       myLayer,
       "love_spotify_track.handler",
-      60,
       lambda_lazy_main
     );
 
@@ -92,7 +85,6 @@ export class SlackConcierge extends Stack {
       role,
       myLayer,
       "complete_task.handler",
-      60,
       lambda_lazy_main
     );
 
@@ -101,9 +93,7 @@ export class SlackConcierge extends Stack {
       "Test",
       role,
       myLayer,
-      "test_handler.handler",
-      60,
-      false
+      "test_handler.handler"
     );
   }
 
@@ -112,8 +102,8 @@ export class SlackConcierge extends Stack {
     role: iam.Role,
     myLayer: lambda.LayerVersion,
     handler: string,
-    timeout: number = 30,
-    schedule: events.Schedule
+    schedule: events.Schedule,
+    timeout: number = 60
   ) {
     const fn = this.createLambdaFunction(
       name,
@@ -138,8 +128,8 @@ export class SlackConcierge extends Stack {
     role: iam.Role,
     myLayer: lambda.LayerVersion,
     handler: string,
-    timeout: number = 30,
-    lambda_lazy_main: lambda.Function
+    lambda_lazy_main: lambda.Function,
+    timeout: number = 30
   ) {
     const functionForSqs = this.createLambdaFunction(
       name,
@@ -242,7 +232,7 @@ export class SlackConcierge extends Stack {
     role: iam.Role,
     myLayer: lambda.LayerVersion,
     handler: string,
-    timeout: number = 30,
+    timeout: number = 60,
     function_url_enabled: boolean = false
   ): lambda.Function {
     const fn = new lambda.Function(this, name, {
