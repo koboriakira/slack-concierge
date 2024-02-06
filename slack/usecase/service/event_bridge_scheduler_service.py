@@ -38,13 +38,12 @@ class EventBridgeSchedulerService:
             self,
             title: str,
             datetime: Datetime) -> None:
-        # イベント実行（タスク起票）は予定日の前日19:00
-        future_datetime = datetime - timedelta(days=1)
-        future_datetime = future_datetime.replace(hour=19, minute=0, second=0, microsecond=0)
+
         self._create_schedule(
             arn=CREATE_TASK_LAMBDA_ARN,
             name=f"create_task-{uuid.uuid4()}",
-            future_datetime=future_datetime,
+            # イベント（タスク起票）は予定日00:00に行う
+            future_datetime=datetime.replace(hour=0, minute=0, second=0, microsecond=0),
             data={
                 "title": title,
                 # 0時の場合は日付のみが指定されたとする
