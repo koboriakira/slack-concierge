@@ -34,23 +34,8 @@ export class SlackConcierge extends Stack {
       true
     );
 
-    // pomodoro_timer: 任意に作成されるEventBridgeSchedulerで実行される
-    const pomodoroTimer = this.createLambdaFunction(
-      "PomodoroTimer",
-      role,
-      myLayer,
-      "pomodoro_timer.handler"
-    );
+    this.createLambdaFunctionScheduler(role, myLayer);
 
-    // create_task: 任意に作成されるEventBridgeSchedulerで実行される
-    const createTask = this.createLambdaFunction(
-      "CreateTask",
-      role,
-      myLayer,
-      "create_task.handler"
-    );
-
-    // notificate_schedule: EventBridgeで呼び出される
     const lambda_notificate_schedule = this.createEventLambda(
       "NotificateSchedule",
       role,
@@ -94,6 +79,46 @@ export class SlackConcierge extends Stack {
       role,
       myLayer,
       "test_handler.handler"
+    );
+  }
+
+  /**
+   * 任意に作成されるEventBridgeSchedulerで実行されるLambda関数を作成
+   * @param role
+   * @param myLayer
+   */
+  createLambdaFunctionScheduler(
+    roleForLambda: iam.Role,
+    myLayer: lambda.LayerVersion
+  ) {
+    const scheduleExecutionRole = new iam.Role(this, "ScheduleExecutionRole", {
+      assumedBy: new iam.ServicePrincipal("scheduler.amazonaws.com"),
+    });
+
+    const pomodoroTimer = this.createLambdaFunction(
+      "PomodoroTimer",
+      roleForLambda,
+      myLayer,
+      "pomodoro_timer.handler"
+    );
+    scheduleExecutionRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["lambda:InvokeFunction"],
+        resources: [pomodoroTimer.functionArn],
+      })
+    );
+
+    const createTask = this.createLambdaFunction(
+      "CreateTask",
+      roleForLambda,
+      myLayer,
+      "create_task.handler"
+    );
+    scheduleExecutionRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["lambda:InvokeFunction"],
+        resources: [createTask.functionArn],
+      })
     );
   }
 
