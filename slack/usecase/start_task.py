@@ -80,6 +80,10 @@ class StartTask:
         text = f"<{task_url}|{task_title}>"
         block_builder = BlockBuilder()
         block_builder = block_builder.add_section(text=text)
+        if "【ルーティン】" in task_title:
+            routine_task = RoutineTask.from_name(task_title)
+            if routine_task.description is not None:
+                block_builder = block_builder.add_section(text=routine_task.description)
         block_builder = block_builder.add_context({"page_id": task_id})
         blocks = block_builder.build()
 
