@@ -2,17 +2,8 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 import logging
 import json
-import os
-from datetime import datetime as Datetime
-from datetime import timedelta
 from typing import Optional
-from util.datetime import now as datetime_now
 
-AWS_ACCOUNT_ID = os.environ['AWS_ACCOUNT_ID']
-POMODORO_TIMER_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-PomodoroTimer792E3BDD-ZLqpMmL1PeGo"
-ROLE_ARN = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_ce49a1e7be"
-
-POMODORO_MINUTES = 25
 
 class SqsService:
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:

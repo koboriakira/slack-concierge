@@ -23,16 +23,16 @@ class AnalyzeInbox:
             page_id:str = ""
             if "x.com" in attachment["original_url"]:
                 page_id = self.sub_handle_twitter(attachment=attachment, channel=channel, thread_ts=thread_ts)
+                self.notion_api.create_task(mentioned_page_id=page_id)
             elif "youtube.com" in attachment["original_url"]:
-                page_id = self.sub_handle_youtube(attachment=attachment, channel=channel, thread_ts=thread_ts)
+                self.sub_handle_youtube(attachment=attachment, channel=channel, thread_ts=thread_ts)
             elif "wrestle-universe.com" in attachment["original_url"]:
                 page_id = self.sub_handle_wrestle_universe(attachment=attachment, channel=channel, thread_ts=thread_ts)
+                self.notion_api.create_task(mentioned_page_id=page_id)
             else:
                 page_id = self.sub_handle_default(attachment=attachment, channel=channel, thread_ts=thread_ts)
+                self.notion_api.create_task(mentioned_page_id=page_id)
 
-            # メンションを付けてタスクを作成する
-            self.notion_api.create_task(mentioned_page_id=page_id)
-            return page_id
 
         except Exception as e:
             import sys
@@ -99,26 +99,19 @@ class AnalyzeInbox:
             text=page_url,
         )
 
-    def sub_handle_youtube(self, attachment: dict, channel: str, thread_ts: str) -> str:
+    def sub_handle_youtube(self, attachment: dict, channel: str, thread_ts: str) -> None:
         """ 指定したURLの動画を登録する """
         title = attachment["title"] + " | " + attachment["author_name"]
         original_url = attachment["original_url"]
         cover = attachment.get("thumb_url")
         tags = self.tag_analyzer.handle(text=title)
         tags.append(attachment["author_name"])
-        page = self.notion_api.create_video_page(
+        self.notion_api.create_video_page(
             url=original_url,
             title=title,
             tags=tags,
             cover=cover,
         )
-        page_url:str = page["url"]
-        self.client.chat_postMessage(
-            channel=channel,
-            thread_ts=thread_ts,
-            text=page_url,
-        )
-        return page["id"]
 
     def sub_handle_wrestle_universe(self, attachment: dict, channel: str, thread_ts: str) -> str:
         """ 指定したURLの動画を登録する """
