@@ -23,7 +23,6 @@ class AnalyzeInbox:
             page_id:str = ""
             if "x.com" in attachment["original_url"]:
                 page_id = self.sub_handle_twitter(attachment=attachment, channel=channel, thread_ts=thread_ts)
-                self.notion_api.create_task(mentioned_page_id=page_id)
             elif "youtube.com" in attachment["original_url"]:
                 self.sub_handle_youtube(attachment=attachment, channel=channel, thread_ts=thread_ts)
             elif "wrestle-universe.com" in attachment["original_url"]:
@@ -55,23 +54,13 @@ class AnalyzeInbox:
     def sub_handle_twitter(self, attachment: dict, channel: str, thread_ts: str) -> str:
         """ 指定したURLのページをスクレイピングしてテキストを返す(X版) """
         text = attachment["text"]
+        title = text[:50] # タイトルはtextの50文字目まで
         original_url = attachment["original_url"]
         cover = attachment.get("image_url") or attachment.get("thumb_url")
-        title = text[:50] # タイトルはtextの50文字目まで
-        tags = self.tag_analyzer.handle(text=text)
-        page = self.notion_api.create_webclip_page(
+        self.notion_api.create_webclip_page(
             url=original_url,
             title=title,
-            summary=text,
-            tags=tags,
-            text=text,
             cover=cover,
-        )
-        page_url:str = page["url"]
-        self.client.chat_postMessage(
-            channel=channel,
-            thread_ts=thread_ts,
-            text=page_url,
         )
 
     def sub_handle_youtube(self, attachment: dict, channel: str, thread_ts: str) -> None:
