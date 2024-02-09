@@ -48,10 +48,6 @@ class NotionApi(metaclass=ABCMeta):
     def create_webclip_page(self,
                             url: str,
                             title: str,
-                            summary: str,
-                            tags: list[str],
-                            text: str,
-                            status: Optional[str] = None,
                             cover: Optional[str] = None,
                             ) -> dict:
         """ NotionにWebclipのページを作成する """

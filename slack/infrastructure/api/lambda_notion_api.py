@@ -79,22 +79,13 @@ class LambdaNotionApi(NotionApi):
     def create_webclip_page(self,
                             url: str,
                             title: str,
-                            summary: str,
-                            tags: list[str],
-                            text: str,
-                            status: Optional[str] = None,
                             cover: Optional[str] = None,
                             ) -> dict:
         api_url = f"{self.domain}webclip"
         data = {
             "url": url,
             "title": title,
-            "summary": summary,
-            "tags": tags,
-            "text": text,
         }
-        if status:
-            data["status"] = status
         if cover:
             data["cover"] = cover
         return self._post(url=api_url, data=data)

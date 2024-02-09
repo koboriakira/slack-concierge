@@ -30,8 +30,7 @@ class AnalyzeInbox:
                 page_id = self.sub_handle_wrestle_universe(attachment=attachment, channel=channel, thread_ts=thread_ts)
                 self.notion_api.create_task(mentioned_page_id=page_id)
             else:
-                page_id = self.sub_handle_default(attachment=attachment, channel=channel, thread_ts=thread_ts)
-                self.notion_api.create_task(mentioned_page_id=page_id)
+                self.sub_handle_default(attachment=attachment, channel=channel, thread_ts=thread_ts)
 
 
         except Exception as e:
@@ -43,39 +42,15 @@ class AnalyzeInbox:
                 traceback.format_exception(t, v, tb))
             self.client.chat_postMessage(text=f"analyze_inbox: error ```{formatted_exception}```", channel=channel, thread_ts=thread_ts)
 
-    def sub_handle_default(self, attachment: dict, channel: str, thread_ts: str) -> str:
-        self._post_progress_if_dev(text=f"analyze_inbox: start ```{json.dumps(attachment)}", channel=channel, thread_ts=thread_ts)
+    def sub_handle_default(self, attachment: dict, channel: str, thread_ts: str) -> None:
         title = attachment["title"]
         original_url = attachment["original_url"]
         cover = attachment.get("image_url")
-        page_text, formatted_page_text = self.simple_scraper.handle(url=original_url)
-        if page_text is None:
-            raise Exception("ページのスクレイピングに失敗しました。")
-        self.logger.debug(page_text)
-        summary = self.text_summarizer.handle(page_text)
-        self.logger.debug(summary)
-        self._post_progress_if_dev(text=f"analyze_inbox: summary ```{summary}```", channel=channel, thread_ts=thread_ts)
-        tags = self.tag_analyzer.handle(text=summary)
-        self._post_progress_if_dev(text=f"analyze_inbox: tags ```{tags}```", channel=channel, thread_ts=thread_ts)
-
-        self._post_progress_if_dev(text=f"create_webclip_page: ```{original_url}\n{title}\n{summary}\n{tags}\n{page_text}\n{attachment.get('image_url')}````", channel=channel, thread_ts=thread_ts)
-        page = self.notion_api.create_webclip_page(
+        self.notion_api.create_webclip_page(
             url=original_url,
             title=title,
-            summary=summary,
-            tags=tags,
-            text=formatted_page_text,
             cover=cover,
         )
-        self._post_progress_if_dev(text=f"analyze_inbox: page ```{page}```", channel=channel, thread_ts=thread_ts)
-        page_url:str = page["url"]
-        result_text = f"{page_url}\n\n```{summary}```"
-        self.client.chat_postMessage(
-            channel=channel,
-            thread_ts=thread_ts,
-            text=result_text,
-        )
-        return page["id"]
 
     def sub_handle_twitter(self, attachment: dict, channel: str, thread_ts: str) -> str:
         """ 指定したURLのページをスクレイピングしてテキストを返す(X版) """
