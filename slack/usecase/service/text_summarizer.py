@@ -12,13 +12,16 @@ TEMPLATE = """「仕様」に則って「入力」に記載した文章の要約
 {context}"""
 
 class TextSummarizer:
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: Optional[logging.Logger] = None, is_debug: bool = False):
         self.logger = logger or logging.getLogger(__name__)
         self.client = OpenaiExecuter(model="gpt-3.5-turbo-1106",
                                      logger=logger)
+        self.is_debug = is_debug
 
     def handle(self, text: str) -> str:
         self.logger.debug("TextSummarizer: " + text)
+        if self.is_debug:
+            return "要約テスト"
         user_content = TEMPLATE.format(context=text)
         return self.client.simple_chat(user_content=user_content)
 

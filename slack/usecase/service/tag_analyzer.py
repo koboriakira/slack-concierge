@@ -11,11 +11,14 @@ def analyze_tags(args: dict) -> list[str]:
     return [tag.strip() for tag in tags.split(",")]
 
 class TagAnalyzer:
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: Optional[logging.Logger] = None, is_debug: bool = False):
         self.logger = logger or logging.getLogger(__name__)
         self.client = OpenaiExecuter(model="gpt-3.5-turbo-1106", logger=logger)
+        self.is_debug = is_debug
 
     def handle(self, text: str) -> list[str]:
+        if self.is_debug:
+            return ["テスト"]
         user_content = f"次の文章を解析して、タグをつけてください。\n\n{text}"
         analyze_tags_parameters = {
             "type": "object",

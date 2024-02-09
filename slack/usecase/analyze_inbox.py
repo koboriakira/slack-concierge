@@ -9,15 +9,15 @@ from usecase.service.simple_scraper import SimpleScraper
 from domain.infrastructure.api.notion_api import NotionApi
 
 class AnalyzeInbox:
-    def __init__(self, client: WebClient, logger: logging.Logger, notion_api: NotionApi):
+    def __init__(self, client: WebClient, logger: logging.Logger, notion_api: NotionApi, is_debug: bool = False):
         self.client = client
         self.logger = logger
         self.notion_api = notion_api
-        self.text_summarizer = TextSummarizer(logger=logger)
-        self.tag_analyzer = TagAnalyzer()
+        self.text_summarizer = TextSummarizer(logger=logger, is_debug=is_debug)
+        self.tag_analyzer = TagAnalyzer(is_debug=is_debug)
         self.simple_scraper = SimpleScraper()
 
-    def handle(self, attachment: dict, channel: str, thread_ts: str) -> None:
+    def handle(self, attachment: dict, channel: str, thread_ts: str) -> str:
         """ 指定したURLのページをスクレイピングしてテキストを返す """
         try:
             page_id:str = ""
@@ -32,6 +32,7 @@ class AnalyzeInbox:
 
             # メンションを付けてタスクを作成する
             self.notion_api.create_task(mentioned_page_id=page_id)
+            return page_id
 
         except Exception as e:
             import sys
@@ -40,7 +41,7 @@ class AnalyzeInbox:
             t, v, tb = exc_info
             formatted_exception = "\n".join(
                 traceback.format_exception(t, v, tb))
-            self._post_progress_if_dev(text=f"analyze_inbox: error ```{formatted_exception}```", channel=channel, thread_ts=thread_ts)
+            self.client.chat_postMessage(text=f"analyze_inbox: error ```{formatted_exception}```", channel=channel, thread_ts=thread_ts)
 
     def sub_handle_default(self, attachment: dict, channel: str, thread_ts: str) -> str:
         self._post_progress_if_dev(text=f"analyze_inbox: start ```{json.dumps(attachment)}", channel=channel, thread_ts=thread_ts)
