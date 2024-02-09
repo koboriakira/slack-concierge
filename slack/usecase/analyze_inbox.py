@@ -54,12 +54,11 @@ class AnalyzeInbox:
     def sub_handle_twitter(self, attachment: dict, channel: str, thread_ts: str) -> str:
         """ 指定したURLのページをスクレイピングしてテキストを返す(X版) """
         text = attachment["text"]
-        title = text[:50] # タイトルはtextの50文字目まで
         original_url = attachment["original_url"]
         cover = attachment.get("image_url") or attachment.get("thumb_url")
         self.notion_api.create_webclip_page(
             url=original_url,
-            title=title,
+            title=text,
             cover=cover,
         )
 
