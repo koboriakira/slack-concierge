@@ -64,7 +64,7 @@ class RoutineTask(Enum):
             case RoutineTask.DAILY_REVIEW:
                 # 翌日22:00
                 target_datetime = now + timedelta(days=1)
-                return target_datetime.replace(hour=22, minute=0, second=0, microsecond=0)
+                return target_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
             case RoutineTask.WEEKLY_REVIEW:
                 # 翌週土曜日
                 target_datetime = now + timedelta(days=(5 - now.weekday() + 7) % 7)
