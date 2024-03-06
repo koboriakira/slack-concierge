@@ -1,13 +1,16 @@
 import logging
+
 from lazy_app import create_lazy_app
 
 app = create_lazy_app()
 
 
-def handler(event, context):
+def handler(event: dict, context: dict) -> None:
     """
     AWS Lambda での実行に対応するためのハンドラー関数
     """
+    print(event)
+    logging.info(event)
     headers: dict = event.get("headers", {})
     if headers.get("x-slack-bolt-lazy-only") is not None:
         # レイジーモードの場合は、ハンドラーを呼び出さない
