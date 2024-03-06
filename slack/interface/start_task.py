@@ -1,33 +1,37 @@
-import logging
 import json
-from typing import Optional
-from slack_sdk.web import WebClient
-from slack_bolt import App, Ack
-from domain.view.view import View, State
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from usecase.start_task import StartTask as StartTaskUsecase
-from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
-from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
-from util.logging_traceback import logging_traceback
+import logging
+
 from domain.channel import ChannelType
-from util.environment import Environment
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
+from domain.view.view import State, View
+from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
+from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from slack_bolt import Ack, App
+from slack_sdk.web import WebClient
+from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
+from usecase.start_task import StartTask as StartTaskUsecase
+from util.environment import Environment
+from util.logging_traceback import logging_traceback
 
 SHORTCUT_ID = "start-task"
 CALLBACK_ID = "start-task-modal"
 
+class TaskTitleNotFoundError(ValueError):
+    def __init__(self) -> None:
+        super().__init__("task_title が取得できませんでした")
 
-def just_ack(ack: Ack):
+
+def just_ack(ack: Ack) -> None:
     ack()
 
-def handle_modal(ack: Ack):
+def handle_modal(ack: Ack) -> None:
     # ack() は何も渡さず呼ぶとただ今のモーダルを閉じるだけ
     # response_action とともに応答すると
     # エラーを表示したり、モーダルの内容を更新したりできる
     # https://slack.dev/bolt-python/ja-jp/concepts#view_submissions
     ack()
 
-def start_modal_interaction(body: dict, client: WebClient):
+def start_modal_interaction(body: dict, client: WebClient) -> None:
     try:
         logging.debug(json.dumps(body, ensure_ascii=False))
         notion_api = LambdaNotionApi()
@@ -38,7 +42,7 @@ def start_modal_interaction(body: dict, client: WebClient):
         logging_traceback(err, sys.exc_info())
 
 
-def start_task(logger: logging.Logger, view: dict, client: WebClient):
+def start_task(logger: logging.Logger, view: dict, client: WebClient) -> None:
     try:
         notion_api = LambdaNotionApi()
         usecase = StartTaskUsecase(notion_api=notion_api, client=client)
@@ -63,7 +67,7 @@ def start_task(logger: logging.Logger, view: dict, client: WebClient):
         import sys
         logging_traceback(err, sys.exc_info())
 
-def _get_task_title_and_id(state: State) -> tuple[str, Optional[str]]:
+def _get_task_title_and_id(state: State) -> tuple[str, str | None]:
         if (task := state.get_static_select("task")) is not None:
             # 既存タスクから選んだ場合
             return task
@@ -74,8 +78,9 @@ def _get_task_title_and_id(state: State) -> tuple[str, Optional[str]]:
             # ルーチンタスクを選択した場合
             task_title, _ = routine_task
             return f"{task_title}【ルーティン】", None
+        raise TaskTitleNotFoundError
 
-def shortcut_start_task(app: App):
+def shortcut_start_task(app: App) -> App:
     app.shortcut(SHORTCUT_ID)(
         ack=just_ack,
         lazy=[start_modal_interaction],
