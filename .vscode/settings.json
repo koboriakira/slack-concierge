@@ -1,0 +1,9 @@
+{
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "always",
+      "source.organizeImports.ruff": "always"
+    }
+  },
+}
