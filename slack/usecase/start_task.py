@@ -10,12 +10,12 @@ from domain.channel import ChannelType
 from util.cache import Cache
 from domain.routine.routine_task import RoutineTask
 
-ROUTINE_TASK_OPTIONS = [{
-        "text": task.value,
-        "value": task.name
-    } for task in RoutineTask]
+ROUTINE_TASK_OPTIONS = [
+    {"text": task.value, "value": task.name} for task in RoutineTask
+]
 
 TODAY_TASK_OPTIONS = "today_task_options"
+
 
 class StartTask:
     def __init__(self, notion_api: NotionApi, client: WebClient):
@@ -23,7 +23,7 @@ class StartTask:
         self.client = client
 
     def handle_modal(self, client: WebClient, trigger_id: str, callback_id: str):
-        """ 最初のタスク選択のモーダルを表示する """
+        """最初のタスク選択のモーダルを表示する"""
         today = Date.today()
         block_builder = BlockBuilder()
 
@@ -33,10 +33,9 @@ class StartTask:
             tasks = self.notion_api.list_current_tasks()
             # タイトルが無題のものは除外する
             tasks = [t for t in tasks if t.title != ""]
-            task_options = [{
-                "text": t.title_within_50_chars(),
-                "value": t.id
-            } for t in tasks]
+            task_options = [
+                {"text": t.title_within_50_chars(), "value": t.id} for t in tasks
+            ]
             Cache.set(TODAY_TASK_OPTIONS, task_options)
 
         if len(task_options) > 0:
@@ -72,7 +71,9 @@ class StartTask:
         task_idが未指定の場合は、新規タスクとして起票する
         """
         if task_id is None:
-            page = self.notion_api.create_task(title=task_title, start_date=Date.today())
+            page = self.notion_api.create_task(
+                title=task_title, start_date=Date.today()
+            )
             task_id = page["id"]
 
         channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
@@ -84,10 +85,18 @@ class StartTask:
             routine_task = RoutineTask.from_name(task_title)
             if routine_task.description is not None:
                 block_builder = block_builder.add_section(text=routine_task.description)
+        block_builder = block_builder.add_button_action(
+            action_id="complete-task",
+            text="終了",
+            value=task_id,
+            style="danger",
+        )
         block_builder = block_builder.add_context({"page_id": task_id})
         blocks = block_builder.build()
 
-        response = self.client.chat_postMessage(text=text, channel=channel.value, blocks=blocks)
+        response = self.client.chat_postMessage(
+            text=text, channel=channel.value, blocks=blocks
+        )
 
         return {
             "thread_ts": response["ts"],

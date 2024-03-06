@@ -8,22 +8,26 @@ from util.datetime import now
 from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 
+
 class StartPomodoro:
-    def __init__(self, notion_api: NotionApi, google_api: GoogleCalendarApi, client: WebClient):
+    def __init__(
+        self, notion_api: NotionApi, google_api: GoogleCalendarApi, client: WebClient
+    ):
         self.notion_api = notion_api
         self.google_api = google_api
         self.client = client
         self.scheduler_service = EventBridgeSchedulerService()
 
     def handle(self, request: PomodoroTimerRequest):
-        """ ポモドーロの開始を通達する """
+        """ポモドーロの開始を通達する"""
         _now = now()
 
         # 開始を連絡
         event_ts = self._chat_start_message(
             task_id=request.page_id,
             channel=request.channel,
-            thread_ts=request.thread_ts)
+            thread_ts=request.thread_ts,
+        )
 
         # ポモドーロカウンターをインクリメント
         self.notion_api.update_pomodoro_count(page_id=request.page_id)
@@ -37,26 +41,23 @@ class StartPomodoro:
 
         self.scheduler_service.set_pomodoro_timer(request=request)
 
-        self.client.reactions_add(channel=request.channel, timestamp=event_ts, name="tomato")
+        self.client.reactions_add(
+            channel=request.channel, timestamp=event_ts, name="tomato"
+        )
 
-
-    def _chat_start_message(self, task_id:str, channel: str, thread_ts: str) -> str:
+    def _chat_start_message(self, task_id: str, channel: str, thread_ts: str) -> str:
         block_builder = BlockBuilder()
-        block_builder = block_builder.add_section(
-            text=f"開始しました！"
-        )
-        block_builder = block_builder.add_button_action(
-            action_id="complete-task",
-            text="終了",
-            value=task_id,
-            style="danger",
-        )
+        block_builder = block_builder.add_section(text=f"開始しました！")
         blocks = block_builder.build()
-        response = self.client.chat_postMessage(text="", blocks=blocks, channel=channel, thread_ts=thread_ts)
+        response = self.client.chat_postMessage(
+            text="", blocks=blocks, channel=channel, thread_ts=thread_ts
+        )
         event_ts = response["ts"]
         return event_ts
 
-    def _record_google_calendar_achivement(self, page_id: str, start_datetime: DateTime, end_datetime: DateTime):
+    def _record_google_calendar_achivement(
+        self, page_id: str, start_datetime: DateTime, end_datetime: DateTime
+    ):
         task = self.notion_api.find_task(page_id)
         front_formatter = f"""---
 notion_url: {task.url}
@@ -69,6 +70,7 @@ notion_url: {task.url}
             title=task.title,
             detail=f"{front_formatter}\n\n{feeling}",
         )
+
 
 if __name__ == "__main__":
     # python -m usecase.start_pomodoro
