@@ -1,17 +1,18 @@
-from typing import Optional
+import json
+import logging
+import os
 from datetime import date as Date
 from datetime import datetime as Datetime
-import os
-import logging
+
 import requests
-import json
+
 from domain.infrastructure.api.notion_api import NotionApi
-from domain.notion.notion_page import RecipePage, NotionPage, TaskPage
+from domain.notion.notion_page import NotionPage, RecipePage, TaskPage
 
 NOTION_SECRET = os.getenv("NOTION_SECRET")
 
 class LambdaNotionApi(NotionApi):
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: logging.Logger | None = None):
         self.domain = os.environ["LAMBDA_NOTION_API_DOMAIN"]
         self.logger = logger or logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class LambdaNotionApi(NotionApi):
         data = response["data"]
         return [RecipePage.from_dict(page) for page in data]
 
-    def list_projects(self, status: Optional[str] = None) -> list[NotionPage]:
+    def list_projects(self, status: str | None = None) -> list[NotionPage]:
         params = {}
         if status:
             params["status"] = status
@@ -35,8 +36,8 @@ class LambdaNotionApi(NotionApi):
         return NotionPage.from_dict(data)
 
     def list_tasks(self,
-                   start_date: Optional[Date] = None,
-                   status: Optional[str] = None,
+                   start_date: Date | None = None,
+                   status: str | None = None,
                    ) -> list[TaskPage]:
         params = {}
         if start_date:
@@ -60,9 +61,9 @@ class LambdaNotionApi(NotionApi):
 
     def create_track_page(self, track_name: str,
                                 artists: list[str],
-                                spotify_url: Optional[str] = None,
-                                cover_url: Optional[str] = None,
-                                release_date: Optional[Date] = None,) -> dict:
+                                spotify_url: str | None = None,
+                                cover_url: str | None = None,
+                                release_date: Date | None = None) -> dict:
         url = f"{self.domain}music"
         data = {
             "track_name": track_name,
@@ -79,7 +80,7 @@ class LambdaNotionApi(NotionApi):
     def create_webclip_page(self,
                             url: str,
                             title: str,
-                            cover: Optional[str] = None,
+                            cover: str | None = None,
                             ) -> dict:
         api_url = f"{self.domain}webclip"
         data = {
@@ -94,7 +95,7 @@ class LambdaNotionApi(NotionApi):
                             url: str,
                             title: str,
                             tags: list[str],
-                            cover: Optional[str] = None,
+                            cover: str | None = None,
                             ) -> dict:
         api_url = f"{self.domain}video"
         data = {
@@ -108,8 +109,8 @@ class LambdaNotionApi(NotionApi):
 
     def add_book(
         self,
-        google_book_id: Optional[str] = None,
-        title: Optional[str] = None,) -> dict:
+        google_book_id: str | None = None,
+        title: str | None = None) -> dict:
         api_url = f"{self.domain}books/regist"
         data = {}
         if google_book_id:
@@ -125,7 +126,7 @@ class LambdaNotionApi(NotionApi):
                                  promotion: str,
                                  text: str,
                                  tags: list[str],
-                                 cover: Optional[str] = None,
+                                 cover: str | None = None,
                                 ) -> dict:
         api_url = f"{self.domain}prowrestling"
         data = {
@@ -152,7 +153,7 @@ class LambdaNotionApi(NotionApi):
 
     def update_pomodoro_count(self,
                               page_id: str,
-                              count: Optional[int] = None,
+                              count: int | None = None,
                               ) -> dict:
         api_url = f"{self.domain}page/pomodoro-count"
         data = {
@@ -173,10 +174,10 @@ class LambdaNotionApi(NotionApi):
         return self._post(url=api_url, data=data)
 
     def create_task(self,
-                    title: Optional[str] = None,
-                    mentioned_page_id: Optional[str] = None,
-                    start_date: Optional[Date|Datetime] = None,
-                    end_date: Optional[Date|Datetime] = None,
+                    title: str | None = None,
+                    mentioned_page_id: str | None = None,
+                    start_date: Date | Datetime | None = None,
+                    end_date: Date | Datetime | None = None,
                     ) -> dict:
         api_url = f"{self.domain}task"
         data = {}
