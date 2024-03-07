@@ -1,8 +1,7 @@
-from datetime import datetime as DatetimeObject
+from datetime import UTC, timedelta, timezone
 from datetime import date as DateObject
-from datetime import timedelta
-from datetime import timezone
-from typing import Optional
+from datetime import datetime as DatetimeObject
+
 import jpholiday
 
 JST = timezone(timedelta(hours=+9), "JST")
@@ -13,16 +12,16 @@ def now(enable_jst: bool = True) -> DatetimeObject:
     タイムゾーンを指定して現在時刻を取得する。
     意図的にUTC+00:00を指定する場合はenable_jst=Falseとする。
     """
-    return DatetimeObject.now(JST if enable_jst else timezone.utc)
+    return DatetimeObject.now(JST if enable_jst else UTC)
 def fromtimestamp(timestamp:float, enable_jst: bool = True) -> DatetimeObject:
     """
     タイムゾーンを指定して現在時刻を取得する。
     意図的にUTC+00:00を指定する場合はenable_jst=Falseとする。
     """
-    return DatetimeObject.fromtimestamp(timestamp, JST if enable_jst else timezone.utc)
+    return DatetimeObject.fromtimestamp(timestamp, JST if enable_jst else UTC)
 
 
-def get_current_day_and_tomorrow(date_str: Optional[str] = None) -> tuple[float, float]:
+def get_current_day_and_tomorrow(date_str: str | None = None) -> tuple[float, float]:
     """
     指定された日付の0時と翌日の0時のunixtimeを返す。
     指定がない場合は今日の0時と翌日の0時のunixtimeを返す。
