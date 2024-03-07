@@ -1,7 +1,6 @@
 import logging
-import os
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from slack.infrastructure.api.lambda_notion_api import LambdaNotionApi
 from slack.usecase.analyze_inbox import AnalyzeInbox
@@ -9,16 +8,24 @@ from slack_sdk.web import WebClient
 
 
 class TestAnalyzeInbox(unittest.TestCase):
-    def setUp(self):
-        logging.basicConfig(level=logging.DEBUG),
+    def setUp(self) -> None:
+        logging.basicConfig(level=logging.DEBUG)
         self.analyze_inbox = AnalyzeInbox(
-            client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]),
-            logger=logging.getLogger(__name__),
+            client=Mock(WebClient),
             notion_api=Mock(LambdaNotionApi),
-            # is_debug=True
+            logger=logging.getLogger(__name__),
         )
 
-    def test_sub_handle_twitter(self):
+    @patch("slack.usecase.analyze_inbox.AnalyzeInbox._create_video_page")
+    def test_sub_handle_youtube(self, mock_create_video_page: Mock) -> None:
+        # mock
+        mock_create_video_page.return_value = {
+            "id": "mock_page_id",
+            "url": "https://example.com",
+        }
+        self.analyze_inbox._create_video_page = mock_create_video_page
+
+        # Given
         attachment = {
           "from_url": "https://www.youtube.com/watch?v=TPJkNq88wBM",
           "thumb_url": "https://i.ytimg.com/vi/TPJkNq88wBM/hqdefault.jpg",
@@ -41,6 +48,13 @@ class TestAnalyzeInbox(unittest.TestCase):
         channel = "C05H3USHAJU"
         thread_ts = "1707452514.914669"
 
-        result = self.analyze_inbox.handle(attachment, channel, thread_ts)
-        print(result)
-        self.assertIsNotNone(result)
+        # When
+        _ = self.analyze_inbox.handle(attachment, channel, thread_ts)
+
+        # Then
+        mock_create_video_page.assert_called_once_with(
+            url="https://www.youtube.com/watch?v=TPJkNq88wBM",
+            title="今年最後の質問コーナーだ！！みんな！観て‼︎! | ヘアピンまみれ Hairpin Mamire",
+            cover="https://i.ytimg.com/vi/TPJkNq88wBM/hqdefault.jpg",
+            tags=[],
+        )

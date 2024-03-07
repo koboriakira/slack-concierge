@@ -23,7 +23,7 @@ def handle_message_changed(event: dict, logger: Logger, client: WebClient) -> No
             logger.info("既にリアクションがついているので処理をスキップします。")
             return
         client_wrapper.reactions_add(name="white_check_mark", channel=channel, timestamp=thread_ts)
-        usecase = AnalyzeInbox(client=client, logger=logger, notion_api=LambdaNotionApi())
+        usecase = AnalyzeInbox(client=client, notion_api=LambdaNotionApi(), logger=logger)
         usecase.handle(attachment=attachment,
                         channel=channel,
                         thread_ts=thread_ts)
