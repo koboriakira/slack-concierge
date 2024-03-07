@@ -1,9 +1,11 @@
-import unittest
 import logging
 import os
+import unittest
+from unittest.mock import Mock
+
+from slack.infrastructure.api.lambda_notion_api import LambdaNotionApi
+from slack.usecase.analyze_inbox import AnalyzeInbox
 from slack_sdk.web import WebClient
-from usecase.analyze_inbox import AnalyzeInbox
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
 
 
 class TestAnalyzeInbox(unittest.TestCase):
@@ -12,7 +14,7 @@ class TestAnalyzeInbox(unittest.TestCase):
         self.analyze_inbox = AnalyzeInbox(
             client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]),
             logger=logging.getLogger(__name__),
-            notion_api=LambdaNotionApi(),
+            notion_api=Mock(LambdaNotionApi),
             # is_debug=True
         )
 
@@ -22,7 +24,7 @@ class TestAnalyzeInbox(unittest.TestCase):
           "thumb_url": "https://i.ytimg.com/vi/TPJkNq88wBM/hqdefault.jpg",
           "thumb_width": 480,
           "thumb_height": 360,
-          "video_html": "<iframe width=\"400\" height=\"225\" src=\"https://www.youtube.com/embed/TPJkNq88wBM?feature=oembed&autoplay=1&iv_load_policy=3\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" allowfullscreen title=\"今年最後の質問コーナーだ！！みんな！観て‼︎!\"></iframe>",
+          "video_html": '<iframe width="400" height="225" src="https://www.youtube.com/embed/TPJkNq88wBM?feature=oembed&autoplay=1&iv_load_policy=3" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen title="今年最後の質問コーナーだ！！みんな！観て‼︎!"></iframe>',
           "video_html_width": 400,
           "video_html_height": 225,
           "service_icon": "https://a.slack-edge.com/80588/img/unfurl_icons/youtube.png",
@@ -34,7 +36,7 @@ class TestAnalyzeInbox(unittest.TestCase):
           "author_name": "ヘアピンまみれ Hairpin Mamire",
           "author_link": "https://www.youtube.com/@hairpin_mamire",
           "service_name": "YouTube",
-          "service_url": "https://www.youtube.com/"
+          "service_url": "https://www.youtube.com/",
         }
         channel = "C05H3USHAJU"
         thread_ts = "1707452514.914669"
@@ -42,6 +44,3 @@ class TestAnalyzeInbox(unittest.TestCase):
         result = self.analyze_inbox.handle(attachment, channel, thread_ts)
         print(result)
         self.assertIsNotNone(result)
-
-if __name__ == '__main__':
-    unittest.main()

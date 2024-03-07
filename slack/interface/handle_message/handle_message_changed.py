@@ -1,14 +1,16 @@
-from slack_sdk.web import WebClient
 from logging import Logger
+
+from slack_sdk.web import WebClient
+
 from domain.channel import ChannelType
 from domain.user import UserKind
-from util.environment import Environment
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from infrastructure.slack.slack_client_wrapper import SlackClientWrapper
 from usecase.analyze_inbox import AnalyzeInbox
+from util.environment import Environment
 
 
-def handle_message_changed(event: dict, logger: Logger, client: WebClient):
+def handle_message_changed(event: dict, logger: Logger, client: WebClient) -> None:
     channel:str = event["channel"]
     message: dict = event["message"]
     if _is_posted_link_in_inbox_channel(channel, message):
@@ -22,9 +24,6 @@ def handle_message_changed(event: dict, logger: Logger, client: WebClient):
             return
         client_wrapper.reactions_add(name="white_check_mark", channel=channel, timestamp=thread_ts)
         usecase = AnalyzeInbox(client=client, logger=logger, notion_api=LambdaNotionApi())
-        # if Environment.is_dev():
-        #     logger.info("開発環境のため、処理をスキップします。")
-        #     return
         usecase.handle(attachment=attachment,
                         channel=channel,
                         thread_ts=thread_ts)
