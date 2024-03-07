@@ -1,14 +1,12 @@
 import logging
-from logging import Logger
-from typing import Optional
 import os
-import pathlib
+from logging import Logger
 
 
-def get_logger(name: Optional[str]) -> Logger:
+def get_logger(name: str | None) -> Logger:
     logger = logging.getLogger(name)  # logger名loggerを取得
 
-    if os.getenv("ENVIRONMENT") == "dev":
+    if os.getenv("IS_DEBUG") == "true":
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
