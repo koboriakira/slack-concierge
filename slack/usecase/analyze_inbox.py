@@ -18,14 +18,12 @@ class AnalyzeInbox:
     def handle(self, attachment: dict, channel: str, thread_ts: str) -> None:
         """ 指定したURLのページをスクレイピングしてテキストを返す """
         try:
-            page_id:str = ""
             if "x.com" in attachment["original_url"]:
-                page_id = self.sub_handle_twitter(attachment=attachment)
+                self.sub_handle_twitter(attachment=attachment)
             elif "youtube.com" in attachment["original_url"]:
                 self.sub_handle_youtube(attachment=attachment)
             elif "wrestle-universe.com" in attachment["original_url"]:
-                page_id = self.sub_handle_wrestle_universe(attachment=attachment)
-                self.notion_api.create_task(mentioned_page_id=page_id)
+                self.sub_handle_wrestle_universe(attachment=attachment)
             else:
                 self.sub_handle_default(attachment=attachment)
 
@@ -85,30 +83,30 @@ class AnalyzeInbox:
 
     def sub_handle_wrestle_universe(self, attachment: dict) -> str:
         """ 指定したURLの動画を登録する """
-        original_url:str = attachment["original_url"]
-        id = original_url.split("/")[-1]
-        event_url = f"https://api.wrestle-universe.com/v1/events/{id}?al=ja"
-        response = requests.get(event_url)
-        data:dict = response.json()
-        self.logger.debug(json.dumps(data, ensure_ascii=False))
-        title = data["displayName"]
-        description = data["description"]
-        date = Date.fromisoformat(data["labels"]["matchDate"].split("T")[0])
-        cover = data["keyVisualUrl"]
-
         def get_promotion_name(group_key: str) -> str:
             match group_key:
                 case "tjpw":
                     return "東京女子プロレス"
                 case _:
                     return group_key
+
+        original_url:str = attachment["original_url"]
+        event_id = original_url.split("/")[-1]
+        # event_url = f"https://api.wrestle-universe.com/v1/events/{event_id}?al=ja"
+        api_url = f"https://api.wrestle-universe.com/v1/videoEpisodes/{event_id}?al=ja"
+        response = requests.get(api_url)
+        data:dict = response.json()
+        self.logger.debug(json.dumps(data, ensure_ascii=False))
+        title = data["displayName"]
+        description = data["description"]
+        date = Date.fromisoformat(data["labels"]["matchDate"].split("T")[0])
+        cover = data["keyVisualUrl"]
         promotion_name = get_promotion_name(data["labels"]["group"])
-        venue = data["labels"]["venue"]
-        tags = [
-            promotion_name,
-            venue,
-        ]
-        page = self.notion_api.create_prowrestling_page(
+        tags = [promotion_name]
+        if "venue" in data["labels"]:
+            tags.append(data["labels"]["venue"])
+
+        self._create_prowrestling_page(
             url=original_url,
             title=title,
             date=date,
@@ -117,13 +115,19 @@ class AnalyzeInbox:
             tags=tags,
             cover=cover,
         )
-        page_url:str = page["url"]
-        self.client.chat_postMessage(
-            channel=channel,
-            thread_ts=thread_ts,
-            text=page_url,
+
+    def _create_prowrestling_page(self, url: str, title: str, date: Date, promotion: str, text: str, tags: list[str], cover: str) -> dict:
+        print(title, date, promotion, text, tags, cover)
+        return self.notion_api.create_prowrestling_page(
+            url=url,
+            title=title,
+            date=date,
+            promotion=promotion,
+            text=text,
+            tags=tags,
+            cover=cover,
         )
-        return page["id"]
+
 
 
 
