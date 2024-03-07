@@ -16,3 +16,6 @@ line-length = 120
 
 [tool.ruff.pydocstyle]
 convention = "google" # docstringの形式を指定
+
+[tool.ruff.lint.mccabe] # 複雑度の設定
+max-complexity = 5 # 複雑度が5を超えると`C901`の警告を出す
