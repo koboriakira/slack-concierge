@@ -1,21 +1,19 @@
 import json
 import logging
-from slack_sdk.web import WebClient
 from datetime import date as Date
+
 import requests
-from usecase.service.text_summarizer import TextSummarizer
-from usecase.service.tag_analyzer import TagAnalyzer
-from usecase.service.simple_scraper import SimpleScraper
+from slack_sdk.web import WebClient
+
 from domain.infrastructure.api.notion_api import NotionApi
+
 
 class AnalyzeInbox:
     def __init__(self, client: WebClient, logger: logging.Logger, notion_api: NotionApi, is_debug: bool = False):
         self.client = client
         self.logger = logger
         self.notion_api = notion_api
-        self.text_summarizer = TextSummarizer(logger=logger, is_debug=is_debug)
-        self.tag_analyzer = TagAnalyzer(is_debug=is_debug)
-        self.simple_scraper = SimpleScraper()
+
 
     def handle(self, attachment: dict, channel: str, thread_ts: str) -> str:
         """ 指定したURLのページをスクレイピングしてテキストを返す """
@@ -32,7 +30,7 @@ class AnalyzeInbox:
                 self.sub_handle_default(attachment=attachment, channel=channel, thread_ts=thread_ts)
 
 
-        except Exception as e:
+        except Exception:
             import sys
             import traceback
             exc_info = sys.exc_info()
@@ -67,13 +65,14 @@ class AnalyzeInbox:
         title = attachment["title"] + " | " + attachment["author_name"]
         original_url = attachment["original_url"]
         cover = attachment.get("thumb_url")
-        tags = self.tag_analyzer.handle(text=title)
-        tags.append(attachment["author_name"])
+        author_name = attachment.get("author_name"),
+        # FIXME: 引数を変える
         self.notion_api.create_video_page(
             url=original_url,
             title=title,
-            tags=tags,
             cover=cover,
+            tags=[],
+            # author_name=author_name,
         )
 
     def sub_handle_wrestle_universe(self, attachment: dict, channel: str, thread_ts: str) -> str:
@@ -131,6 +130,7 @@ class AnalyzeInbox:
 if __name__ == "__main__":
     # python -m usecase.analyze_inbox
     import os
+
     from infrastructure.api.lambda_notion_api import LambdaNotionApi
     logging.basicConfig(level=logging.DEBUG)
     usecase = AnalyzeInbox(
