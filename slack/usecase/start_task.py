@@ -1,5 +1,5 @@
 import logging
-from datetime import date as Date
+from datetime import datetime as Datetime
 from datetime import timedelta
 
 from domain.channel import ChannelType
@@ -31,14 +31,15 @@ class StartTask:
 
         # タスクの選択肢を作成する。今日の未了タスクが対象
         current_tasks_cache = self.current_tasks_s3_repository.load()
-        if current_tasks_cache is None or current_tasks_cache["expires_at"] < now() or Environment.is_dev():
+        if current_tasks_cache is None or Datetime.fromisoformat(current_tasks_cache["expires_at"]) < now() or Environment.is_dev():
             tasks = self.notion_api.list_current_tasks()
             task_options = [
                 {"text": t.title_within_50_chars(), "value": t.id} for t in tasks if t.title != ""
             ]
+            expires_at = now() + timedelta(minutes=5)
             current_tasks_cache = {
                 "task_options": task_options,
-                "expires_at": now() + timedelta(minutes=3),
+                "expires_at": expires_at.isoformat(),
             }
             self.current_tasks_s3_repository.save(current_tasks_cache)
 
