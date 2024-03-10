@@ -1,8 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from domain.task.task import Task
+from domain.task.task import Task
 
 
 class TaskRepository(metaclass=ABCMeta):
@@ -32,23 +30,15 @@ class NotionTaskRepository(TaskRepository):
         return Task.reconstruct(data=response["data"])
 
     def save(self, task: "Task") -> "Task":
-        response = self.api._post(path=f"{self.domain}task", data=task.to_dict())
-        data = response["data"]
-        return Task.reconstruct(
-            id=data["id"],
-            title=task.title,
-            description=task.description,
-            is_routine=task.is_routine,
-            url=data["url"],
-            status=task.status,
-            start_date=None,
-            end_date=None,
-        )
+        # FIXME: postってパスじゃなくてURLだった。直しておこう
+        response = self.api._post(url=f"{self.domain}task", data=task.to_dict())
+        data = response
+        return task.add_id_and_url(task_id=data["id"], url=data["url"])
 
     def update_pomodoro_count(self, task: "Task") -> "Task":
         api_url = f"{self.domain}page/pomodoro-count"
         data = {
             "page_id": task.task_id,
         }
-        _ = self._post(url=api_url, data=data)
+        _ = self.api._post(url=api_url, data=data)
         return task.increment_pomodoro_count()

@@ -34,6 +34,8 @@ class StartTaskUseCase:
         # Googleカレンダーにイベントを登録する
         self._record_google_calendar_achivement(task)
 
+        return task
+
     def load_or_create(self, task_id: str|None = None, task_title: str|None = None) -> Task:
         if task_id is not None:
             return self.task_repository.find_by_id(task_id)

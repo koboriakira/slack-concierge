@@ -1,15 +1,17 @@
 import json
 import logging
 
+from slack_bolt import Ack, App
+from slack_sdk.web import WebClient
+
 from domain.channel import ChannelType
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 from domain.view.view import State, View
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from slack_bolt import Ack, App
-from slack_sdk.web import WebClient
 from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
 from usecase.start_task import StartTask as StartTaskUsecase
+from usecase.start_task_use_case import StartTaskUseCase
 from util.environment import Environment
 from util.logging_traceback import logging_traceback
 
@@ -63,6 +65,43 @@ def start_task(logger: logging.Logger, view: dict, client: WebClient) -> None:
             thread_ts=thread_ts,
         )
         start_pomodoro.handle(request=event_scheduler_request)
+    except Exception as err:
+        import sys
+        logging_traceback(err, sys.exc_info())
+
+def start_task_refactored(logger: logging.Logger, view: dict, client: WebClient) -> None:
+    from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
+    try:
+        usecase = StartTaskUseCase()
+        view_model = View(view)
+        state = view_model.get_state()
+        task_title, task_id = _get_task_title_and_id(state)
+
+        # タスクを開始する
+        task = usecase.execute(task_id=task_id, task_title=task_title)
+
+        # Slackに投稿
+        channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
+        text, blocks = task.create_slack_message_start_task()
+        response = client.chat_postMessage(
+            text=text, channel=channel.value, blocks=blocks,
+        )
+        thread_ts = response["thread_ts"]
+        page_id = response["page_id"]
+
+        # 予約投稿を準備
+        event_scheduler_service = EventBridgeSchedulerService()
+        request = PomodoroTimerRequest(
+            page_id=page_id,
+            channel=channel.value,
+            thread_ts=thread_ts,
+        )
+        event_scheduler_service.set_pomodoro_timer(request=request)
+
+        # ポモドーロ開始を示すリアクションをつける
+        client.reactions_add(
+            channel=request.channel, timestamp=thread_ts, name="tomato",
+        )
     except Exception as err:
         import sys
         logging_traceback(err, sys.exc_info())

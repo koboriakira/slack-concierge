@@ -39,11 +39,7 @@ class StartPomodoro:
             end_datetime=_now + timedelta(minutes=25),
         )
 
-        self.scheduler_service.set_pomodoro_timer(request=request)
 
-        self.client.reactions_add(
-            channel=request.channel, timestamp=event_ts, name="tomato"
-        )
 
     def _chat_start_message(self, task_id: str, channel: str, thread_ts: str) -> str:
         block_builder = BlockBuilder()

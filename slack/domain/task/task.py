@@ -20,7 +20,7 @@ class Task:
     def reconstruct(data: dict) -> "Task":
         """ データベースから取得したデータを元にTaskを再構築する"""
         return Task(
-            id=data["id"],
+            task_id=data["id"],
             title=data["title"],
             description=data["description"],
             is_routine=data["is_routine"],
@@ -57,5 +57,36 @@ class Task:
             end_date=self.end_date,
             task_id=self.task_id,
             url=self.url,
+            mentioned_page_id=self.mentioned_page_id,
+        )
+
+    def create_slack_message_start_task(self) -> tuple[str, list[dict]]:
+        from slack.domain_service.block.block_builder import BlockBuilder
+        """タスク開始時のSlackメッセージを生成する"""
+        text = f"<{self.url}|{self.title}>"
+        block_builder = BlockBuilder()
+        block_builder = block_builder.add_section(text=text)
+        block_builder = block_builder.add_button_action(
+            action_id="complete-task",
+            text="終了",
+            value=self.task_id,
+            style="danger",
+        )
+        block_builder = block_builder.add_context({"page_id": self.task_id})
+        blocks = block_builder.build()
+        return text, blocks
+
+    def add_id_and_url(self, task_id: str, url: str) -> "Task":
+        """NotionページのIDとURLを追加したTaskを返す"""
+        return Task(
+            title=self.title,
+            is_routine=self.is_routine,
+            description=self.description,
+            pomodoro_count=self.pomodoro_count,
+            status=self.status,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            task_id=task_id,
+            url=url,
             mentioned_page_id=self.mentioned_page_id,
         )
