@@ -2,13 +2,14 @@ import logging
 from datetime import datetime as Datetime
 from datetime import timedelta
 
+from slack_sdk.web import WebClient
+
 from domain.channel import ChannelType
 from domain.infrastructure.api.notion_api import NotionApi
 from domain.routine.routine_task import RoutineTask
 from domain_service.block.block_builder import BlockBuilder
 from domain_service.view.view_builder import ViewBuilder
 from infrastructure.repository.current_tasks_s3_repository import CurrentTasksS3Repository
-from slack_sdk.web import WebClient
 from util.datetime import now
 from util.environment import Environment
 
@@ -71,14 +72,14 @@ class StartTask:
             view=view,
         )
 
-    def handle_prepare(self, task_id: str | None, task_title: str) -> dict:
+    def handle_prepare(self, task_title: str, task_id: str | None = None) -> dict:
         """
         ポモドーロ開始ボタンを投稿して、タスクを開始できる状態にする
         task_idが未指定の場合は、新規タスクとして起票する
         """
         if task_id is None:
             page = self.notion_api.create_task(
-                title=task_title, start_date=Date.today(),
+                title=task_title, start_date=now().date(),
             )
             task_id = page["id"]
 
