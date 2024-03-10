@@ -9,6 +9,7 @@ import {
   aws_events as events,
   aws_events_targets as targets,
   aws_sqs as sqs,
+  aws_apigateway as apigateway,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -307,5 +308,31 @@ export class SlackConcierge extends Stack {
     }
 
     return fn;
+  }
+
+  createFastApi() {
+    // FastAPIのLambda関数を作成
+    const fn = this.createLambdaFunction(
+      "FastApi",
+      this.makeRole(),
+      this.makeLayer(),
+      "fastapi.handler",
+      30,
+      true
+    );
+
+    // REST API の定義
+    const restapi = new apigateway.RestApi(this, "Notion-Api", {
+      deployOptions: {
+        stageName: "v1",
+      },
+      restApiName: "Slack-Concierge-Api",
+    });
+    // ルートとインテグレーションの設定
+    restapi.root.addMethod("ANY", new apigateway.LambdaIntegration(fn));
+    restapi.root
+      .addResource("{proxy+}")
+      .addMethod("ANY", new apigateway.LambdaIntegration(fn));
+    return restapi;
   }
 }
