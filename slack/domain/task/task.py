@@ -22,14 +22,14 @@ class Task:
         return Task(
             task_id=data["id"],
             title=data["title"],
-            description=data["description"],
-            is_routine=data["is_routine"],
+            description=data.get("description"), # FIXME: APIから取得できるようにしたい
+            is_routine=data.get("is_routine"), # FIXME: APIから取得できるようにしたい
             url=data["url"],
             status=data["status"],
             start_date=data["start_date"],
             end_date=data["end_date"],
-            mentioned_page_id=data["mentioned_page_id"],
-            pomodoro_count=data["pomodoro_count"],
+            mentioned_page_id=data.get("mentioned_page_id"), # FIXME: APIから取得できるようにしたい
+            pomodoro_count=data.get("pomodoro_count", 0), # FIXME: APIから取得できるようにしたい
         )
 
     @staticmethod
