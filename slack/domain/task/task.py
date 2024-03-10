@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime as DatetimeObject
+from datetime import datetime
 
 
 @dataclass(frozen=True)
@@ -9,8 +9,8 @@ class Task:
     description: str | None = None
     pomodoro_count: int = 0
     status: str | None = None
-    start_date: DatetimeObject | None = None
-    end_date: DatetimeObject | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
     # 以下はNotionページがあるときのフィールド
     task_id: str | None = None
     url: str | None = None
@@ -89,4 +89,20 @@ class Task:
             task_id=task_id,
             url=url,
             mentioned_page_id=self.mentioned_page_id,
+        )
+
+    @staticmethod
+    def test_instance() -> "Task":
+        from slack.util.datetime import JST
+        return Task(
+            title="test",
+            is_routine=False,
+            description="test",
+            pomodoro_count=0,
+            status="test",
+            start_date=datetime(2024, 1, 1, tzinfo=JST),
+            end_date=datetime(2024, 1, 1, tzinfo=JST),
+            task_id="test",
+            url="test",
+            mentioned_page_id="test",
         )

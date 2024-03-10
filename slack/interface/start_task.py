@@ -23,32 +23,34 @@ class StartTaskInterface:
     def __init__(
             self,
             client: WebClient,
+            channel: ChannelType,
+            start_task_use_case: StartTaskUseCase,
             scheduler_service: EventBridgeSchedulerService,
             logger: logging.Logger|None = None) -> None:
         self.client = client
+        self.channel = channel
+        self.start_task_use_case = start_task_use_case
         self.scheduler_service = scheduler_service
         self.logger = logger or logging.getLogger(__name__)
 
     def start_task(self, view: dict) -> None:
         try:
-            usecase = StartTaskUseCase()
             view_model = View(view)
             state = view_model.get_state()
             state_task_title, state_task_id = _get_task_title_and_id(state)
 
             # タスクを開始する
-            task = usecase.execute(task_id=state_task_id, task_title=state_task_title)
+            task = self.start_task_use_case.execute(task_id=state_task_id, task_title=state_task_title)
 
             # Slackに投稿
-            channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
             text, blocks = task.create_slack_message_start_task()
-            response = self.client.chat_postMessage(channel=channel.value, text=text, blocks=blocks)
+            response = self.client.chat_postMessage(channel=self.channel.value, text=text, blocks=blocks)
             thread_ts = response["ts"]
 
             # 予約投稿を準備
             request = PomodoroTimerRequest(
                 page_id=task.task_id,
-                channel=channel.value,
+                channel=self.channel.value,
                 thread_ts=thread_ts,
             )
             self.scheduler_service.set_pomodoro_timer(request=request)
