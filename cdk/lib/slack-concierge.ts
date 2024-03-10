@@ -26,7 +26,26 @@ export class SlackConcierge extends Stack {
     const myLayer = this.makeLayer();
 
     // slack-concierge-api: FastAPIを使ったAPI Gateway
-    const restapi = this.createFastApi();
+    const fn = this.createLambdaFunction(
+      "FastApi",
+      role,
+      myLayer,
+      "fastapi.handler",
+      30,
+      true
+    );
+
+    // REST API
+    const restapi = new apigateway.RestApi(this, "Notion-Api", {
+      deployOptions: {
+        stageName: "v1",
+      },
+      restApiName: "Slack-Concierge-Api",
+    });
+    restapi.root.addMethod("ANY", new apigateway.LambdaIntegration(fn));
+    restapi.root
+      .addResource("{proxy+}")
+      .addMethod("ANY", new apigateway.LambdaIntegration(fn));
 
     // lazy_main: SlackBoltを使ったLambda関数
     const lambda_lazy_main = this.createLambdaFunction(
@@ -313,29 +332,4 @@ export class SlackConcierge extends Stack {
     return fn;
   }
 
-  createFastApi() {
-    // FastAPIのLambda関数を作成
-    const fn = this.createLambdaFunction(
-      "FastApi",
-      this.makeRole(),
-      this.makeLayer(),
-      "fastapi.handler",
-      30,
-      true
-    );
-
-    // REST API の定義
-    const restapi = new apigateway.RestApi(this, "Notion-Api", {
-      deployOptions: {
-        stageName: "v1",
-      },
-      restApiName: "Slack-Concierge-Api",
-    });
-    // ルートとインテグレーションの設定
-    restapi.root.addMethod("ANY", new apigateway.LambdaIntegration(fn));
-    restapi.root
-      .addResource("{proxy+}")
-      .addMethod("ANY", new apigateway.LambdaIntegration(fn));
-    return restapi;
-  }
 }
