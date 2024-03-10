@@ -27,10 +27,10 @@ export class SlackConcierge extends Stack {
 
     // slack-concierge-api: FastAPIを使ったAPI Gateway
     const fn = this.createLambdaFunction(
-      "FastApi",
+      "FastapiMain",
       role,
       myLayer,
-      "fastapi.handler",
+      "fastapi_main.handler",
       30,
       true
     );
