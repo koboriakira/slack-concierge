@@ -75,24 +75,21 @@ def start_task_refactored(logger: logging.Logger, view: dict, client: WebClient)
         usecase = StartTaskUseCase()
         view_model = View(view)
         state = view_model.get_state()
-        task_title, task_id = _get_task_title_and_id(state)
+        state_task_title, state_task_id = _get_task_title_and_id(state)
 
         # タスクを開始する
-        task = usecase.execute(task_id=task_id, task_title=task_title)
+        task = usecase.execute(task_id=state_task_id, task_title=state_task_title)
 
         # Slackに投稿
         channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
         text, blocks = task.create_slack_message_start_task()
-        response = client.chat_postMessage(
-            text=text, channel=channel.value, blocks=blocks,
-        )
-        thread_ts = response["thread_ts"]
-        page_id = response["page_id"]
+        response = client.chat_postMessage(channel=channel.value, text=text, blocks=blocks)
+        thread_ts = response["ts"]
 
         # 予約投稿を準備
         event_scheduler_service = EventBridgeSchedulerService()
         request = PomodoroTimerRequest(
-            page_id=page_id,
+            page_id=task.task_id,
             channel=channel.value,
             thread_ts=thread_ts,
         )
