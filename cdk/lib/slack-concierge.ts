@@ -25,7 +25,10 @@ export class SlackConcierge extends Stack {
     const role = this.makeRole();
     const myLayer = this.makeLayer();
 
-    // lazy_main: API Gatewayから呼び出される
+    // slack-concierge-api: FastAPIを使ったAPI Gateway
+    const restapi = this.createFastApi();
+
+    // lazy_main: SlackBoltを使ったLambda関数
     const lambda_lazy_main = this.createLambdaFunction(
       "Lambda",
       role,
