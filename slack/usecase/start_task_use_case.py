@@ -55,3 +55,8 @@ notion_url: {task_url}
             title=task_title,
             detail=f"{front_formatter}",
         )
+
+if __name__ == "__main__":
+    # python -m slack.usecase.start_task_use_case
+    suite = StartTaskUseCase()
+    print(suite.execute(task_id="5f0093cb611d444d86c513133ab4178a"))
