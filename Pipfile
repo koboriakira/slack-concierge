@@ -16,6 +16,7 @@ lxml = "*"
 fastapi = "==0.99.0"
 pydantic = "==1.10.9"
 mangum = "==0.17.0"
+aiohttp = "*"
 
 [requires]
 python_version = "3.11"
