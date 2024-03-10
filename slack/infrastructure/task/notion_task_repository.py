@@ -15,8 +15,12 @@ class NotionTaskRepository(TaskRepository):
     def save(self, task: "Task") -> "Task":
         response = self.api.post(path="task",
                                   data=task.to_dict()) if not Environment.is_demo() else _demo_save(task)
-        data = response
-        return task.add_id_and_url(task_id=data["id"], url=data["url"])
+        if task.task_id:
+            return task
+
+        # タスクIDがない場合は、Notionのレスポンスから取得して付け加える
+        task.append_id_and_url(task_id=response["id"], url=response["url"])
+        return task
 
     def update_pomodoro_count(self, task: "Task") -> "Task":
         data = {
@@ -24,7 +28,8 @@ class NotionTaskRepository(TaskRepository):
         }
         _ = self.api.post(path="page/pomodoro-count",
                           data=data) if not Environment.is_demo() else None
-        return task.increment_pomodoro_count()
+        task.increment_pomodoro_count()
+        return task
 
 def _demo_save(task: Task) -> dict:
     return {

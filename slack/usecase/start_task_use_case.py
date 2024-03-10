@@ -32,7 +32,7 @@ class StartTaskUseCase:
         task = self.task_repository.update_pomodoro_count(task)
 
         # Googleカレンダーにイベントを登録する
-        self._record_google_calendar_achivement(task)
+        self._record_google_calendar_achivement(task_title=task.title, task_url=task.url)
 
         return task
 
@@ -40,19 +40,18 @@ class StartTaskUseCase:
         if task_id is not None:
             return self.task_repository.find_by_id(task_id)
         task = Task.from_title(task_title)
-        self.task_repository.save(task)
-        return task
+        return self.task_repository.save(task)
 
-    def _record_google_calendar_achivement(self, task: Task) -> None:
+    def _record_google_calendar_achivement(self, task_title: str, task_url: str) -> None:
         start = jst_now()
         end = start + timedelta(minutes=25)
         front_formatter = f"""---
-notion_url: {task.url}
+notion_url: {task_url}
 ---"""
         self.google_cal_api.post_gas_calendar(
             start=start,
             end=end,
             category="実績",
-            title=task.title,
+            title=task_title,
             detail=f"{front_formatter}",
         )

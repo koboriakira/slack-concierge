@@ -1,11 +1,13 @@
 import os
 
+ENVIRONMENT = os.environ.get("ENVIRONMENT")
+IS_DEMO = os.environ.get("IS_DEMO")
 
 class Environment:
     @staticmethod
     def is_dev() -> bool:
-        return os.environ.get("ENVIRONMENT") == "dev"
+        return ENVIRONMENT == "dev"
 
     @staticmethod
     def is_demo() -> bool:
-        return os.environ.get("IS_DEMO") == "true"
+        return IS_DEMO == "true"

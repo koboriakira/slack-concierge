@@ -19,6 +19,8 @@ from util.logging_traceback import logging_traceback
 SHORTCUT_ID = "start-task"
 CALLBACK_ID = "start-task-modal"
 
+POMODORO_ICON = "tomato"
+
 class StartTaskInterface:
     def __init__(
             self,
@@ -48,6 +50,7 @@ class StartTaskInterface:
             thread_ts = response["ts"]
 
             # 予約投稿を準備
+            # NOTE: これはユースケース層の中にいれるべきな気もする。ただSlackと密接に関連してもいるわけで。
             request = PomodoroTimerRequest(
                 page_id=task.task_id,
                 channel=self.channel.value,
@@ -57,7 +60,7 @@ class StartTaskInterface:
 
             # ポモドーロ開始を示すリアクションをつける
             self.client.reactions_add(
-                channel=request.channel, timestamp=thread_ts, name="tomato",
+                channel=request.channel, timestamp=thread_ts, name=POMODORO_ICON,
             )
         except Exception as err:
             import sys

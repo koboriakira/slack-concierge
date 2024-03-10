@@ -45,20 +45,9 @@ class Task:
                 data[field] = self.__dict__[field]
         return data
 
-    def increment_pomodoro_count(self) -> "Task":
+    def increment_pomodoro_count(self) -> None:
         """ポモドーロカウンターをインクリメントする"""
-        return Task(
-            title=self.title,
-            is_routine=self.is_routine,
-            description=self.description,
-            pomodoro_count=self.pomodoro_count + 1,
-            status=self.status,
-            start_date=self.start_date,
-            end_date=self.end_date,
-            task_id=self.task_id,
-            url=self.url,
-            mentioned_page_id=self.mentioned_page_id,
-        )
+        self.pomodoro_count += 1
 
     def create_slack_message_start_task(self) -> tuple[str, list[dict]]:
         from slack.domain_service.block.block_builder import BlockBuilder
@@ -76,20 +65,10 @@ class Task:
         blocks = block_builder.build()
         return text, blocks
 
-    def add_id_and_url(self, task_id: str, url: str) -> "Task":
-        """NotionページのIDとURLを追加したTaskを返す"""
-        return Task(
-            title=self.title,
-            is_routine=self.is_routine,
-            description=self.description,
-            pomodoro_count=self.pomodoro_count,
-            status=self.status,
-            start_date=self.start_date,
-            end_date=self.end_date,
-            task_id=task_id,
-            url=url,
-            mentioned_page_id=self.mentioned_page_id,
-        )
+    def append_id_and_url(self, task_id: str, url: str) -> None:
+        """NotionページのIDとURLを追加する"""
+        self.task_id = task_id
+        self.url = url
 
     @staticmethod
     def test_instance() -> "Task":
