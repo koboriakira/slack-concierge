@@ -9,6 +9,7 @@ import {
   aws_events as events,
   aws_events_targets as targets,
   aws_sqs as sqs,
+  aws_apigateway as apigateway,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -24,7 +25,29 @@ export class SlackConcierge extends Stack {
     const role = this.makeRole();
     const myLayer = this.makeLayer();
 
-    // lazy_main: API Gatewayから呼び出される
+    // slack-concierge-api: FastAPIを使ったAPI Gateway
+    const fn = this.createLambdaFunction(
+      "FastapiMain",
+      role,
+      myLayer,
+      "fastapi_main.handler",
+      30,
+      true
+    );
+
+    // REST API
+    const restapi = new apigateway.RestApi(this, "Notion-Api", {
+      deployOptions: {
+        stageName: "v1",
+      },
+      restApiName: "Slack-Concierge-Api",
+    });
+    restapi.root.addMethod("ANY", new apigateway.LambdaIntegration(fn));
+    restapi.root
+      .addResource("{proxy+}")
+      .addMethod("ANY", new apigateway.LambdaIntegration(fn));
+
+    // lazy_main: SlackBoltを使ったLambda関数
     const lambda_lazy_main = this.createLambdaFunction(
       "Lambda",
       role,
@@ -308,4 +331,5 @@ export class SlackConcierge extends Stack {
 
     return fn;
   }
+
 }
