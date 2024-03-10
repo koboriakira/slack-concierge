@@ -1,16 +1,18 @@
-import boto3
-from botocore.exceptions import NoCredentialsError
-import logging
 import json
+import logging
 import os
 import uuid
 from datetime import datetime as Datetime
 from datetime import timedelta
-from typing import Optional
-from util.datetime import now as datetime_now
-from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 
-AWS_ACCOUNT_ID = os.environ['AWS_ACCOUNT_ID']
+import boto3
+from botocore.exceptions import NoCredentialsError
+
+from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
+from util.datetime import now as datetime_now
+from util.environment import Environment
+
+AWS_ACCOUNT_ID = os.environ["AWS_ACCOUNT_ID"]
 ROLE_ARN = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/SlackConcierge-ScheduleExecutionRoleDFA6D9DF-rsvhjcIYlV8r"
 
 POMODORO_TIMER_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-PomodoroTimer792E3BDD-ZLqpMmL1PeGo"
@@ -19,8 +21,8 @@ CREATE_TASK_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:functi
 POMODORO_MINUTES = 25
 
 class EventBridgeSchedulerService:
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        self.events_client = boto3.client('scheduler')
+    def __init__(self, logger: logging.Logger | None = None) -> None:
+        self.events_client = boto3.client("scheduler")
         self.logger = logger or logging.getLogger(__name__)
 
     def set_pomodoro_timer(self, request: PomodoroTimerRequest) -> None:
@@ -33,7 +35,7 @@ class EventBridgeSchedulerService:
                 "page_id": request.page_id,
                 "channel": request.channel,
                 "thread_ts": request.thread_ts,
-            }
+            },
         )
 
     def set_create_task(
@@ -49,8 +51,8 @@ class EventBridgeSchedulerService:
             data={
                 "title": title,
                 # 0時の場合は日付のみが指定されたとする
-                "datetime": datetime.isoformat() if datetime.hour > 0 else datetime.date().isoformat()
-            }
+                "datetime": datetime.isoformat() if datetime.hour > 0 else datetime.date().isoformat(),
+            },
         )
 
     def _create_schedule(self,
@@ -59,17 +61,26 @@ class EventBridgeSchedulerService:
                         future_datetime: Datetime,
                         data: dict) -> None:
         try:
+            target = {
+                "Arn": arn,
+                "RoleArn": ROLE_ARN,
+                "Input": json.dumps(data, ensure_ascii=False),
+            }
+            self.logger.debug("create_schedule", extra=target)
+            if Environment.is_demo():
+                self.logger.debug("デモ環境のため、イベントを作成しません。")
+                return
             self.events_client.create_schedule(
                 Name=name,
-                ActionAfterCompletion='DELETE',
+                ActionAfterCompletion="DELETE",
                 ScheduleExpressionTimezone="Asia/Tokyo",
                 ScheduleExpression=future_datetime.strftime("cron(%M %H %d %m ? %Y)"),
                 Target={
-                    'Arn': arn,
-                    'RoleArn': ROLE_ARN,
-                    'Input': json.dumps(data, ensure_ascii=False)
+                    "Arn": arn,
+                    "RoleArn": ROLE_ARN,
+                    "Input": json.dumps(data, ensure_ascii=False),
                 },
-                State='ENABLED',
+                State="ENABLED",
                 FlexibleTimeWindow={"Mode": "OFF"},
             )
         except NoCredentialsError as e:
