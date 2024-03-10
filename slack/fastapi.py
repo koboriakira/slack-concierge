@@ -20,4 +20,8 @@ app = FastAPI(
 def healthcheck() -> dict:
     return {"status": "ok"}
 
+@app.post("/task/new/")
+def post_task() -> dict:
+    return {"status": "ok"}
+
 handler = Mangum(app, lifespan="off")
