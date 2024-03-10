@@ -22,7 +22,7 @@ class NotionTaskRepository(TaskRepository):
         data = {
             "page_id": task.task_id,
         }
-        _ = self.api.post(url="page/pomodoro-count",
+        _ = self.api.post(path="page/pomodoro-count",
                           data=data) if not Environment.is_demo() else None
         return task.increment_pomodoro_count()
 
