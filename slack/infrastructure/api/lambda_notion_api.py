@@ -203,6 +203,23 @@ class LambdaNotionApi(NotionApi):
         return self._post(url=api_url, data=data)
 
 
+    def get(self, path: str, params: dict | None = None) -> dict:
+        """ 任意のパスに対してGETリクエストを送る。共通化のために作成 """
+        debug_message = f"GET to url: {path}"
+        self.logger.debug(debug_message, extra={"data": json.dumps(params, ensure_ascii=False) if params else "None"})
+
+        url = f"{self.domain}{path}"
+        headers = {
+            "access-token": NOTION_SECRET,
+        }
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        self.logger.debug(debug_message, extra=response)
+
+        if response.status_code != 200:
+            error_message = f"status_code: {response.status_code}, message: {response.text}"
+            raise Exception(error_message)
+        return response.json()
+
     def _get(self, path: str, params: dict = {}) -> dict:
         """ 任意のパスに対してPOSTリクエストを送る """
         url = f"{self.domain}{path}"
@@ -215,14 +232,38 @@ class LambdaNotionApi(NotionApi):
             raise Exception(f"status_code: {response.status_code}, message: {response.text}")
         return response.json()
 
+    def post(self, path: str, data: dict) -> dict:
+        """ NotionAPIにPOSTリクエストを送る。共通化のために作成 """
+        headers = {
+            "access-token": NOTION_SECRET,
+        }
+        debug_message = f"POST to url: {path}"
+        self.logger.debug(debug_message, extra={"data": json.dumps(data, ensure_ascii=False)})
+
+        respone = requests.post(url=f"{self.domain}{path}",
+                                headers=headers,
+                                json=data,
+                                timeout=10)
+        if respone.status_code != 200:
+            exception_message = f"{respone.status_code}: {respone.text}"
+            raise Exception(exception_message)
+        response_json = respone.json()
+
+        self.logger.debug(debug_message, extra=json.dumps(response_json, ensure_ascii=False))
+        return response_json["data"]
+
+
+    # 非推奨
     def _post(self, url: str, data: dict) -> dict:
+        """非推奨"""
         headers = {
             "access-token": NOTION_SECRET,
         }
         self.logger.debug(f"url: {url} data: {json.dumps(data, ensure_ascii=False)}")
         respone = requests.post(url=url, headers=headers, json=data)
         if respone.status_code != 200:
-            raise Exception(f"status_code: {respone.status_code}, message: {respone.text}")
+            exception_message = f"{respone.status_code}: {respone.text}"
+            raise Exception(exception_message)
         response_json = respone.json()
         self.logger.debug(json.dumps(response_json, ensure_ascii=False))
         return response_json["data"]
