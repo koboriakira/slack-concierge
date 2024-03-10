@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 
-@dataclass(frozen=True)
+@dataclass
 class Task:
     title: str
     is_routine: bool = False
@@ -50,7 +50,7 @@ class Task:
         self.pomodoro_count += 1
 
     def create_slack_message_start_task(self) -> tuple[str, list[dict]]:
-        from slack.domain_service.block.block_builder import BlockBuilder
+        from domain_service.block.block_builder import BlockBuilder
         """タスク開始時のSlackメッセージを生成する"""
         text = f"<{self.url}|{self.title}>"
         block_builder = BlockBuilder()

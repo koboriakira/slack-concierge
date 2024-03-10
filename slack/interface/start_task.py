@@ -94,6 +94,15 @@ def start_modal_interaction(body: dict, client: WebClient) -> None:
 
 
 def start_task(logger: logging.Logger, view: dict, client: WebClient) -> None:
+    start_task_interface = StartTaskInterface(
+        client=client,
+        channel=ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST,
+        start_task_use_case=StartTaskUseCase(),
+        scheduler_service=EventBridgeSchedulerService(),
+        logger=logger,
+    )
+    start_task_interface.start_task(view=view)
+    return
     try:
         notion_api = LambdaNotionApi()
         usecase = StartTaskUsecase(notion_api=notion_api, client=client)
