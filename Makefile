@@ -9,4 +9,4 @@ ngrok:
 	ngrok http 10121
 
 run:
-	python slack/lazy_main.py
+	pipenv run python slack/lazy_main.py
