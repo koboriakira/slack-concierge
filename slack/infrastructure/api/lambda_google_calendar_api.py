@@ -1,13 +1,16 @@
-from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
-from domain.schedule.schedule import Schedule
+import json
 import logging
-import requests
+import os
 from datetime import date as DateObject
 from datetime import datetime as DatetimeObject
-from typing import Optional
-import os
+
+import requests
 import yaml
-import json
+
+from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
+from domain.schedule.schedule import Schedule
+from util.environment import Environment
+
 
 class LambdaGoogleCalendarApi(GoogleCalendarApi):
     def __init__(self):
@@ -82,7 +85,7 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
                           end: DatetimeObject,
                           category: str,
                           title: str,
-                          detail: Optional[str] = None) -> bool:
+                          detail: str | None = None) -> bool:
         """ カレンダーを追加する """
         url = self.domain + "schedule"
         data = {
@@ -97,13 +100,16 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
             "Content-Type": "application/json",
             "access-token": self.access_token,
         }
-        logging.debug(f"post_gas_calendar: {data}")
-        response = requests.post(url=url, json=data, headers=headers)
-        logging.debug(f"post_gas_calendar: status_code={response.status_code}")
+        logging.debug("post_gas_calendar: post", extra=data)
+        if Environment.is_demo():
+            logging.debug("post_gas_calendar: demo mode")
+            return True
+
+        response = requests.post(url=url, json=data, headers=headers, timeout=10)
         response_json = response.json()
         if isinstance(response_json, str):
             response_json = json.loads(response_json)
-        logging.debug(f"post_gas_calendar: response={response_json}")
+        logging.debug("post_gas_calendar: response", extra=response_json)
         return "status" in response_json and response_json["status"] == "success"
 
 def dump_yaml(value: dict) -> str:

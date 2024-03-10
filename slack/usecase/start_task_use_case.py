@@ -2,8 +2,6 @@ from datetime import timedelta
 
 from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
 from domain.task import Task, TaskRepository
-from domain.task.task_repository import NotionTaskRepository
-from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from util.datetime import jst_now
 
 
@@ -19,6 +17,8 @@ class StartTaskUseCase:
     def __init__(self,
                  task_repository: TaskRepository | None = None,
                  google_cal_api: GoogleCalendarApi | None = None) -> None:
+        from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
+        from infrastructure.task.notion_task_repository import NotionTaskRepository
         self.task_repository = task_repository or NotionTaskRepository()
         self.google_cal_api = google_cal_api or LambdaGoogleCalendarApi()
 
