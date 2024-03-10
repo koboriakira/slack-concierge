@@ -6,6 +6,8 @@ import jpholiday
 
 JST = timezone(timedelta(hours=+9), "JST")
 
+def jst_now() -> DatetimeObject:
+    return DatetimeObject.now(JST)
 
 def now(enable_jst: bool = True) -> DatetimeObject:
     """
