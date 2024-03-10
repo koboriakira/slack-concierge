@@ -13,7 +13,8 @@ services:
     env_file:
       - .env
     working_dir: /workspace/slack
-    command: pipenv run uvicorn main:app --reload --port=8080 --host=0.0.0.0
+    command: pipenv run uvicorn fastapi_main:app --reload --port=8080 --host=0.0.0.0
+    # command: bash
     ports:
       - 10120:8080
     tty: true
