@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b92480ff7e9d2dccbc2c17407a81b95f3bb9f5a1cbf33ea8a35e759490a27d5a"
+            "sha256": "80ef19c2837692ef8f7356e47756e130a0cc99a8870b2e0d03e8efae0c523203"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -333,6 +333,15 @@
             "index": "pypi",
             "markers": "python_version >= '3.6'",
             "version": "==5.1.0"
+        },
+        "mangum": {
+            "hashes": [
+                "sha256:5b4e26375e12eed051687670466d17968f8b74beecaca432edd4eb4127f78509",
+                "sha256:f00be705605bc4793958df62e4d249abf58d254c39d90bb410d069570206f4a2"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.7'",
+            "version": "==0.17.0"
         },
         "openai": {
             "hashes": [
