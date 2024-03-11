@@ -4,6 +4,7 @@ from pathlib import Path
 
 import boto3
 from botocore.exceptions import NoCredentialsError
+
 from util.custom_logging import get_logger
 
 logger = get_logger(__name__)
@@ -17,12 +18,12 @@ class S3Utils:
 
     @classmethod
     def save(cls: "S3Utils", data: list|dict, file_name: str) -> bool:
-      file_path = f"{S3Utils.DIR}/{file_name}"
-      with Path(file_path).open("w") as f:
-         json.dump(data, f, indent=4)
+        file_path = f"{S3Utils.DIR}/{file_name}"
+        with Path(file_path).open("w") as f:
+            json.dump(data, f, indent=4)
 
-      # S3にアップロード
-      return cls.upload_to_s3(file_path=file_path, file_name=file_name)
+        # S3にアップロード
+        return cls.upload_to_s3(file_path=file_path, file_name=file_name)
 
     @classmethod
     def upload_to_s3(cls: "S3Utils", file_path: str, file_name: str) -> bool:
@@ -49,7 +50,6 @@ class S3Utils:
         if not is_success:
             logger.error("S3からのダウンロードに失敗しました。")
             return None
-
 
         with Path(file_path).open("r") as f:
             return json.load(f)
