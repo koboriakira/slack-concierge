@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from domain.schedule.schedule import Schedule
+
 MAX_SLACK_TEXT_LENGTH = 50
 
 @dataclass
@@ -37,6 +39,16 @@ class Task:
     def from_title(title: str) -> "Task":
         is_routine = "【ルーティン】" in title
         return Task(title=title, is_routine=is_routine)
+
+    @staticmethod
+    def from_schedule(schedule: Schedule) -> "Task":
+        start_time_str = schedule.start.time().strftime("%H:%M")
+        title = f"[{start_time_str}] {schedule.title}"
+        return Task(
+            title=title,
+            start_date=schedule.start,
+            end_date=schedule.end,
+        )
 
     def to_dict(self) -> dict:
         data = {}

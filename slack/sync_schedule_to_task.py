@@ -1,12 +1,15 @@
-import os
-import json
 import logging
+import os
 from datetime import date as Date
 from datetime import timedelta
+
 from slack_sdk.web import WebClient
+
 from domain.schedule.schedule import Schedule
+from domain.task.task import Task
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from infrastructure.task.notion_task_repository import NotionTaskRepository
 from util.datetime import now
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
@@ -34,20 +37,16 @@ def handler(event, context):
 
     schedules = [Schedule.from_entity(d) for d in data]
     for schedule in schedules:
-        create_task(schedule)
+        task = Task.from_schedule(schedule)
+        NotionTaskRepository().save(task)
     return {"message": "success"}
 
-def create_task(schedule: Schedule) -> None:
-    start_time_str = schedule.start.time().strftime("%H:%M")
-    title = f"[{start_time_str}] {schedule.title}"
-    logger.info(title)
-    notion_api.create_task(title=title, start_date=schedule.start, end_date=schedule.end)
 
 
 if __name__ == "__main__":
     # python -m sync_schedule_to_task
     logger.debug("debug mode")
     event = {
-        "date": "2024-02-05"
+        "date": "2024-02-05",
     }
     print(handler(event, {}))
