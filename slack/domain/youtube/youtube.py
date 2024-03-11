@@ -44,7 +44,7 @@ class NotionYoutubeRepository(YoutubeRepository):
         }
         if youtube.thumb_url:
             data["cover"] = youtube.thumb_url
-        response = self.post(path="video", data=data)
+        response = self.notion_api.post(path="video", data=data)
         youtube.notion_page_id = response["id"]
         youtube.notion_page_url = response["url"]
         return youtube

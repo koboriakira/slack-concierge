@@ -39,7 +39,7 @@ class NotionWebclipRepository(WebclipRepository):
         }
         if webclip.thumb_url:
             data["cover"] = webclip.thumb_url
-        response = self.post(path="webclip", data=data)
+        response = self.notion_api.post(path="webclip", data=data)
         webclip.notion_page_id = response["id"]
         webclip.notion_page_url = response["url"]
         return webclip

@@ -69,7 +69,7 @@ class NotionProRepository(PuroresuRepository):
         if tags:
             data["tags"] = tags
 
-        response = self.post(path="prowrestling", data=data)
+        response = self.notion_api.post(path="prowrestling", data=data)
         puroresu.notion_page_id = response["id"]
         puroresu.notion_page_url = response["url"]
         return puroresu
