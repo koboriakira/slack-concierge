@@ -9,7 +9,7 @@ from domain.channel import ChannelType
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from usecase.start_pomodoro import PomodoroTimerRequest, StartPomodoro
-from usecase.start_task import StartTask
+from usecase.start_task_use_case import StartTaskUseCase
 from util.environment import Environment
 
 slack_client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
@@ -33,8 +33,8 @@ def healthcheck() -> dict:
 
 @app.post("/task/new/")
 def post_task(task_name: str) -> dict:
-    start_task = StartTask(notion_api=notion_api, client=slack_client)
-    response = start_task.handle_prepare(task_title=task_name)
+    start_task_use_case = StartTaskUseCase()
+    response = start_task_use_case.execute(task_id=None, task_title=task_name)
     thread_ts = response["thread_ts"]
     page_id = response["page_id"]
 
