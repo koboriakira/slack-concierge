@@ -24,6 +24,30 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
             logger=logging.getLogger(__name__),
         )
 
+    def test_通常のWebClip(self) -> None:
+
+        # Given
+        attachment = {
+            "original_url": "https://example.com",
+            "image_url": "https://example.com/hoge.jpg",
+            "title": "テスト",
+        }
+
+        # mock
+        self.suite.webclip_repository.save_from_attachment.return_value = Webclip(
+            title=attachment["title"],
+            url=attachment["original_url"],
+            thumb_url=attachment["image_url"],
+            notion_page_id=DUMMY_NOTION_PAGE_ID,
+            notion_page_url=DUMMY_NOTION_PAGE_URL,
+        )
+
+        actual = self.suite.handle(original_url=attachment["original_url"], attachment=attachment)
+
+        # Then
+        self.assertEqual(actual.page_id, DUMMY_NOTION_PAGE_ID)
+        self.assertEqual(actual.url, DUMMY_NOTION_PAGE_URL)
+
     def test_handle_youtube(self) -> None:
         # Given
         title = "今年最後の質問コーナーだ！！みんな！観て‼︎!"

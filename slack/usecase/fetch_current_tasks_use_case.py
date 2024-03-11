@@ -4,7 +4,6 @@ from domain.routine.routine_task import RoutineTask
 from domain.task.task_repository import TaskRepository
 from infrastructure.repository.current_tasks_s3_repository import CurrentTasksS3Repository
 from util.datetime import jst_now, now
-from util.environment import Environment
 
 ROUTINE_TASK_OPTIONS = [
     {"text": task.value, "value": task.name} for task in RoutineTask
@@ -37,7 +36,7 @@ class FetchCurrentTasksUseCase:
         return current_tasks_cache["task_options"]
 
 def is_expired(current_tasks_cache: dict) -> bool:
-    if current_tasks_cache is None or Environment.is_dev():
+    if current_tasks_cache is None:
         return True
     expires_at = datetime.fromisoformat(current_tasks_cache["expires_at"])
     return expires_at < jst_now()

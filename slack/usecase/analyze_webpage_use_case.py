@@ -72,7 +72,7 @@ class AnalyzeWebpageUseCase:
                     url=puroresu.notion_page_url,
                 )
             case SiteType.DEFAULT:
-                webclip = self.webclip_repository.save_from_attachment(url=original_url, attachment=attachment_for_twitter)
+                webclip = self.webclip_repository.save_from_attachment(url=original_url, attachment=attachment)
                 return AnalyzeWebpageResponse(
                     page_id=webclip.notion_page_id,
                     url=webclip.notion_page_url,
