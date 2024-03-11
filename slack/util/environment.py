@@ -11,3 +11,7 @@ class Environment:
     @staticmethod
     def is_demo() -> bool:
         return IS_DEMO == "true"
+
+    @staticmethod
+    def get_slack_bot_token() -> str:
+        return os.environ.get("SLACK_BOT_TOKEN")

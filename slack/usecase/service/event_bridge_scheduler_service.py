@@ -12,7 +12,7 @@ from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 from util.datetime import now as datetime_now
 from util.environment import Environment
 
-AWS_ACCOUNT_ID = os.environ["AWS_ACCOUNT_ID"]
+AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID", "111111111111")
 ROLE_ARN = f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/SlackConcierge-ScheduleExecutionRoleDFA6D9DF-rsvhjcIYlV8r"
 
 POMODORO_TIMER_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-PomodoroTimer792E3BDD-ZLqpMmL1PeGo"
