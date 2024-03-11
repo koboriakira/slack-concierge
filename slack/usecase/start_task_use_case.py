@@ -1,8 +1,14 @@
+import logging
 from datetime import timedelta
 
+from slack_sdk.web import WebClient
+
+from domain.channel import ChannelType
 from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
 from domain.task import Task, TaskRepository
+from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService, PomodoroTimerRequest
 from util.datetime import jst_now
+from util.environment import Environment
 
 
 # 独自の例外
@@ -12,15 +18,23 @@ class StartTaskError(Exception):
         return StartTaskError("タスクIDおよびタスクタイトルが未指定です")
 
 
+CHANNEL = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
+POMODORO_ICON = "tomato"
 
 class StartTaskUseCase:
-    def __init__(self,
-                 task_repository: TaskRepository | None = None,
-                 google_cal_api: GoogleCalendarApi | None = None) -> None:
+    def __init__(
+            self,
+            task_repository: TaskRepository | None = None,
+            google_cal_api: GoogleCalendarApi | None = None,
+            client: WebClient | None = None,
+            scheduler_service: EventBridgeSchedulerService | None = None,
+            logger: logging.Logger | None = None) -> None:
         from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
         from infrastructure.task.notion_task_repository import NotionTaskRepository
         self.task_repository = task_repository or NotionTaskRepository()
         self.google_cal_api = google_cal_api or LambdaGoogleCalendarApi()
+        self.client = client or WebClient(token=Environment.get_slack_bot_token())
+        self.scheduler_service = scheduler_service or EventBridgeSchedulerService(logger=logger)
 
     def execute(self, task_id: str | None = None, task_title: str | None = None) -> Task:
         if task_id is None and task_title is None:
@@ -29,10 +43,31 @@ class StartTaskUseCase:
 
         # ポモドーロカウンターをインクリメント
         # FIXME: task.increment_pomodoro_count()を呼び出したあとに保存すればよい
-        task = self.task_repository.update_pomodoro_count(task)
+        self.task_repository.update_pomodoro_count(task)
+        task.increment_pomodoro_count()
 
         # Googleカレンダーにイベントを登録する
         self._record_google_calendar_achivement(task_title=task.title, task_url=task.url)
+
+        # Slackに投稿
+        print(task)
+        text, blocks = task.create_slack_message_start_task()
+        response = self.client.chat_postMessage(channel=CHANNEL.value, text=text, blocks=blocks)
+        thread_ts = response["ts"]
+
+        # 予約投稿を準備
+        # NOTE: これはユースケース層の中にいれるべきな気もする。ただSlackと密接に関連してもいるわけで。
+        request = PomodoroTimerRequest(
+            page_id=task.task_id,
+            channel=CHANNEL.value,
+            thread_ts=thread_ts,
+        )
+        self.scheduler_service.set_pomodoro_timer(request=request)
+
+        # ポモドーロ開始を示すリアクションをつける
+        self.client.reactions_add(
+            channel=request.channel, timestamp=thread_ts, name=POMODORO_ICON,
+        )
 
         return task
 
