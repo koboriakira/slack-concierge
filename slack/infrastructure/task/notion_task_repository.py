@@ -22,14 +22,13 @@ class NotionTaskRepository(TaskRepository):
         task.append_id_and_url(task_id=response["id"], url=response["url"])
         return task
 
-    def update_pomodoro_count(self, task: "Task") -> "Task":
+    # FIXME: いずれ消す。saveメソッドに統一できるはず
+    def update_pomodoro_count(self, task: "Task") -> None:
         data = {
             "page_id": task.task_id,
         }
-        _ = self.api.post(path="page/pomodoro-count",
+        self.api.post(path="page/pomodoro-count",
                           data=data) if not Environment.is_demo() else None
-        task.increment_pomodoro_count()
-        return task
 
 def _demo_save(task: Task) -> dict:
     return {
