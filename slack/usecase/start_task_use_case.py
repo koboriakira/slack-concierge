@@ -18,7 +18,7 @@ class StartTaskError(Exception):
         return StartTaskError("タスクIDおよびタスクタイトルが未指定です")
 
 
-CHANNEL = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
+CHANNEL = ChannelType.DIARY if not Environment.is_demo() else ChannelType.TEST
 POMODORO_ICON = "tomato"
 
 class StartTaskUseCase:
