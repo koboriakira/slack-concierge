@@ -35,11 +35,12 @@ class StartTaskUseCase:
         self.google_cal_api = google_cal_api or LambdaGoogleCalendarApi()
         self.client = client or WebClient(token=Environment.get_slack_bot_token())
         self.scheduler_service = scheduler_service or EventBridgeSchedulerService(logger=logger)
+        self.logger = logger or logging.getLogger(__name__)
 
     def execute(self, task_id: str | None = None, task_title: str | None = None) -> Task:
         if task_id is None and task_title is None:
             raise StartTaskError.unspecified()
-        task = self.load_or_create(task_id, task_title)
+        task = self.load_or_create(task_id=task_id, task_title=task_title)
 
         # ポモドーロカウンターをインクリメント
         # FIXME: task.increment_pomodoro_count()を呼び出したあとに保存すればよい

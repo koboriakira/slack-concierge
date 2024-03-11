@@ -22,10 +22,6 @@ class FetchCurrentTasksUseCase:
         self.current_tasks_s3_repository = current_tasks_s3_repository or CurrentTasksS3Repository()
 
     def execute(self) -> list:
-        # FIXME: task_optionsを返しているけれど、Taskの配列を返したい
-        if Environment.is_demo():
-            return []
-
         current_tasks_cache = self.current_tasks_s3_repository.load()
         if is_expired(current_tasks_cache):
             tasks = self.task_repository.fetch_current_tasks()

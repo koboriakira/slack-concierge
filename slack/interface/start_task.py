@@ -6,6 +6,7 @@ from slack_sdk.web import WebClient
 from domain.view.view import State, View
 from domain_service.block.block_builder import BlockBuilder
 from domain_service.view.view_builder import ViewBuilder
+from infrastructure.task.notion_task_repository import NotionTaskRepository
 from usecase.fetch_current_tasks_use_case import FetchCurrentTasksUseCase
 from usecase.start_task_use_case import StartTaskUseCase
 from util.logging_traceback import logging_traceback
@@ -84,7 +85,10 @@ def handle_modal(ack: Ack) -> None:
     ack()
 
 def start_modal_interaction(body: dict, client: WebClient) -> None:
-    fetch_current_tasks_use_case = FetchCurrentTasksUseCase()
+    task_repository = NotionTaskRepository()
+    fetch_current_tasks_use_case = FetchCurrentTasksUseCase(
+        task_repository=task_repository,
+    )
     start_task_model_interface = StartTaskModalInterface(
         fetch_current_tasks_use_case=fetch_current_tasks_use_case,
         client=client,

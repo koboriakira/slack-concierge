@@ -11,7 +11,7 @@ class NotionTaskRepository(TaskRepository):
 
     def find_by_id(self, task_id: str) -> "Task":
         response = self.api.get(path=f"task/{task_id}")
-        return
+        return Task.reconstruct(data=response["data"])
 
     def save(self, task: "Task") -> "Task":
         response = self.api.post(path="task",
