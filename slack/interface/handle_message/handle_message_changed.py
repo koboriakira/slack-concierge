@@ -4,29 +4,41 @@ from slack_sdk.web import WebClient
 
 from domain.channel import ChannelType
 from domain.user import UserKind
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from infrastructure.slack.slack_client_wrapper import SlackClientWrapper
-from usecase.analyze_inbox import AnalyzeInbox
+from usecase.analyze_webpage_use_case import AnalyzeWebpageUseCase
 from util.environment import Environment
 
 
 def handle_message_changed(event: dict, logger: Logger, client: WebClient) -> None:
-    channel:str = event["channel"]
-    message: dict = event["message"]
-    if _is_posted_link_in_inbox_channel(channel, message):
-        logger.info("inboxチャンネルへのリンク投稿")
-        attachment = message["attachments"][0]
-        channel = event["channel"]
-        thread_ts = event["message"]["ts"]
-        client_wrapper = SlackClientWrapper(client=client, logger=logger)
-        if client_wrapper.is_reacted(name="white_check_mark", channel=channel, timestamp=thread_ts):
-            logger.info("既にリアクションがついているので処理をスキップします。")
-            return
-        client_wrapper.reactions_add(name="white_check_mark", channel=channel, timestamp=thread_ts)
-        usecase = AnalyzeInbox(client=client, notion_api=LambdaNotionApi(), logger=logger)
-        usecase.handle(attachment=attachment,
-                        channel=channel,
-                        thread_ts=thread_ts)
+    try:
+        channel:str = event["channel"]
+        message: dict = event["message"]
+        if _is_posted_link_in_inbox_channel(channel, message):
+            logger.info("inboxチャンネルへのリンク投稿")
+            attachment = message["attachments"][0]
+            channel = event["channel"]
+            thread_ts = event["message"]["ts"]
+            client_wrapper = SlackClientWrapper(client=client, logger=logger)
+            if client_wrapper.is_reacted(name="white_check_mark", channel=channel, timestamp=thread_ts):
+                logger.info("既にリアクションがついているので処理をスキップします。")
+                return
+            client_wrapper.reactions_add(name="white_check_mark", channel=channel, timestamp=thread_ts)
+            usecase = AnalyzeWebpageUseCase(logger=logger)
+            analyze_response = usecase.handle(original_url=attachment["original_url"], attachment=attachment)
+            client_wrapper.chat_postMessage(
+                text=analyze_response.url,
+                channel=channel,
+                thread_ts=thread_ts,
+            )
+    except Exception:
+        import sys
+        import traceback
+        exc_info = sys.exc_info()
+        t, v, tb = exc_info
+        formatted_exception = "\n".join(
+            traceback.format_exception(t, v, tb))
+        text=f"analyze_inbox: error ```{formatted_exception}```"
+        client.chat_postMessage(text=text, channel=channel, thread_ts=thread_ts)
 
 def _is_posted_link_in_inbox_channel(channel:str, message: dict) -> bool:
     """

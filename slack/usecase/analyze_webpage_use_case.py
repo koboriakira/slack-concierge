@@ -2,7 +2,6 @@ import logging
 from dataclasses import dataclass
 from enum import IntEnum
 
-from domain.infrastructure.api.notion_api import NotionApi
 from domain.puroresu.puroresu import NotionProRepository, Puroresu, PuroresuRepository
 from domain.webclip.webclip import NotionWebclipRepository, WebclipRepository
 from domain.youtube.youtube import NotionYoutubeRepository, YoutubeRepository
@@ -34,19 +33,17 @@ class AnalyzeWebpageResponse:
 class AnalyzeWebpageUseCase:
     def __init__(
             self,
-            notion_api: NotionApi,
             youtube_repository: YoutubeRepository | None = None,
             webclip_repository: WebclipRepository | None = None,
             pubroresu_repository: PuroresuRepository | None = None,
             logger: logging.Logger | None = None) -> None:
-        self.notion_api = notion_api
         self.youtube_repository = youtube_repository or NotionYoutubeRepository()
         self.webclip_repository = webclip_repository or NotionWebclipRepository()
         self.puroresu_repository = pubroresu_repository or NotionProRepository()
         self.logger = logger or logging.getLogger(__name__)
 
 
-    def handle(self, original_url: str, attachment: dict) -> AnalyzeWebpageResponse | None:
+    def handle(self, original_url: str, attachment: dict) -> AnalyzeWebpageResponse:
         """指定されたWebページを分析して適宜保存する"""
         # FIXME: SiteTypeというか、Webpageの種類とカテゴリを持つモデルをつくるか
         match SiteType.from_url(original_url):
@@ -80,13 +77,3 @@ class AnalyzeWebpageUseCase:
                     page_id=webclip.notion_page_id,
                     url=webclip.notion_page_url,
                 )
-
-        # except Exception:
-        #     import sys
-        #     import traceback
-        #     exc_info = sys.exc_info()
-        #     t, v, tb = exc_info
-        #     formatted_exception = "\n".join(
-        #         traceback.format_exception(t, v, tb))
-        #     text=f"analyze_inbox: error ```{formatted_exception}```"
-        #     self.client.chat_postMessage(text=text, channel=channel, thread_ts=thread_ts)

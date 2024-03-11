@@ -6,7 +6,6 @@ from unittest.mock import Mock
 from slack.domain.puroresu.puroresu import Puroresu, PuroresuRepository
 from slack.domain.webclip.webclip import Webclip, WebclipRepository
 from slack.domain.youtube.youtube import Youtube, YoutubeRepository
-from slack.infrastructure.api.lambda_notion_api import LambdaNotionApi
 from slack.usecase.analyze_webpage_use_case import AnalyzeWebpageUseCase
 
 DUMMY_NOTION_PAGE_ID = "mock_page_id"
@@ -19,7 +18,6 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
         webclip_repository = Mock(WebclipRepository)
         puroresu_repository = Mock(PuroresuRepository)
         self.suite = AnalyzeWebpageUseCase(
-            notion_api=Mock(LambdaNotionApi),
             youtube_repository=youtube_repository,
             webclip_repository=webclip_repository,
             pubroresu_repository=puroresu_repository,
