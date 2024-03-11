@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+MAX_SLACK_TEXT_LENGTH = 50
 
 @dataclass
 class Task:
@@ -69,6 +70,15 @@ class Task:
         """NotionページのIDとURLを追加する"""
         self.task_id = task_id
         self.url = url
+
+    def title_within_50_chars(self) -> str:
+        if len(self.title) <= MAX_SLACK_TEXT_LENGTH:
+            return self.title
+        return self.title[:MAX_SLACK_TEXT_LENGTH] + "..."
+
+    def is_completed(self) -> bool:
+        return self.status == "Done"
+
 
     @staticmethod
     def test_instance() -> "Task":

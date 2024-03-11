@@ -1,4 +1,5 @@
 
+
 from domain.task import Task, TaskRepository
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from util.environment import Environment
@@ -10,7 +11,7 @@ class NotionTaskRepository(TaskRepository):
 
     def find_by_id(self, task_id: str) -> "Task":
         response = self.api.get(path=f"task/{task_id}")
-        return Task.reconstruct(data=response["data"])
+        return
 
     def save(self, task: "Task") -> "Task":
         response = self.api.post(path="task",
@@ -22,6 +23,10 @@ class NotionTaskRepository(TaskRepository):
         task.append_id_and_url(task_id=response["id"], url=response["url"])
         return task
 
+    def fetch_current_tasks(self) -> list["Task"]:
+        response = self.api.get(path="tasks/current")
+        return [Task.reconstruct(data=el) for el in response["data"]]
+
     # FIXME: いずれ消す。saveメソッドに統一できるはず
     def update_pomodoro_count(self, task: "Task") -> None:
         data = {
@@ -29,6 +34,7 @@ class NotionTaskRepository(TaskRepository):
         }
         self.api.post(path="page/pomodoro-count",
                           data=data) if not Environment.is_demo() else None
+
 
 def _demo_save(task: Task) -> dict:
     return {

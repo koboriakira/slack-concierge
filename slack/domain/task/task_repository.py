@@ -17,3 +17,7 @@ class TaskRepository(metaclass=ABCMeta):
     @abstractmethod
     def update_pomodoro_count(self, task: "Task") -> None:
         pass
+
+    @abstractmethod
+    def fetch_current_tasks(self) -> list["Task"]:
+        pass

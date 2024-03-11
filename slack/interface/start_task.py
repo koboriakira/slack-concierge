@@ -1,12 +1,12 @@
-import json
 import logging
 
 from slack_bolt import Ack, App
 from slack_sdk.web import WebClient
 
 from domain.view.view import State, View
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from usecase.start_task import StartTask as StartTaskUsecase
+from domain_service.block.block_builder import BlockBuilder
+from domain_service.view.view_builder import ViewBuilder
+from usecase.fetch_current_tasks_use_case import FetchCurrentTasksUseCase
 from usecase.start_task_use_case import StartTaskUseCase
 from util.logging_traceback import logging_traceback
 
@@ -32,6 +32,41 @@ class StartTaskInterface:
             import sys
             logging_traceback(err, sys.exc_info())
 
+class StartTaskModalInterface:
+    def __init__(
+            self,
+            fetch_current_tasks_use_case: FetchCurrentTasksUseCase,
+            client: WebClient) -> None:
+        self.fetch_current_tasks_use_case = fetch_current_tasks_use_case
+        self.client = client
+
+    def execute(self, trigger_id: str) -> None:
+        try:
+            task_options = self.fetch_current_tasks_use_case.execute()
+
+            block_builder = BlockBuilder()
+            if len(task_options) > 0:
+                block_builder = block_builder.add_static_select(
+                    action_id="task",
+                    options=task_options,
+                    optional=True,
+                )
+            block_builder = block_builder.add_plain_text_input(
+                action_id="new-task",
+                label="タスクを起票して開始する場合",
+                optional=True,
+            )
+            blocks = block_builder.build()
+            logging.debug("start_modal_interaction", extra=blocks)
+            view = ViewBuilder(callback_id=CALLBACK_ID, blocks=blocks).build()
+            self.client.views_open(
+                trigger_id=trigger_id,
+                view=view,
+            )
+        except Exception as err:
+            import sys
+            logging_traceback(err, sys.exc_info())
+
 
 class TaskTitleNotFoundError(ValueError):
     def __init__(self) -> None:
@@ -49,14 +84,12 @@ def handle_modal(ack: Ack) -> None:
     ack()
 
 def start_modal_interaction(body: dict, client: WebClient) -> None:
-    try:
-        logging.debug(json.dumps(body, ensure_ascii=False))
-        notion_api = LambdaNotionApi()
-        usecase = StartTaskUsecase(notion_api=notion_api, client=client)
-        usecase.handle_modal(client=client, trigger_id=body["trigger_id"], callback_id=CALLBACK_ID)
-    except Exception as err:
-        import sys
-        logging_traceback(err, sys.exc_info())
+    fetch_current_tasks_use_case = FetchCurrentTasksUseCase()
+    start_task_model_interface = StartTaskModalInterface(
+        fetch_current_tasks_use_case=fetch_current_tasks_use_case,
+        client=client,
+    )
+    start_task_model_interface.execute(trigger_id=body["trigger_id"])
 
 
 def start_task(logger: logging.Logger, view: dict, client: WebClient) -> None:
