@@ -24,3 +24,4 @@ python_version = "3.11"
 [dev-packages]
 pytest = "*"
 uvicorn = "*"
+pytest-watch = "*"
