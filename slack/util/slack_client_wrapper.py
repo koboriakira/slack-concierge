@@ -1,3 +1,4 @@
+import contextlib
 import logging
 from abc import ABCMeta, abstractmethod
 
@@ -22,17 +23,19 @@ class SlackClientWrapperImpl(SlackClientWrapper):
         self.logger = logger or logging.getLogger(__name__)
 
     def reactions_add(self, name: str, channel: str, timestamp: str, exception_enabled: bool = False) -> None:
-        try:
-            self.client.reactions_add(
-                channel=channel,
-                name=name,
-                timestamp=timestamp,
-            )
-        except Exception as e:
-            self.logger.warning("リアクションをつけられませんでした。")
-            if exception_enabled:
-                self.logger.debug(e)
-                raise e
+        if not exception_enabled:
+            with contextlib.suppress(Exception):
+                self.client.reactions_add(
+                    channel=channel,
+                    name=name,
+                    timestamp=timestamp,
+                )
+                return
+        self.client.reactions_add(
+                    channel=channel,
+                    name=name,
+                    timestamp=timestamp,
+                )
 
 
     def is_reacted(self, name: str, channel: str, timestamp: str) -> bool:

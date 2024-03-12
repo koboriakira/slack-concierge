@@ -1,18 +1,21 @@
 import json
+
+from slack_bolt import Ack, App
 from slack_sdk.web import WebClient
-from slack_bolt import App, Ack
-from util.logging_traceback import logging_traceback
-from util.custom_logging import get_logger
+
 from usecase.service.sqs_service import SqsService
+from util.custom_logging import get_logger
+from util.logging_traceback import logging_traceback
+from util.slack_client_wrapper import SlackClientWrapperImpl
 
 ACTION_ID = "LOVE_SPOTIFY_TRACK"
 
 logger = get_logger(__name__)
 
-def just_ack(ack: Ack):
+def just_ack(ack: Ack) -> None:
     ack()
 
-def love_spotify_track(body: dict, client: WebClient):
+def love_spotify_track(body: dict, client: WebClient) -> None:
     logger.info("love_spotify_track")
     try:
         # ボタンに埋め込まれたvalueを取得。これがtrack_idになる
@@ -24,14 +27,8 @@ def love_spotify_track(body: dict, client: WebClient):
         thread_ts = body["message"]["ts"]
 
         # Reactionのスタンプをつける
-        try:
-            client.reactions_add(
-                channel=channel_id,
-                name="heart",
-                timestamp=thread_ts,
-            )
-        except Exception as e:
-            pass
+        slack_client_wrapper = SlackClientWrapperImpl(client=client)
+        slack_client_wrapper.reactions_add(name="heart", channel=channel_id, timestamp=thread_ts)
 
         logger.debug(json.dumps(body))
         service = SqsService()
@@ -40,7 +37,7 @@ def love_spotify_track(body: dict, client: WebClient):
             message={
                 "track_id": track_id,
                 "channel_id": channel_id,
-                "thread_ts": thread_ts
+                "thread_ts": thread_ts,
             })
     except Exception as err:
         import sys
