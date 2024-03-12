@@ -1,17 +1,14 @@
 import json
 import logging
-from slack_sdk.web import WebClient
-from slack_bolt import App, Ack
-from util.logging_traceback import logging_traceback
-from util.custom_logging import get_logger
-from domain.message import BaseMessage
-from domain.channel import Channel
-from usecase.love_spotify_track import LoveSpotifyTrack
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from slack.infrastructure.music.lambda_spotify_api import LambdaSpotifyApi
-from usecase.record_feeling import RecordFeeling as RecordFeelingUsecase
-from domain.view.view import View
 
+from slack_bolt import Ack, App
+from slack_sdk.web import WebClient
+
+from domain.view.view import View
+from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from usecase.record_feeling import RecordFeeling as RecordFeelingUsecase
+from util.custom_logging import get_logger
+from util.logging_traceback import logging_traceback
 
 ACTION_ID = "record-feeling"
 VIEW_CALLBACK_ID = "record-feeling-modal"

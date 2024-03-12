@@ -94,7 +94,7 @@ class Task:
 
     @staticmethod
     def test_instance() -> "Task":
-        from slack.util.datetime import JST
+        from util.datetime import JST
         return Task(
             title="test",
             is_routine=False,

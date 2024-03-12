@@ -5,7 +5,7 @@ import os
 from slack_sdk.web import WebClient
 
 from domain.music.music_repository import NotionMusicRepository
-from slack.infrastructure.music.lambda_spotify_api import LambdaSpotifyApi
+from infrastructure.music.lambda_spotify_api import LambdaSpotifyApi
 from usecase.love_spotify_use_case import LoveSpotifyUseCase
 
 logger = logging.getLogger()

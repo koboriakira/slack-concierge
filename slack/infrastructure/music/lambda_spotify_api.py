@@ -1,8 +1,8 @@
 import os
 
 import requests
-from slack.domain.music.spotify_api import SpotifyApi
 
+from domain.music.spotify_api import SpotifyApi
 from domain.music.track import Track
 from util.custom_logging import get_logger
 
