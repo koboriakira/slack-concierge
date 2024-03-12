@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 from enum import IntEnum
 
+from domain.channel.thread import Thread
 from domain.puroresu.puroresu import NotionProRepository, Puroresu, PuroresuRepository
 from domain.webclip.webclip import NotionWebclipRepository, WebclipRepository
 from domain.youtube.youtube import NotionYoutubeRepository, YoutubeRepository
@@ -43,7 +44,7 @@ class AnalyzeWebpageUseCase:
         self.logger = logger or logging.getLogger(__name__)
 
 
-    def handle(self, original_url: str, attachment: dict) -> AnalyzeWebpageResponse:
+    def handle(self, original_url: str, attachment: dict, slack_thread: Thread|None = None) -> AnalyzeWebpageResponse:
         """指定されたWebページを分析して適宜保存する"""
         # FIXME: SiteTypeというか、Webpageの種類とカテゴリを持つモデルをつくるか
         match SiteType.from_url(original_url):
