@@ -25,7 +25,7 @@ def handle_message_changed(event: dict, logger: Logger, client: WebClient) -> No
                 return
             client_wrapper.reactions_add(name="white_check_mark", channel=channel, timestamp=thread_ts)
             usecase = AnalyzeWebpageUseCase(logger=logger)
-            slack_thread = Thread(channel_id=channel, thread_ts=thread_ts)
+            slack_thread = Thread.create(channel_id=channel, thread_ts=thread_ts)
             usecase.handle(original_url=original_url, attachment=attachment, slack_thread=slack_thread)
     except Exception:
         import sys
