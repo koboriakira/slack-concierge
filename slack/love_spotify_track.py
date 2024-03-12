@@ -7,6 +7,7 @@ from slack_sdk.web import WebClient
 from domain.music.music_repository import NotionMusicRepository
 from infrastructure.music.lambda_spotify_api import LambdaSpotifyApi
 from usecase.love_spotify_use_case import LoveSpotifyUseCase
+from util.error_reporter import ErrorReporter
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -21,10 +22,13 @@ usecase = LoveSpotifyUseCase(
     music_repository=NotionMusicRepository(),
 )
 
-def handler(event: dict, context:dict) -> None:
+def handler(event: dict, context:dict) -> None:  # noqa: ARG001
     request = json.loads(event["Records"][0]["body"])
     print("request", request)
     track_id = request["track_id"]
     channel_id = request["channel_id"]
     thread_ts = request["thread_ts"]
-    usecase.execute(track_id=track_id, channel_id=channel_id, thread_ts=thread_ts)
+    try:
+        usecase.execute(track_id=track_id, channel_id=channel_id, thread_ts=thread_ts)
+    except:  # noqa: E722
+        ErrorReporter().execute(slack_channel=channel_id, slack_thread_ts=thread_ts)
