@@ -5,6 +5,7 @@ from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from slack_sdk.web import WebClient
 from usecase.service.task_generator import TaskGenerator
 from util.datetime import convert_to_datetime_or_date
+from domain.task.task import Task
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_BOT = WebClient(token=SLACK_BOT_TOKEN)
@@ -15,6 +16,7 @@ if os.environ.get("ENVIRONMENT") == "dev":
     logger.setLevel(logging.DEBUG)
 
 def handler(event: dict, context: dict) -> None:
+    task = Task.from_title(event["title"])
     task_generator = TaskGenerator(notion_api=LambdaNotionApi())
     task_generator.add_scheduled_task(
         title=event["title"],
