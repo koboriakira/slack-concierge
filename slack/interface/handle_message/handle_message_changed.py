@@ -24,12 +24,7 @@ def handle_message_changed(event: dict, logger: Logger, client: WebClient) -> No
                 return
             client_wrapper.reactions_add(name="white_check_mark", channel=channel, timestamp=thread_ts)
             usecase = AnalyzeWebpageUseCase(logger=logger)
-            analyze_response = usecase.handle(original_url=attachment["original_url"], attachment=attachment)
-            client_wrapper.chat_postMessage(
-                text=analyze_response.url,
-                channel=channel,
-                thread_ts=thread_ts,
-            )
+            usecase.handle(original_url=attachment["original_url"], attachment=attachment)
     except Exception:
         import sys
         import traceback
