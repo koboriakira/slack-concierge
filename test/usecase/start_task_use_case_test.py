@@ -58,7 +58,7 @@ class StartTaskUseCaseTest(TestCase):
         self.suite.scheduler_service.set_pomodoro_timer.assert_called_once_with(
             request=PomodoroTimerRequest(
                 page_id=task.task_id,
-                channel=ChannelType.TEST.value,
+                channel=ChannelType.DIARY.value,
                 thread_ts=DEMO_TS,
             ),
         )
@@ -81,7 +81,7 @@ class StartTaskUseCaseTest(TestCase):
         self.suite.scheduler_service.set_pomodoro_timer.assert_called_once_with(
             request=PomodoroTimerRequest(
                 page_id=task.task_id,
-                channel=ChannelType.TEST.value,
+                channel=ChannelType.DIARY.value,
                 thread_ts=DEMO_TS,
             ),
         )
