@@ -33,3 +33,4 @@ class Track:
             data["cover_url"] = self.cover_url
         if self.release_date:
             data["release_date"] = self.release_date.strftime("%Y-%m-%d")
+        return data
