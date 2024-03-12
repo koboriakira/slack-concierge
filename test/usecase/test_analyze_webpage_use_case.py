@@ -7,6 +7,7 @@ from slack.domain.puroresu.puroresu import PuroresuRepository
 from slack.domain.webclip.webclip import WebclipRepository
 from slack.domain.youtube.youtube import YoutubeRepository
 from slack.usecase.analyze_webpage_use_case import AnalyzeWebpageUseCase
+from slack.util.slack_client_wrapper import SlackClientWrapper
 
 DUMMY_SLACK_THREAD = Thread(
     channel_id="mock_channel_id",
@@ -20,10 +21,12 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
         youtube_repository = Mock(YoutubeRepository)
         webclip_repository = Mock(WebclipRepository)
         puroresu_repository = Mock(PuroresuRepository)
+        slack_client_wrapper=Mock(SlackClientWrapper)
         self.suite = AnalyzeWebpageUseCase(
             youtube_repository=youtube_repository,
             webclip_repository=webclip_repository,
             pubroresu_repository=puroresu_repository,
+            slack_client_wrapper=slack_client_wrapper,
             logger=logging.getLogger(__name__),
         )
 
@@ -35,6 +38,7 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
             "image_url": "https://example.com/hoge.jpg",
             "title": "テスト",
         }
+        self.suite.slack_client_wrapper.is_reacted.return_value = False
 
         self.suite.handle(original_url=attachment["original_url"], attachment=attachment, slack_thread=DUMMY_SLACK_THREAD)
 
@@ -42,6 +46,7 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
         self.suite.webclip_repository.save_from_attachment.assert_called_once_with(
             url=attachment["original_url"], attachment=attachment, slack_thread=DUMMY_SLACK_THREAD
         )
+
 
     def test_handle_youtube(self) -> None:
         # Given

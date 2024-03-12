@@ -3,7 +3,7 @@ from slack_sdk.web import WebClient
 from usecase.create_task_in_inbox import CreateTaskInInbox
 from domain.channel import ChannelType
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from infrastructure.slack.slack_client_wrapper import SlackClientWrapper
+from slack.util.slack_client_wrapper import SlackClientWrapper
 
 def handle_message_post(event: dict, logger: logging.Logger, client: WebClient):
     logger.info("スレッド開始")

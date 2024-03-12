@@ -5,9 +5,9 @@ from slack_sdk.web import WebClient
 from domain.channel import ChannelType
 from domain.channel.thread import Thread
 from domain.user import UserKind
-from infrastructure.slack.slack_client_wrapper import SlackClientWrapper
 from usecase.analyze_webpage_use_case import AnalyzeWebpageUseCase
 from util.environment import Environment
+from util.slack_client_wrapper import SlackClientWrapperImpl
 
 
 def handle_message_changed(event: dict, logger: Logger, client: WebClient) -> None:
@@ -19,14 +19,14 @@ def handle_message_changed(event: dict, logger: Logger, client: WebClient) -> No
             logger.info("inboxチャンネルへのリンク投稿")
             attachment = message["attachments"][0]
             original_url=attachment["original_url"]
-            client_wrapper = SlackClientWrapper(client=client, logger=logger)
-            if client_wrapper.is_reacted(name="white_check_mark", channel=channel, timestamp=thread_ts):
-                logger.info("既にリアクションがついているので処理をスキップします。")
-                return
-            client_wrapper.reactions_add(name="white_check_mark", channel=channel, timestamp=thread_ts)
-            usecase = AnalyzeWebpageUseCase(logger=logger)
-            slack_thread = Thread.create(channel_id=channel, thread_ts=thread_ts)
-            usecase.handle(original_url=original_url, attachment=attachment, slack_thread=slack_thread)
+            usecase = AnalyzeWebpageUseCase(
+                slack_client_wrapper=SlackClientWrapperImpl(client=client, logger=logger),
+                logger=logger)
+            usecase.handle(
+                original_url=original_url,
+                attachment=attachment,
+                slack_thread=Thread.create(channel_id=channel, thread_ts=thread_ts),
+                )
     except Exception:
         import sys
         import traceback
