@@ -54,7 +54,7 @@ class AnalyzeWebpageUseCase:
                     "thumb_url": attachment.get("thumb_url"),
                     "image_url": attachment.get("image_url"),
                 }
-                webclip = self.webclip_repository.save_from_attachment(url=original_url, attachment=attachment_for_twitter, thread=slack_thread)
+                webclip = self.webclip_repository.save_from_attachment(url=original_url, attachment=attachment_for_twitter, slack_thread=slack_thread)
                 return AnalyzeWebpageResponse(
                     page_id=webclip.notion_page_id,
                     url=webclip.notion_page_url,
@@ -73,7 +73,7 @@ class AnalyzeWebpageUseCase:
                     url=puroresu.notion_page_url,
                 )
             case SiteType.DEFAULT:
-                webclip = self.webclip_repository.save_from_attachment(url=original_url, attachment=attachment, thread=slack_thread)
+                webclip = self.webclip_repository.save_from_attachment(url=original_url, attachment=attachment, slack_thread=slack_thread)
                 return AnalyzeWebpageResponse(
                     page_id=webclip.notion_page_id,
                     url=webclip.notion_page_url,

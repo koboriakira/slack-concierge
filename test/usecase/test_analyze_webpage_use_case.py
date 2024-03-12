@@ -3,6 +3,7 @@ import logging
 import unittest
 from unittest.mock import Mock
 
+from slack.domain.channel.thread import Thread
 from slack.domain.puroresu.puroresu import Puroresu, PuroresuRepository
 from slack.domain.webclip.webclip import Webclip, WebclipRepository
 from slack.domain.youtube.youtube import Youtube, YoutubeRepository
@@ -10,6 +11,11 @@ from slack.usecase.analyze_webpage_use_case import AnalyzeWebpageUseCase
 
 DUMMY_NOTION_PAGE_ID = "mock_page_id"
 DUMMY_NOTION_PAGE_URL = "https://example.com"
+DUMMY_SLACK_THREAD = Thread(
+    channel_id="mock_channel_id",
+    thread_ts="mock_thread_ts",
+    event_ts="mock_event_ts",
+)
 
 class TestAnalyzeWebpageUseCase(unittest.TestCase):
     def setUp(self) -> None:
@@ -42,11 +48,14 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
             notion_page_url=DUMMY_NOTION_PAGE_URL,
         )
 
-        actual = self.suite.handle(original_url=attachment["original_url"], attachment=attachment)
+        actual = self.suite.handle(original_url=attachment["original_url"], attachment=attachment, slack_thread=DUMMY_SLACK_THREAD)
 
         # Then
         self.assertEqual(actual.page_id, DUMMY_NOTION_PAGE_ID)
         self.assertEqual(actual.url, DUMMY_NOTION_PAGE_URL)
+        self.suite.webclip_repository.save_from_attachment.assert_called_once_with(
+            url=attachment["original_url"], attachment=attachment, slack_thread=DUMMY_SLACK_THREAD
+        )
 
     def test_handle_youtube(self) -> None:
         # Given
