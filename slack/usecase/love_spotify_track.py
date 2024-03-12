@@ -1,7 +1,7 @@
 from datetime import date as Date
 from slack_sdk import WebClient
 from domain.infrastructure.api.notion_api import NotionApi
-from domain.infrastructure.api.spotify_api import SpotifyApi
+from slack.domain.music.spotify_api import SpotifyApi
 import logging
 
 class LoveSpotifyTrack:
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     # python -m usecase.love_spotify_track
     import os
     from infrastructure.api.lambda_notion_api import LambdaNotionApi
-    from infrastructure.api.lambda_spotify_api import LambdaSpotifyApi
+    from slack.infrastructure.music.lambda_spotify_api import LambdaSpotifyApi
     logging.basicConfig(level=logging.DEBUG)
     love_spotify_track = LoveSpotifyTrack(
         original_client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]),

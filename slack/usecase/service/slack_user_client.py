@@ -1,12 +1,13 @@
 import logging
 import os
-from typing import Optional
+
 from slack_sdk.web import WebClient
-from domain.infrastructure.api.notion_api import NotionApi
+
 from domain_service.block.block_builder import BlockBuilder
 
+
 class SlackUserClient:
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: logging.Logger | None = None):
         self.logger = logger or logging.Logger(__name__)
         self.user_client = WebClient(token=os.environ["SLACK_USER_TOKEN"])
 

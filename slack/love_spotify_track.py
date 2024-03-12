@@ -1,10 +1,12 @@
-import os
 import json
 import logging
+import os
+
 from slack_sdk.web import WebClient
-from usecase.love_spotify_track import LoveSpotifyTrack
+
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from infrastructure.api.lambda_spotify_api import LambdaSpotifyApi
+from slack.infrastructure.music.lambda_spotify_api import LambdaSpotifyApi
+from usecase.love_spotify_track import LoveSpotifyTrack
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_BOT = WebClient(token=SLACK_BOT_TOKEN)
@@ -21,8 +23,6 @@ love_spotify_track = LoveSpotifyTrack(
 )
 
 def handler(event, context):
-    print("event", event)
-    print("records", event["Records"])
     request = json.loads(event["Records"][0]["body"])
     print("request", request)
     track_id = request["track_id"]

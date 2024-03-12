@@ -1,8 +1,10 @@
 import os
-import requests
-from domain.infrastructure.api.spotify_api import SpotifyApi
-from util.custom_logging import get_logger
 
+import requests
+from slack.domain.music.spotify_api import SpotifyApi
+
+from domain.music.track import Track
+from util.custom_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -12,7 +14,7 @@ class LambdaSpotifyApi(SpotifyApi):
     def __init__(self):
         self.access_token = os.environ["SPOTIFY_CLIENT_SECRET"]
 
-    def find_track(self, track_id: str) -> dict:
+    def find_track(self, track_id: str) -> Track:
         """ Spotifyのトラックの情報を取得する """
         url = BASE_URL + f"track/{track_id}"
         headers = {
@@ -25,7 +27,8 @@ class LambdaSpotifyApi(SpotifyApi):
             raise Exception(f"status_code={response.status_code}, data={response.text}")
         response_json = response.json()
         logger.debug(response_json)
-        return response_json["data"]
+        track_info = response_json["data"]
+        return Track.from_spotify_track_info(track_info)
 
     def love_track(self, track_id: str) -> bool:
         """ Spotifyのトラックを「お気に入りの曲」ライブラリに追加する """

@@ -8,7 +8,7 @@ from domain.message import BaseMessage
 from domain.channel import Channel
 from usecase.love_spotify_track import LoveSpotifyTrack
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from infrastructure.api.lambda_spotify_api import LambdaSpotifyApi
+from slack.infrastructure.music.lambda_spotify_api import LambdaSpotifyApi
 from usecase.record_feeling import RecordFeeling as RecordFeelingUsecase
 from domain.view.view import View
 
