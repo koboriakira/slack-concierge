@@ -60,7 +60,7 @@ class AnalyzeWebpageUseCase:
                     url=webclip.notion_page_url,
                 )
             case SiteType.YOUTUBE:
-                youtube = self.youtube_repository.save_from_attachment(url=original_url, attachment=attachment)
+                youtube = self.youtube_repository.save_from_attachment(url=original_url, attachment=attachment, slack_thread=slack_thread)
                 return AnalyzeWebpageResponse(
                     page_id=youtube.notion_page_id,
                     url=youtube.notion_page_url,
