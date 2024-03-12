@@ -24,7 +24,7 @@ class Webclip:
 
 class WebclipRepository(metaclass=ABCMeta):
     @abstractmethod
-    def save_from_attachment(self, url: str, attachment:dict) -> Webclip:
+    def save_from_attachment(self, url: str, attachment:dict, slack_thread: Thread|None = None) -> Webclip:
         pass
 
 class NotionWebclipRepository(WebclipRepository):
