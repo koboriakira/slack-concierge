@@ -1,7 +1,7 @@
 import os
 
-ENVIRONMENT = os.environ.get("ENVIRONMENT")
-IS_DEMO = os.environ.get("IS_DEMO")
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "")
+IS_DEMO = os.environ.get("IS_DEMO", "")
 
 class Environment:
     @staticmethod
