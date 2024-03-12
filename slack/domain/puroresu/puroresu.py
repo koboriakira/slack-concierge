@@ -41,7 +41,7 @@ class Puroresu:
 
 class PuroresuRepository(metaclass=ABCMeta):
     @abstractmethod
-    def save(self, puroresu: Puroresu) -> Puroresu:
+    def save(self, puroresu: Puroresu) -> bool:
         pass
 
 class NotionProRepository(PuroresuRepository):
@@ -49,7 +49,7 @@ class NotionProRepository(PuroresuRepository):
         from infrastructure.api.lambda_notion_api import LambdaNotionApi
         self.notion_api = notion_api or LambdaNotionApi()
 
-    def save(self, puroresu: Puroresu) -> Puroresu:  # noqa: C901
+    def save(self, puroresu: Puroresu) -> bool:  # noqa: C901
         tags = []
         data = {
             "url": puroresu.url,
@@ -69,10 +69,7 @@ class NotionProRepository(PuroresuRepository):
         if tags:
             data["tags"] = tags
 
-        response = self.notion_api.post(path="prowrestling", data=data)
-        puroresu.notion_page_id = response["id"]
-        puroresu.notion_page_url = response["url"]
-        return puroresu
+        return True
 
 def get_promotion_name(group_key: str) -> str:
     match group_key:

@@ -24,7 +24,7 @@ class Webclip:
 
 class WebclipRepository(metaclass=ABCMeta):
     @abstractmethod
-    def save_from_attachment(self, url: str, attachment:dict, slack_thread: Thread|None = None) -> Webclip:
+    def save_from_attachment(self, url: str, attachment:dict, slack_thread: Thread|None = None) -> bool:
         pass
 
 class NotionWebclipRepository(WebclipRepository):
@@ -32,7 +32,7 @@ class NotionWebclipRepository(WebclipRepository):
         from infrastructure.api.lambda_notion_api import LambdaNotionApi
         self.notion_api = notion_api or LambdaNotionApi()
 
-    def save_from_attachment(self, url: str, attachment:dict, slack_thread: Thread|None = None) -> Webclip:
+    def save_from_attachment(self, url: str, attachment:dict, slack_thread: Thread|None = None) -> bool:
         webclip = Webclip.from_attachment(url=url, attachment=attachment)
         data = {
             "url": webclip.url,
@@ -43,7 +43,5 @@ class NotionWebclipRepository(WebclipRepository):
         if slack_thread:
             data["slack_channel"] = slack_thread.channel_id
             data["slack_thread_ts"] = slack_thread.thread_ts
-        response = self.notion_api.post(path="webclip", data=data)
-        webclip.notion_page_id = response["id"]
-        webclip.notion_page_url = response["url"]
-        return webclip
+        self.notion_api.post(path="webclip", data=data)
+        return True

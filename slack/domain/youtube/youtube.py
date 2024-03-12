@@ -26,7 +26,7 @@ class Youtube:
 
 class YoutubeRepository(metaclass=ABCMeta):
     @abstractmethod
-    def save_from_attachment(self, url: str, attachment:dict, slack_thread: Thread|None = None) -> Youtube:
+    def save_from_attachment(self, url: str, attachment:dict, slack_thread: Thread|None = None) -> bool:
         pass
 
 class NotionYoutubeRepository(YoutubeRepository):
@@ -34,7 +34,7 @@ class NotionYoutubeRepository(YoutubeRepository):
         from infrastructure.api.lambda_notion_api import LambdaNotionApi
         self.notion_api = notion_api or LambdaNotionApi()
 
-    def save_from_attachment(self, url: str, attachment:dict, slack_thread: Thread|None = None) -> Youtube:
+    def save_from_attachment(self, url: str, attachment:dict, slack_thread: Thread|None = None) -> bool:
         youtube = Youtube.from_attachment(url=url, attachment=attachment)
         title = youtube.title
         if youtube.channel_name:
@@ -48,7 +48,5 @@ class NotionYoutubeRepository(YoutubeRepository):
         if slack_thread:
             data["slack_channel"] = slack_thread.channel_id
             data["slack_thread_ts"] = slack_thread.thread_ts
-        response = self.notion_api.post(path="video", data=data)
-        youtube.notion_page_id = response["id"]
-        youtube.notion_page_url = response["url"]
-        return youtube
+        self.notion_api.post(path="video", data=data)
+        return True

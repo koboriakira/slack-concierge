@@ -1,16 +1,13 @@
-import datetime
 import logging
 import unittest
 from unittest.mock import Mock
 
 from slack.domain.channel.thread import Thread
-from slack.domain.puroresu.puroresu import Puroresu, PuroresuRepository
-from slack.domain.webclip.webclip import Webclip, WebclipRepository
-from slack.domain.youtube.youtube import Youtube, YoutubeRepository
+from slack.domain.puroresu.puroresu import PuroresuRepository
+from slack.domain.webclip.webclip import WebclipRepository
+from slack.domain.youtube.youtube import YoutubeRepository
 from slack.usecase.analyze_webpage_use_case import AnalyzeWebpageUseCase
 
-DUMMY_NOTION_PAGE_ID = "mock_page_id"
-DUMMY_NOTION_PAGE_URL = "https://example.com"
 DUMMY_SLACK_THREAD = Thread(
     channel_id="mock_channel_id",
     thread_ts="mock_thread_ts",
@@ -39,20 +36,9 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
             "title": "テスト",
         }
 
-        # mock
-        self.suite.webclip_repository.save_from_attachment.return_value = Webclip(
-            title=attachment["title"],
-            url=attachment["original_url"],
-            thumb_url=attachment["image_url"],
-            notion_page_id=DUMMY_NOTION_PAGE_ID,
-            notion_page_url=DUMMY_NOTION_PAGE_URL,
-        )
-
-        actual = self.suite.handle(original_url=attachment["original_url"], attachment=attachment, slack_thread=DUMMY_SLACK_THREAD)
+        self.suite.handle(original_url=attachment["original_url"], attachment=attachment, slack_thread=DUMMY_SLACK_THREAD)
 
         # Then
-        self.assertEqual(actual.page_id, DUMMY_NOTION_PAGE_ID)
-        self.assertEqual(actual.url, DUMMY_NOTION_PAGE_URL)
         self.suite.webclip_repository.save_from_attachment.assert_called_once_with(
             url=attachment["original_url"], attachment=attachment, slack_thread=DUMMY_SLACK_THREAD
         )
@@ -83,22 +69,12 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
         #   "service_url": "https://www.youtube.com/",
         }
 
-        # mock
-        self.suite.youtube_repository.save_from_attachment.return_value = Youtube(
-            title="今年最後の質問コーナーだ！！みんな！観て‼︎! | ヘアピンまみれ Hairpin Mamire",
-            url=original_url,
-            channel_name=author_name,
-            thumb_url=thumb_url,
-            notion_page_id=DUMMY_NOTION_PAGE_ID,
-            notion_page_url=DUMMY_NOTION_PAGE_URL,
-        )
-
         # When
-        actual = self.suite.handle(original_url=attachment["original_url"], attachment=attachment)
+        self.suite.handle(original_url=attachment["original_url"], attachment=attachment)
 
         # Then
-        self.assertEqual(actual.page_id, DUMMY_NOTION_PAGE_ID)
-        self.assertEqual(actual.url, DUMMY_NOTION_PAGE_URL)
+        self.suite.youtube_repository.save_from_attachment.assert_called_once_with(
+            url=original_url, attachment=attachment, slack_thread=None)
 
     def test_handle_twitter(self) -> None:
 
@@ -119,40 +95,27 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
             # "service_name": "X (formerly Twitter)",
         }
 
-        # mock
-        self.suite.webclip_repository.save_from_attachment.return_value = Webclip(
-            title=attachment["text"],
-            url=attachment["original_url"],
-            thumb_url=attachment["image_url"],
-            notion_page_id=DUMMY_NOTION_PAGE_ID,
-            notion_page_url=DUMMY_NOTION_PAGE_URL,
-        )
-
-        actual = self.suite.handle(original_url=attachment["original_url"], attachment=attachment)
+        # When
+        self.suite.handle(original_url=attachment["original_url"], attachment=attachment)
 
         # Then
-        self.assertEqual(actual.page_id, DUMMY_NOTION_PAGE_ID)
-        self.assertEqual(actual.url, DUMMY_NOTION_PAGE_URL)
+        expected_attachment = {
+            "title": attachment["text"],
+            "thumb_url": None,
+            "image_url": attachment["image_url"],
+        }
+        self.suite.webclip_repository.save_from_attachment.assert_called_once_with(
+            url=attachment["original_url"], attachment=expected_attachment, slack_thread=None
+        )
 
     def test_handle_wrestle_universe(self) -> None:
         # Given
         attachment = {
             "original_url": "https://www.wrestle-universe.com/videos/rJmATVm3TxZTrsG2cbBjEz",
         }
-        self.suite.puroresu_repository.save.return_value = Puroresu(
-            url=attachment["original_url"],
-            title="ジンギスカン霧島 presents 紅白勝ち抜き戦",
-            match_date=datetime.date(2020, 4, 3),
-            thumb_url="https://image.asset.wrestle-universe.com/if8s93gLo7LaL3JYqLP4nR/if8s93gLo7LaL3JYqLP4nR",
-            promotion="東京女子プロレス",
-            description="2020年4月3日  東京女子プロレス「ジンギスカン霧島 presents 紅白勝ち抜き戦」を配信！\n\n※権利上の都合により一部で消音する場合がございます。予めご了承ください。\n\n＜出場選手＞\n辰巳リカ、渡辺未詩、中島翔子、山下実優、ハイパーミサヲ、天満のどか、愛野ユキ、原宿ぽむ、桐生真弥、猫はるな、舞海魅星、鈴芽、汐凛セナ、伊藤麻希、まなせゆうな、瑞希、上福ゆき、乃蒼ヒカリ、らく、白川未奈\n※リングアナウンサー…難波小百合",
-            notion_page_id=DUMMY_NOTION_PAGE_ID,
-            notion_page_url=DUMMY_NOTION_PAGE_URL,
-        )
 
         # When
-        actual = self.suite.handle(original_url=attachment["original_url"], attachment=attachment)
+        self.suite.handle(original_url=attachment["original_url"], attachment=attachment)
 
         # Then
-        self.assertEqual(actual.page_id, DUMMY_NOTION_PAGE_ID)
-        self.assertEqual(actual.url, DUMMY_NOTION_PAGE_URL)
+        self.suite.puroresu_repository.save.assert_called_once()

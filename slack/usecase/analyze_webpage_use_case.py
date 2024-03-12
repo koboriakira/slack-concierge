@@ -44,8 +44,8 @@ class AnalyzeWebpageUseCase:
         self.logger = logger or logging.getLogger(__name__)
 
 
-    def handle(self, original_url: str, attachment: dict, slack_thread: Thread|None = None) -> AnalyzeWebpageResponse:
-        """指定されたWebページを分析して適宜保存する"""
+    def handle(self, original_url: str, attachment: dict, slack_thread: Thread|None = None) -> None:
+        """指定されたWebページを分析する。分析は非同期で行われるため依頼のみする"""
         # FIXME: SiteTypeというか、Webpageの種類とカテゴリを持つモデルをつくるか
         match SiteType.from_url(original_url):
             case SiteType.TWITTER:
@@ -54,27 +54,11 @@ class AnalyzeWebpageUseCase:
                     "thumb_url": attachment.get("thumb_url"),
                     "image_url": attachment.get("image_url"),
                 }
-                webclip = self.webclip_repository.save_from_attachment(url=original_url, attachment=attachment_for_twitter, slack_thread=slack_thread)
-                return AnalyzeWebpageResponse(
-                    page_id=webclip.notion_page_id,
-                    url=webclip.notion_page_url,
-                )
+                self.webclip_repository.save_from_attachment(url=original_url, attachment=attachment_for_twitter, slack_thread=slack_thread)
             case SiteType.YOUTUBE:
-                youtube = self.youtube_repository.save_from_attachment(url=original_url, attachment=attachment, slack_thread=slack_thread)
-                return AnalyzeWebpageResponse(
-                    page_id=youtube.notion_page_id,
-                    url=youtube.notion_page_url,
-                )
+                self.youtube_repository.save_from_attachment(url=original_url, attachment=attachment, slack_thread=slack_thread)
             case SiteType.WRESTLE_UNIVERSE:
                 puroresu = Puroresu.create_from_wrestle_universe(url=original_url)
-                puroresu = self.puroresu_repository.save(puroresu)
-                return AnalyzeWebpageResponse(
-                    page_id=puroresu.notion_page_id,
-                    url=puroresu.notion_page_url,
-                )
+                self.puroresu_repository.save(puroresu)
             case SiteType.DEFAULT:
-                webclip = self.webclip_repository.save_from_attachment(url=original_url, attachment=attachment, slack_thread=slack_thread)
-                return AnalyzeWebpageResponse(
-                    page_id=webclip.notion_page_id,
-                    url=webclip.notion_page_url,
-                )
+                self.webclip_repository.save_from_attachment(url=original_url, attachment=attachment, slack_thread=slack_thread)
