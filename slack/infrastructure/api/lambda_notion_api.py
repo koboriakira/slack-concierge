@@ -243,7 +243,7 @@ class LambdaNotionApi(NotionApi):
         respone = requests.post(url=f"{self.domain}{path}",
                                 headers=headers,
                                 json=data,
-                                timeout=10)
+                                timeout=60)
         if respone.status_code != 200:
             exception_message = f"{respone.status_code}: {respone.text}"
             raise Exception(exception_message)
