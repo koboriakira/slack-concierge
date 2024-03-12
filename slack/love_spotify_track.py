@@ -4,35 +4,27 @@ import os
 
 from slack_sdk.web import WebClient
 
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from domain.music.music_repository import NotionMusicRepository
 from slack.infrastructure.music.lambda_spotify_api import LambdaSpotifyApi
-from usecase.love_spotify_track import LoveSpotifyTrack
-
-SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
-SLACK_BOT = WebClient(token=SLACK_BOT_TOKEN)
+from usecase.love_spotify_use_case import LoveSpotifyUseCase
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 if os.environ.get("ENVIRONMENT") == "dev":
     logger.setLevel(logging.DEBUG)
 
-love_spotify_track = LoveSpotifyTrack(
-    client=SLACK_BOT,
-    notion_api=LambdaNotionApi(),
+
+usecase = LoveSpotifyUseCase(
+    slack_bot_client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]),
+    slack_user_client=WebClient(token=os.environ["SLACK_USER_TOKEN"]),
     spotify_api=LambdaSpotifyApi(),
+    music_repository=NotionMusicRepository(),
 )
 
-def handler(event, context):
+def handler(event: dict, context:dict) -> None:
     request = json.loads(event["Records"][0]["body"])
     print("request", request)
     track_id = request["track_id"]
     channel_id = request["channel_id"]
     thread_ts = request["thread_ts"]
-    love_spotify_track.handle(track_id=track_id, channel_id=channel_id, thread_ts=thread_ts)
-
-if __name__ == "__main__":
-    # python -m love_spotify_track
-    logger.debug("debug mode")
-    event = {}
-    context = {}
-    print(handler(event, context))
+    usecase.execute(track_id=track_id, channel_id=channel_id, thread_ts=thread_ts)
