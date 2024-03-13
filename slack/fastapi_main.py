@@ -3,12 +3,15 @@ import os
 
 from fastapi import FastAPI
 from mangum import Mangum
+from pydantic import BaseModel
 from slack_sdk.web import WebClient
 
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from usecase.append_context_use_case import AppendContextUseCase
 from usecase.start_task_use_case import StartTaskUseCase
 from util.environment import Environment
+from util.error_reporter import ErrorReporter
 
 slack_client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
 notion_api = LambdaNotionApi()
@@ -21,7 +24,7 @@ if Environment.is_dev():
 
 # アプリ設定
 app = FastAPI(
-    title="My Notion API",
+    title="My Slack API",
     version="0.0.1",
 )
 
@@ -31,14 +34,40 @@ def healthcheck() -> dict:
 
 @app.post("/task/new/")
 def post_new_task(task_name: str) -> dict:
-    start_task_use_case = StartTaskUseCase()
-    response = start_task_use_case.execute(task_id=None, task_title=task_name)
-    return {"id": response.task_id, "title": response.title}
+    try:
+        start_task_use_case = StartTaskUseCase()
+        response = start_task_use_case.execute(task_id=None, task_title=task_name)
+        return {"id": response.task_id, "title": response.title}
+    except:  # noqa: E722
+        ErrorReporter.execute()
+        return {"status": "error"}
 
 @app.post("/task/start/{task_id}")
 def post_start_task(task_id: str) -> dict:
-    start_task_use_case = StartTaskUseCase()
-    response = start_task_use_case.execute(task_id=task_id, task_title=None)
-    return {"id": response.task_id, "title": response.title}
+    try:
+        start_task_use_case = StartTaskUseCase()
+        response = start_task_use_case.execute(task_id=task_id, task_title=None)
+        return {"id": response.task_id, "title": response.title}
+    except:  # noqa: E722
+        ErrorReporter.execute()
+        return {"status": "error"}
+
+class PageAddContextRequest(BaseModel):
+    is_user: bool # Trueはユーザー、FalseはBot
+    data: dict
+
+
+@app.post("/message/{channel}/{event_ts}/block/add_context")
+def post_add_context(
+    channel: str,
+    event_ts: str,
+    request: PageAddContextRequest) -> dict:
+    try:
+        usecase = AppendContextUseCase.get_user_client() if request.is_user else AppendContextUseCase.get_bot_client()
+        usecase.execute(channel=channel, event_ts=event_ts, data=request.data)
+        return {"status": "ok"}
+    except:  # noqa: E722
+        ErrorReporter.execute()
+        return {"status": "error"}
 
 handler = Mangum(app, lifespan="off")
