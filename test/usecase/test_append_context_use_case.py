@@ -16,11 +16,11 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
         logging.basicConfig(level=logging.DEBUG)
 
         # 実際にSlack投稿しながらテストしてみる
-        self.client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
+        self.slack_bot_client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
         self.suite = AppendContextUseCase.get_bot_client()
 
     def tearDown(self) -> None:
-        self._delete_message()
+        self._delete_message(client=self.slack_bot_client)
         return super().tearDown()
 
     def test_対象の投稿が見つからなければ例外を投げる(self) -> None:
@@ -29,7 +29,7 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
 
     def test_contextが存在しない投稿に追加する(self) -> None:
         # Given
-        event_ts = self._chat_postMessage(text=SAMPLE_TEXT)
+        event_ts = self._chat_postMessage(client=self.slack_bot_client, text=SAMPLE_TEXT)
 
         # When
         self.suite.execute(channel=CHANNEL_TEST, event_ts=event_ts, data=SAMPLE_DATA)
@@ -40,7 +40,7 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
     def test_contextが存在する投稿に追加する(self) -> None:
         # Given
         previous_data = {"previous": "data"}
-        event_ts = self._chat_postMessage(text=SAMPLE_TEXT, data=previous_data)
+        event_ts = self._chat_postMessage(client=self.slack_bot_client, text=SAMPLE_TEXT, data=previous_data)
 
         # When
         self.suite.execute(channel=CHANNEL_TEST, event_ts=event_ts, data=SAMPLE_DATA)
@@ -53,7 +53,7 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
         self._assert_text_and_context(event_ts=event_ts, expected_text=SAMPLE_TEXT, expected_context=expected_context)
 
     def _assert_text_and_context(self, event_ts: str, expected_text: str, expected_context: dict) -> None:
-        messages = self.client.conversations_history(channel=CHANNEL_TEST)["messages"]
+        messages = self.slack_bot_client.conversations_history(channel=CHANNEL_TEST)["messages"]
         message = next((message for message in messages if message["ts"] == event_ts), None)
         self.assertIsNotNone(message)
         blocks = message["blocks"]
@@ -74,13 +74,13 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
         self.assertEqual(element["type"], "plain_text")
         self.assertEqual(json.loads(element["text"]), expected_context)
 
-    def _chat_postMessage(self, text: str|None = None, data: dict|None = None) -> str:
+    def _chat_postMessage(self, client: WebClient, text: str|None = None, data: dict|None = None) -> str:
         """ メッセージを投稿し、投稿したメッセージのtsを返す"""
         text = text or SAMPLE_TEXT
-        self._delete_message(text=text)
+        self._delete_message(client=client, text=text)
 
         if not data:
-            response = self.client.chat_postMessage(channel=CHANNEL_TEST, text=text)
+            response = client.chat_postMessage(channel=CHANNEL_TEST, text=text)
             return response["ts"]
         blocks = [{
             "type": "context",
@@ -91,12 +91,12 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
                 }
             ]
         }]
-        response = self.client.chat_postMessage(channel=CHANNEL_TEST, text=text, blocks=blocks)
+        response = client.chat_postMessage(channel=CHANNEL_TEST, text=text, blocks=blocks)
         return response["ts"]
 
-    def _delete_message(self, text: str|None = None) -> None:
+    def _delete_message(self, client: WebClient, text: str|None = None) -> None:
         text = text or SAMPLE_TEXT
-        messages = self.client.conversations_history(channel=CHANNEL_TEST)["messages"]
+        messages = client.conversations_history(channel=CHANNEL_TEST)["messages"]
         for message in messages:
             if message.get("text") == text:
-                self.client.chat_delete(channel=CHANNEL_TEST, ts=message["ts"])
+                client.chat_delete(channel=CHANNEL_TEST, ts=message["ts"])

@@ -6,19 +6,19 @@ from domain_service.block.block_builder import BlockBuilder
 
 
 class AppendContextUseCase:
-    def __init__(self, client: WebClient) -> None:
-        self.client = client
+    def __init__(self, slack_bot_client: WebClient) -> None:
+        self.slack_bot_client = slack_bot_client
 
     @staticmethod
     def get_user_client() -> "AppendContextUseCase":
-        return AppendContextUseCase(client=WebClient(token=os.environ["SLACK_USER_TOKEN"]))
+        return AppendContextUseCase(slack_bot_client=WebClient(token=os.environ["SLACK_USER_TOKEN"]))
 
     @staticmethod
     def get_bot_client() -> "AppendContextUseCase":
-        return AppendContextUseCase(client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]))
+        return AppendContextUseCase(slack_bot_client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]))
 
     def execute(self, channel: str, event_ts: str, data: dict) -> None:
-        messages = self.client.conversations_history(channel=channel)["messages"]
+        messages = self.slack_bot_client.conversations_history(channel=channel)["messages"]
         message = next((message for message in messages if message["ts"] == event_ts), None)
         if message is None:
             error_message = f"Message not found. channel: {channel}, event_ts: {event_ts}"
@@ -33,7 +33,7 @@ class AppendContextUseCase:
         import json
         print(json.dumps(blocks, ensure_ascii=False, indent=2))
 
-        self.client.chat_update(
+        self.slack_bot_client.chat_update(
             channel=channel,
             ts=event_ts,
             text=text,
