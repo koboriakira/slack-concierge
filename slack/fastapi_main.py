@@ -53,7 +53,6 @@ def post_start_task(task_id: str) -> dict:
         return {"status": "error"}
 
 class PageAddContextRequest(BaseModel):
-    is_user: bool # Trueはユーザー、FalseはBot
     data: dict
 
 
@@ -63,7 +62,7 @@ def post_add_context(
     event_ts: str,
     request: PageAddContextRequest) -> dict:
     try:
-        usecase = AppendContextUseCase.get_user_client() if request.is_user else AppendContextUseCase.get_bot_client()
+        usecase = AppendContextUseCase()
         usecase.execute(channel=channel, event_ts=event_ts, data=request.data)
         return {"status": "ok"}
     except:  # noqa: E722
