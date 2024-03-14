@@ -2,7 +2,9 @@ import json
 import logging
 import os
 import unittest
+from unittest.mock import Mock
 
+from slack.domain.user.user_kind import UserKind
 from slack.usecase.append_context_use_case import AppendContextUseCase
 from slack_sdk.web import WebClient
 
@@ -17,7 +19,7 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
 
         # 実際にSlack投稿しながらテストしてみる
         self.slack_bot_client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
-        self.suite = AppendContextUseCase.get_bot_client()
+        self.suite = AppendContextUseCase()
 
     def tearDown(self) -> None:
         self._delete_message(client=self.slack_bot_client)
@@ -51,6 +53,36 @@ class TestAnalyzeWebpageUseCase(unittest.TestCase):
             **SAMPLE_DATA,
         }
         self._assert_text_and_context(event_ts=event_ts, expected_text=SAMPLE_TEXT, expected_context=expected_context)
+
+    def test_ユーザが投稿したものにも対応する(self) -> None:
+        # Given
+        event_ts = "dummy_event_ts"
+        original_text = "Test"
+        mock_bot_client = Mock(spec=WebClient)
+        mock_bot_client.conversations_history.return_value = {
+            "messages": [
+                {
+                    "type": "message",
+                    "user": UserKind.KOBORI_AKIRA.value,
+                    "text": original_text,
+                    "ts": event_ts,
+                }
+            ]
+        }
+        mock_user_client = Mock(spec=WebClient)
+        suite = AppendContextUseCase(slack_bot_client=mock_bot_client, slack_user_client=mock_user_client)
+
+        # When
+        suite.execute(channel=CHANNEL_TEST, event_ts=event_ts, data=SAMPLE_DATA)
+
+        # Then
+        suite.slack_user_client.chat_update.assert_called_with(
+            channel=CHANNEL_TEST,
+            ts=event_ts,
+            text=original_text,
+            blocks=[{"type": "context", "elements": [{"type": "plain_text", "text": json.dumps(SAMPLE_DATA, ensure_ascii=False)}]}],
+        )
+
 
     def _assert_text_and_context(self, event_ts: str, expected_text: str, expected_context: dict) -> None:
         messages = self.slack_bot_client.conversations_history(channel=CHANNEL_TEST)["messages"]
