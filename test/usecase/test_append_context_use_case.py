@@ -4,6 +4,7 @@ import os
 import unittest
 from unittest.mock import Mock
 
+import pytest
 from slack.domain.user.user_kind import UserKind
 from slack.usecase.append_context_use_case import AppendContextUseCase
 from slack_sdk.web import WebClient
@@ -13,6 +14,7 @@ SAMPLE_TEXT = "TestAnalyzeWebpageUseCase"
 SAMPLE_PAGE_ID = "12345"
 SAMPLE_DATA = {"page_id": SAMPLE_PAGE_ID}
 
+@pytest.mark.longtime("SlackのAPIを実行するシナリオがほとんどであるため")
 class TestAnalyzeWebpageUseCase(unittest.TestCase):
     def setUp(self) -> None:
         logging.basicConfig(level=logging.DEBUG)
