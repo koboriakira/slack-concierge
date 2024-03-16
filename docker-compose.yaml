@@ -16,5 +16,5 @@ services:
     command: pipenv run uvicorn fastapi_main:app --reload --port=8080 --host=0.0.0.0
     # command: bash
     ports:
-      - 10120:8080
+      - 10314:8080
     tty: true

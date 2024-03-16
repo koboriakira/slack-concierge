@@ -1,6 +1,6 @@
 dev:
 	docker compose up -d
-	open http://localhost:10120/docs
+	open http://localhost:10314/docs
 
 cdk-test:
 	cd cdk && npm run test
