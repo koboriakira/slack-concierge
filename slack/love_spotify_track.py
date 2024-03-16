@@ -4,6 +4,7 @@ import os
 
 from slack_sdk.web import WebClient
 
+from domain.channel.thread import Thread
 from domain.music.music_repository import NotionMusicRepository
 from infrastructure.music.lambda_spotify_api import LambdaSpotifyApi
 from usecase.love_spotify_use_case import LoveSpotifyUseCase
@@ -31,4 +32,5 @@ def handler(event: dict, context:dict) -> None:  # noqa: ARG001
     try:
         usecase.execute(track_id=track_id, channel_id=channel_id, thread_ts=thread_ts)
     except:  # noqa: E722
-        ErrorReporter().execute(slack_channel=channel_id, slack_thread_ts=thread_ts)
+        thread = Thread(channel_id=channel_id, thread_ts=thread_ts)
+        ErrorReporter().execute(thread=thread, message="love_spotify_track error")

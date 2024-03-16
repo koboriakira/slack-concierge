@@ -1,6 +1,10 @@
 import os
+import sys
+import traceback
 
 from slack_sdk.web import WebClient
+
+from domain.channel.thread import Thread
 
 
 class ErrorReporter:
@@ -9,16 +13,19 @@ class ErrorReporter:
 
     def execute(
             self,
-            slack_channel: str|None = None,
-            slack_thread_ts: str|None = None) -> None:
-        import sys
-        import traceback
-        exc_info = sys.exc_info()
-        t, v, tb = exc_info
-        formatted_exception = "\n".join(
-            traceback.format_exception(t, v, tb))
-        text=f"analyze_inbox: error ```{formatted_exception}```"
+            slack_thread: Thread|None = None,
+            message: str|None = None) -> None:
+
+        message = message or "something error"
+        formatted_exception = _generate_formatted_exception()
+        text=f"{message}\n```{formatted_exception}```"
+
         self.client.chat_postMessage(
             text=text,
-            channel=slack_channel or "C04Q3AV4TA5",
-            thread_ts=slack_thread_ts)
+            channel=slack_thread.channel_id,
+            thread_ts=slack_thread.thread_ts)
+
+def _generate_formatted_exception() -> str:
+    exc_info = sys.exc_info()
+    t, v, tb = exc_info
+    return "\n".join(traceback.format_exception(t, v, tb))
