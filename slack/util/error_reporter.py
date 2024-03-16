@@ -7,7 +7,10 @@ class ErrorReporter:
     def __init__(self, client: WebClient|None=None) -> None:
         self.client = client or WebClient(token=os.environ["SLACK_BOT_TOKEN"])
 
-    def execute(self, slack_channel: str|None, slack_thread_ts: str|None) -> None:
+    def execute(
+            self,
+            slack_channel: str|None = None,
+            slack_thread_ts: str|None = None) -> None:
         import sys
         import traceback
         exc_info = sys.exc_info()
