@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 from slack.domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
-from slack.infrastructure.schedule.achivement_repository_impl import AchivementRepositoryImpl
+from slack.infrastructure.schedule.achievement_repository_impl import AchivementRepositoryImpl
 
 DEMO_START_DATETIME = datetime(2024, 3, 16, 11, 0, 0)
 DEMO_END_DATETIME = datetime(2024, 3, 16, 13, 0, 0)

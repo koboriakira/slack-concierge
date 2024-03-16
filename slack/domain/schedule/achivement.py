@@ -26,6 +26,14 @@ class Achievement:
     def get_notion_url(self) -> str|None:
         return self.frontmatter.get("notion_url")
 
+    def in_range(self, start: datetime, end: datetime) -> bool:
+        if self.end.timestamp() < start.timestamp():
+            return False
+        if self.start.timestamp() > end.timestamp():
+            return False
+        return True
+
+
 def _partition(text: str) -> tuple[dict, str]:
     # frontmatterだけの場合
     if text.strip().endswith("---"):
