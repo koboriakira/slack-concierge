@@ -16,3 +16,11 @@ class Thread:
           event_ts = event_ts or thread_ts,
           thread_ts = thread_ts or event_ts,
         )
+
+    @staticmethod
+    def empty() -> "Thread":
+        return Thread.create(
+            channel_id = None,
+            event_ts = None,
+            thread_ts = None,
+        )

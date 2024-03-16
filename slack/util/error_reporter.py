@@ -17,6 +17,7 @@ class ErrorReporter:
             message: str|None = None) -> None:
 
         message = message or "something error"
+        slack_thread = slack_thread or Thread.empty()
         formatted_exception = _generate_formatted_exception()
         text=f"{message}\n```{formatted_exception}```"
 
@@ -29,3 +30,8 @@ def _generate_formatted_exception() -> str:
     exc_info = sys.exc_info()
     t, v, tb = exc_info
     return "\n".join(traceback.format_exception(t, v, tb))
+
+if __name__ == "__main__":
+    # python -m slack.util.error_reporter
+    error_reporter = ErrorReporter()
+    error_reporter.execute()
