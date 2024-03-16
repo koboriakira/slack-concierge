@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from slack_sdk.web import WebClient
 
 from domain.channel.channel_type import ChannelType
-from domain.schedule.achivement_repository import AchievementRepository
+from domain.schedule.achievement_repository import AchievementRepository
 from domain.user.user_kind import UserKind
 from util.datetime import jst_now
 

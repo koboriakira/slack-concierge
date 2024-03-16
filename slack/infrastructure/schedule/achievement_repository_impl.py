@@ -2,7 +2,7 @@ from datetime import datetime
 
 from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
 from domain.schedule.achievement import Achievement
-from domain.schedule.achivement_repository import AchievementRepository
+from domain.schedule.achievement_repository import AchievementRepository
 from util.datetime import JST
 
 

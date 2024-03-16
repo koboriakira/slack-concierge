@@ -2,7 +2,7 @@ from datetime import datetime
 from unittest import TestCase
 from unittest.mock import Mock
 
-from slack.domain.schedule.achivement_repository import AchievementRepository
+from slack.domain.schedule.achievement_repository import AchievementRepository
 from slack.usecase.remind_to_record_achivement_use_case import RemindToRecordAchievementUseCase
 from slack_sdk.web import WebClient
 
