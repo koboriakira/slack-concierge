@@ -22,9 +22,7 @@ class Puroresu:
     @staticmethod
     def create_from_wrestle_universe(url: str) -> "Puroresu":
         # WUのAPI経由でデータを取得する
-        event_id = url.split("/")[-1]
-        # event_url = f"https://api.wrestle-universe.com/v1/events/{event_id}?al=ja"
-        api_url = f"https://api.wrestle-universe.com/v1/videoEpisodes/{event_id}?al=ja"
+        api_url = _get_api_url(url)
         response = requests.get(api_url, timeout=10)
         data:dict = response.json()
 
@@ -37,6 +35,13 @@ class Puroresu:
             venue=data["labels"].get("venue"),
             description=data.get("description"),
         )
+
+def _get_api_url(url: str) -> str:
+    if "lives" in url:
+        event_id = url.split("/")[-1]
+        return f"https://api.wrestle-universe.com/v1/events/{event_id}?al=ja"
+    episode_id = url.split("/")[-1]
+    return f"https://api.wrestle-universe.com/v1/videoEpisodes/{episode_id}?al=ja"
 
 
 class PuroresuRepository(metaclass=ABCMeta):
