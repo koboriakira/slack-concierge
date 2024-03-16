@@ -23,6 +23,9 @@ class Achievement:
             text=freetext,
         )
 
+    def get_notion_url(self) -> str|None:
+        return self.frontmatter.get("notion_url")
+
 def _partition(text: str) -> tuple[dict, str]:
     # frontmatterだけの場合
     if text.strip().endswith("---"):
