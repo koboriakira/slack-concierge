@@ -84,8 +84,8 @@ export class SlackConcierge extends Stack {
       role,
       myLayer,
       "remind_to_record_achivement.handler",
-      // JSTで、AM9:00からPM11:00までの間、5分おきに実行
-      events.Schedule.cron({ minute: "*/5", hour: "21-14" })
+      // JSTで、AM9:00からPM10:55までの間、5分おきに実行
+      events.Schedule.cron({ minute: "*/5", hour: "0-13" })
     );
 
 
