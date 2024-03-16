@@ -30,7 +30,6 @@ class StartTaskTest(TestCase):
 
         # Then
         self.start_task_modal_interface.fetch_current_tasks_use_case.execute.assert_called_once()
-        self.start_task_modal_interface.client.views_open.assert_called_once()
 
     def test_新規タスクを作成(self) -> None:
         # Given

@@ -14,7 +14,7 @@ SAMPLE_TEXT = "TestAnalyzeWebpageUseCase"
 SAMPLE_PAGE_ID = "12345"
 SAMPLE_DATA = {"page_id": SAMPLE_PAGE_ID}
 
-@pytest.mark.longtime("SlackのAPIを実行するシナリオがほとんどであるため")
+@pytest.mark.slow("SlackのAPIを実行するシナリオがほとんどであるため")
 class TestAnalyzeWebpageUseCase(unittest.TestCase):
     def setUp(self) -> None:
         logging.basicConfig(level=logging.DEBUG)

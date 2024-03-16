@@ -3,5 +3,5 @@ def pytest_configure(config):
         "markers", "learning: mark tests as learning exercises"
     )
     config.addinivalue_line(
-        "markers", "longtime: mark tests as longtime running tests"
+        "markers", "slow: mark tests as slow running tests"
     )
