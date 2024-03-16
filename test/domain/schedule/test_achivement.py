@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest import TestCase
 
-from slack.domain.schedule.achivement import Achievement
+from slack.domain.schedule.achievement import Achievement
 
 DUMMY_TITLE = "ダミータイトル"
 DUMMY_START_DATETIME = datetime(2024, 3, 16, 11, 0, 0)

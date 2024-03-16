@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 
-from domain.schedule.achivement import Achievement
+from domain.schedule.achievement import Achievement
 
 
 class AchievementRepository(metaclass=ABCMeta):
