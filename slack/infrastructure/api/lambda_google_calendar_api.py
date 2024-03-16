@@ -47,6 +47,25 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
         logging.debug(f"post_gas_calendar: response={response_json}")
         return response_json
 
+    def get(self, path: str, params: dict) -> list[dict]:
+        url = f"{self.domain}{path}"
+        headers = {
+            "Accept": "application/json",
+            "access-token": self.access_token,
+        }
+        response = requests.get(url=url, headers=headers, params=params, timeout=30)
+        if response.status_code != 200:
+            error_message = f"GET: {response.text} {url} params={json.dumps(params, ensure_ascii=False)} status_code={response.status_code} headers={headers}"
+            logging.error(error_message)
+            raise ValueError(error_message)
+
+        response_json = response.json()
+        if isinstance(response_json, str):
+            response_json = json.loads(response_json)
+        debug_message = f"GET: {url} response={response_json}"
+        logging.debug(debug_message)
+        return response_json
+
     def get_gas_calendar_achievements(self,
                                       date: DateObject) -> list[dict]:
         raise NotImplementedError
