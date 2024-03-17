@@ -4,7 +4,6 @@ from unittest.mock import Mock
 from slack.domain.channel.thread import Thread
 from slack.domain.task.task import Task
 from slack.domain.task.task_button_service import TaskButtonSerivce
-from slack.domain.task.task_repository import TaskRepository
 from slack_sdk.web import WebClient
 
 DUMMY_TASK_TITLE = "dummy"
@@ -14,21 +13,19 @@ DUMMY_THREAD = Thread.create(channel_id="dummy_channel_id", thread_ts="dummy_thr
 
 class TestTaskButtonSerivce(TestCase):
     def setUp(self) -> None:
-        mock_task_repository = Mock(spec=TaskRepository)
         mock_slack_client = Mock(spec=WebClient)
-        self.suite = TaskButtonSerivce(task_repository=mock_task_repository, slack_client=mock_slack_client)
+        self.suite = TaskButtonSerivce(slack_client=mock_slack_client)
         return super().setUp()
 
     def test_正常系(self):
         # Given
-        self.suite.task_repository.find_by_id.return_value = Task(
+        task = Task(
             task_id=DUMMY_TASK_ID,
             url=DUMMY_TASK_URL,
             title="dummy",
             pomodoro_count=0)
-
         # When
-        self.suite.execute(task_page_id=DUMMY_TASK_ID, slack_thread=DUMMY_THREAD)
+        self.suite.execute(task=task, slack_thread=DUMMY_THREAD)
 
         # Then
         expected_blocks = [

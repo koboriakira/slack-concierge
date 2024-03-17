@@ -10,9 +10,12 @@ class Thread:
     thread_ts: str | None
 
     @staticmethod
-    def create(channel_id: str|None = None, event_ts: str|None = None, thread_ts:str|None = None) -> "Thread":
+    def create(
+        channel_id: ChannelType|str|None = None,
+        event_ts: str|None = None,
+        thread_ts:str|None = None) -> "Thread":
         return Thread(
-          channel_id = channel_id or ChannelType.BOT_DM.value,
+          channel_id = _get_channel_id(channel_id),
           event_ts = event_ts or thread_ts,
           thread_ts = thread_ts or event_ts,
         )
@@ -24,3 +27,8 @@ class Thread:
             event_ts = None,
             thread_ts = None,
         )
+
+def _get_channel_id(channel: ChannelType|str|None) -> str:
+    if channel is None:
+        return ChannelType.BOT_DM.value
+    return channel if isinstance(channel, str) else channel.value
