@@ -88,6 +88,14 @@ export class SlackConcierge extends Stack {
       events.Schedule.cron({ minute: "*/5", hour: "0-13" })
     );
 
+    const listTodayTasks = this.createEventLambda(
+      "ListTodayTasks",
+      role,
+      myLayer,
+      "list_today_tasks.handler",
+      // JSTで、AM7:00に実行
+      events.Schedule.cron({ minute: "0", hour: "22" })
+    );
 
     // love_spotify_track: SQSから呼び出される
     const loveSpotifyTrack = this.createLambdaAndSqs(
