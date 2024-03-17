@@ -213,11 +213,11 @@ class LambdaNotionApi(NotionApi):
             "access-token": NOTION_SECRET,
         }
         response = requests.get(url, params=params, headers=headers, timeout=10)
-        self.logger.debug(debug_message, extra=response)
 
         if response.status_code != 200:
             error_message = f"status_code: {response.status_code}, message: {response.text}"
             raise Exception(error_message)
+        self.logger.debug(debug_message, extra={"data": json.dumps(response.json(), ensure_ascii=False)})
         return response.json()
 
     def _get(self, path: str, params: dict = {}) -> dict:
