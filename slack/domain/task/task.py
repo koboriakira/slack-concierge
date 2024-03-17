@@ -50,6 +50,11 @@ class Task:
             end_date=schedule.end,
         )
 
+    def title_with_link(self) -> str:
+        if self.url:
+            return f"<{self.url}|{self.title}>"
+        return self.title
+
     def to_dict(self) -> dict:
         data = {}
         # Taskのフィールド変数のうち、Noneでないものを辞書に追加
