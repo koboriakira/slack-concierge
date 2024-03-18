@@ -1,6 +1,7 @@
 from datetime import datetime
 from unittest import TestCase
 
+import pytest
 from slack.domain.task.task import Task
 from slack.util.datetime import JST
 
@@ -37,3 +38,20 @@ class TestTask(TestCase):
             "url": "ダミーURL",
             "mentioned_page_id": "ダミーメンションID",
         })
+
+
+    @pytest.mark.learning("completeメソッドの確認")
+    def test_completeメソッドの確認(self):
+        # Given
+        task = Task.from_title(title="ダミータイトル")
+
+        # When
+        task.complete()
+        actual = task.to_dict()
+
+        # Then
+        import json
+        print(json.dumps(actual, indent=2, ensure_ascii=False))
+        # TypeErrorなどが出なければOK
+        self.assertTrue(True)
+        self.fail()
