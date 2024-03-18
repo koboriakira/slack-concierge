@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from domain.schedule.schedule import Schedule
-from util.datetime import jst_now
 
 MAX_SLACK_TEXT_LENGTH = 50
 
@@ -53,7 +52,7 @@ class Task:
 
     def complete(self) -> None:
         self.status = "Done"
-        self.end_date = jst_now()
+        # self.end_date = jst_now()
 
     def title_with_link(self) -> str:
         if self.url:
