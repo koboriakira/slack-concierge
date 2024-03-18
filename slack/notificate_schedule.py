@@ -1,60 +1,49 @@
-import logging
-import os
 from datetime import timedelta
 
 from slack_sdk.web import WebClient
 
 from domain.channel import ChannelType
-from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
+from domain.channel.thread import Thread
 from domain.notion.notion_page import TaskPage
-from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
+from domain.task.task_button_service import TaskButtonSerivce
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from usecase.start_pomodoro import StartPomodoro
-from usecase.start_task_use_case import StartTaskUseCase
+from infrastructure.schedule.achievement_repository_impl import AchivementRepositoryImpl
+from infrastructure.task.notion_task_repository import NotionTaskRepository
+from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
+from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
 from util.datetime import now as _now
 from util.environment import Environment
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-if os.environ.get("ENVIRONMENT") == "dev":
-    logger.setLevel(logging.DEBUG)
-
-client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
-notion_api=LambdaNotionApi()
-google_api=LambdaGoogleCalendarApi()
-start_task_usecase = StartTaskUseCase(
-    notion_api=notion_api,
-    client=client)
-start_pomodoro = StartPomodoro(notion_api=notion_api, google_api=google_api, client=client)
+client = WebClient(token=Environment.get_slack_bot_token())
+usecase = StartPomodoroUsecase(
+    task_button_service=TaskButtonSerivce(slack_client=client),
+    achievement_repository=AchivementRepositoryImpl(),
+    task_repository=NotionTaskRepository(),
+    scheduler_service=EventBridgeSchedulerService(slack_client=client),
+)
 
 def handler(event, context):
+    now_tasks = _find_task()
+    if len(now_tasks) == 0:
+        return {"message": "no task"}
+    for task in now_tasks:
+        post_task(task)
+    return {"message": "success"}
+
+def _find_task() -> list:
     now = _now()
     # now = Datetime(year=now.year, month=now.month, day=now.day, hour=11, minute=0)
     after_5minutes = now + timedelta(minutes=5)
-    tasks = notion_api.list_tasks(start_date=now.date())
-    for task in tasks:
-        if task.start_date is None:
-            continue
-        if now.timestamp() <= task.start_date.timestamp() <= after_5minutes.timestamp():
-            post_task(task)
-    return {"message": "success"}
+    # FIXME: リファクタする
+    tasks = LambdaNotionApi().list_tasks(start_date=now.date())
+    return [task for task in tasks if task.start_date is not None and now.timestamp() <= task.start_date.timestamp() <= after_5minutes.timestamp()]
+
 
 def post_task(task: TaskPage) -> None:
-    # タスクの投稿
-    response = start_task_usecase.handle_prepare(task_id=task.id, task_title=task.title)
-
-    # ポモドーロの開始
     channel = ChannelType.DIARY if not Environment.is_dev() else ChannelType.TEST
-    thread_ts = response["thread_ts"]
-
-    event_scheduler_request = PomodoroTimerRequest(
-        page_id=task.id,
-        channel=channel.value,
-        thread_ts=thread_ts,
-    )
-    start_pomodoro.handle(request=event_scheduler_request)
+    thread = Thread.create(channel_id=channel.value)
+    usecase.handle(task_page_id=task.id, slack_thread=thread)
 
 
 if __name__ == "__main__":
-    logger.debug("debug mode")
     print(handler({}, {}))
