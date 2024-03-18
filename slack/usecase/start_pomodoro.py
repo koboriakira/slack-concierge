@@ -1,6 +1,6 @@
 # FIXME: start_task_use_caseとstart_pomodoroで同じ処理があるので、うまく切り分けること
 
-from datetime import datetime as DateTime
+from datetime import datetime
 
 from slack_sdk.web import WebClient
 
@@ -8,9 +8,9 @@ from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
 from domain.infrastructure.api.notion_api import NotionApi
 from domain.task import TaskRepository
+from domain.task.task_button_service import TaskButtonSerivce
 from domain_service.block.block_builder import BlockBuilder
 from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
-from util.datetime import now
 
 POMODORO_ICON = "tomato"
 
@@ -20,26 +20,23 @@ class StartPomodoro:
         notion_api: NotionApi,
         google_api: GoogleCalendarApi,
         client: WebClient,
+        task_button_service: TaskButtonSerivce,
         task_repository: TaskRepository|None = None,
     ):
         from infrastructure.task.notion_task_repository import NotionTaskRepository
         self.notion_api = notion_api
         self.google_api = google_api
         self.client = client
+        self.task_button_service = task_button_service
         self.scheduler_service = EventBridgeSchedulerService()
         self.task_repository = task_repository or NotionTaskRepository()
 
     def handle(self, request: PomodoroTimerRequest):
         """ポモドーロの開始を通達する"""
-        _now = now()
         task = self.task_repository.find_by_id(request.page_id)
 
         # 開始を連絡
-        event_ts = self._chat_start_message(
-            task_id=request.page_id,
-            channel=request.channel,
-            thread_ts=request.thread_ts,
-        )
+        response_thread = self.task_button_service.start_pomodoro(task)
 
         # ポモドーロカウンターをインクリメント
         # FIXME: task.increment_pomodoro_count()を呼び出したあとに保存すればよい
@@ -59,7 +56,9 @@ class StartPomodoro:
 
         # ポモドーロ開始を示すリアクションをつける
         self.client.reactions_add(
-            channel=request.channel, timestamp=event_ts, name=POMODORO_ICON,
+            channel=request.channel,
+            timestamp=response_thread.event_ts,
+            name=POMODORO_ICON,
         )
 
 
@@ -81,7 +80,10 @@ class StartPomodoro:
         return event_ts
 
     def _record_google_calendar_achivement(
-        self, page_id: str, start_datetime: DateTime, end_datetime: DateTime,
+        self,
+        page_id: str,
+        start_datetime: datetime,
+        end_datetime: datetime,
     ):
         task = self.notion_api.find_task(page_id)
         front_formatter = f"""---
@@ -95,22 +97,3 @@ notion_url: {task.url}
             title=task.title,
             detail=f"{front_formatter}\n\n{feeling}",
         )
-
-
-if __name__ == "__main__":
-    # python -m usecase.start_pomodoro
-    import os
-
-    from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
-    from infrastructure.api.lambda_notion_api import LambdaNotionApi
-
-    suite = StartPomodoro(
-        notion_api=LambdaNotionApi(),
-        google_api=LambdaGoogleCalendarApi(),
-        client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]),
-    )
-    suite.handle(
-        notion_page_block_id="73a38586-6754-4636-9a7c-173bcbdc4d1d",
-        channel="C01JYJY6Z3V",
-        thread_ts="1618125139.000300",
-    )

@@ -1,12 +1,15 @@
 import json
+
+from slack_bolt import Ack, App
 from slack_sdk.web import WebClient
-from slack_bolt import App, Ack
-from util.logging_traceback import logging_traceback
-from util.custom_logging import get_logger
-from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
+
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
+from domain.task.task_button_service import TaskButtonSerivce
+from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
+from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
+from util.custom_logging import get_logger
+from util.logging_traceback import logging_traceback
 
 ACTION_ID = "start-pomodoro"
 
@@ -25,7 +28,12 @@ def start_pomodoro(body: dict, client: WebClient):
         thread_ts = body["message"]["ts"]
 
         logger.debug(json.dumps(body))
-        usecase = StartPomodoroUsecase(notion_api=LambdaNotionApi(), google_api=LambdaGoogleCalendarApi(), client=client)
+        task_button_service = TaskButtonSerivce(slack_client=client)
+        usecase = StartPomodoroUsecase(
+            notion_api=LambdaNotionApi(),
+            google_api=LambdaGoogleCalendarApi(),
+            client=client,
+            task_button_service=task_button_service)
 
         event_scheduler_request = PomodoroTimerRequest(
             page_id=notion_page_block_id,

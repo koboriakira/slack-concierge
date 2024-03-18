@@ -1,3 +1,5 @@
+# FIXME: start_task_use_caseとstart_pomodoroで同じ処理があるので、うまく切り分けること
+
 import logging
 from datetime import timedelta
 

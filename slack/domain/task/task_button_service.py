@@ -64,7 +64,7 @@ class TaskButtonSerivce:
 
         # Slackに送信
         response = self.slack_client.chat_postMessage(
-            text="",
+            text=text,
             blocks=blocks,
             channel=slack_thread.channel_id,
             thread_ts=slack_thread.thread_ts)

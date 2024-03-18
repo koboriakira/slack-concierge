@@ -1,18 +1,18 @@
-import os
-import json
 import logging
-from datetime import datetime as Datetime
+import os
 from datetime import timedelta
+
 from slack_sdk.web import WebClient
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
-from domain.notion.notion_page import TaskPage
-from util.datetime import now as _now
-from usecase.start_task import StartTask
-from usecase.start_pomodoro import StartPomodoro
+
 from domain.channel import ChannelType
-from util.environment import Environment
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
+from domain.notion.notion_page import TaskPage
+from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
+from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from usecase.start_pomodoro import StartPomodoro
+from usecase.start_task_use_case import StartTaskUseCase
+from util.datetime import now as _now
+from util.environment import Environment
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -22,8 +22,9 @@ if os.environ.get("ENVIRONMENT") == "dev":
 client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
 notion_api=LambdaNotionApi()
 google_api=LambdaGoogleCalendarApi()
-start_task_usecase = StartTask(notion_api=notion_api,
-                                client=client)
+start_task_usecase = StartTaskUseCase(
+    notion_api=notion_api,
+    client=client)
 start_pomodoro = StartPomodoro(notion_api=notion_api, google_api=google_api, client=client)
 
 def handler(event, context):
@@ -52,7 +53,6 @@ def post_task(task: TaskPage) -> None:
         thread_ts=thread_ts,
     )
     start_pomodoro.handle(request=event_scheduler_request)
-    pass
 
 
 if __name__ == "__main__":
