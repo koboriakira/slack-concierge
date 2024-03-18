@@ -7,7 +7,6 @@ from interface.create_calendar import shortcut_create_calendar
 from interface.handle_message_event import handle_message_event
 from interface.love_spotify_track import shortcut_love_spotify_track
 from interface.react_user_post import message_react_user_post
-from interface.record_feeling import action_record_feeling
 from interface.regist import shortcut_regist
 from interface.start_pomodoro import action_start_pomodoro
 from interface.start_task import shortcut_start_task
@@ -28,7 +27,6 @@ def create_lazy_app() -> App:
     app = shortcut_regist(app)
     app = shortcut_start_task(app)
     app = action_start_pomodoro(app)
-    app = action_record_feeling(app)
     app = action_complete_task(app)
     app = handle_message_event(app)
     app = message_react_user_post(app)
