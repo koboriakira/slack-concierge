@@ -1,21 +1,19 @@
 import json
-import os
 
-from slack_sdk.web import WebClient
-
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from infrastructure.task.notion_task_repository import NotionTaskRepository
 from usecase.complete_task import CompleteTask
+from util.error_reporter import ErrorReporter
 
-SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
-SLACK_BOT = WebClient(token=SLACK_BOT_TOKEN)
-
-complete_task = CompleteTask(
-    notion_api=LambdaNotionApi(),
-    client=SLACK_BOT,
-)
+task_repository = NotionTaskRepository()
+usecase = CompleteTask(task_repository=task_repository)
 
 def handler(event:dict, context:dict) -> dict:  # noqa: ARG001
-    request = json.loads(event["Records"][0]["body"])
-    page_id = request["page_id"]
-    complete_task.handle(block_id=page_id)
-    return {"statusCode": 200}
+    try:
+        request = json.loads(event["Records"][0]["body"])
+        page_id = request["page_id"]
+        usecase.handle(task_page_id=page_id)
+        return {"statusCode": 200}
+    except:
+        message = f"complete task error. event: {event}"
+        ErrorReporter().execute(message=message)
+        raise
