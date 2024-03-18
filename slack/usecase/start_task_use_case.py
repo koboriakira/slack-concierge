@@ -51,13 +51,11 @@ class StartTaskUseCase:
         self._record_google_calendar_achivement(task_title=task.title, task_url=task.url)
 
         # Slackに投稿
-        print(task)
         text, blocks = task.create_slack_message_start_task()
         response = self.client.chat_postMessage(channel=CHANNEL.value, text=text, blocks=blocks)
         thread_ts = response["ts"]
 
         # 予約投稿を準備
-        # NOTE: これはユースケース層の中にいれるべきな気もする。ただSlackと密接に関連してもいるわけで。
         request = PomodoroTimerRequest(
             page_id=task.task_id,
             channel=CHANNEL.value,
