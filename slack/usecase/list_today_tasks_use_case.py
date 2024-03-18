@@ -1,6 +1,8 @@
 
 from datetime import date
 
+from slack_sdk.web import WebClient
+
 from domain.channel.channel_type import ChannelType
 from domain.channel.thread import Thread
 from domain.task.task import Task
@@ -9,12 +11,13 @@ from domain.task.task_repository import TaskRepository
 from util.datetime import jst_now
 
 TODAY = jst_now().date()
-
 class ListTasksUseCase:
     def __init__(
             self,
+            slack_client: WebClient,
             task_repository: TaskRepository,
             task_button_service: TaskButtonSerivce) -> None:
+        self.slack_client = slack_client
         self.task_repository = task_repository
         self.task_button_service = task_button_service
 
@@ -23,7 +26,12 @@ class ListTasksUseCase:
             target_date: date|None=None,
             slack_thread: Thread|None=None) -> list:
         tasks = self._fetch_tasks(target_date)
-        slack_thread = slack_thread or Thread.create(channel_id=ChannelType.TEST)
+        slack_thread = slack_thread or Thread.create(channel_id=ChannelType.DIARY)
+
+        _response = self.slack_client.chat_postMessage(
+            channel=slack_thread.channel_id,
+            text=f"{target_date.isoformat()}のタスク一覧です",
+        )
 
         for task in tasks:
             self.task_button_service.execute(

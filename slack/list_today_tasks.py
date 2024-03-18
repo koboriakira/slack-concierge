@@ -8,10 +8,12 @@ from usecase.list_today_tasks_use_case import ListTasksUseCase
 from util.datetime import jst_now
 from util.error_reporter import ErrorReporter
 
+slack_client=WebClient(token=os.environ["SLACK_BOT_TOKEN"])
 task_button_service = TaskButtonSerivce(
-    slack_client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]),
+    slack_client=slack_client,
 )
 use_case = ListTasksUseCase(
+    slack_client=slack_client,
     task_repository=NotionTaskRepository(),
     task_button_service=task_button_service)
 
