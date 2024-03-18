@@ -1,10 +1,12 @@
 import logging
 import os
 
+from slack_sdk.web import WebClient
+
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from slack_sdk.web import WebClient
 from usecase.pomodoro_timer import PomodoroTimer
+from util.error_reporter import ErrorReporter
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_BOT = WebClient(token=SLACK_BOT_TOKEN)
@@ -15,14 +17,18 @@ if os.environ.get("ENVIRONMENT") == "dev":
     logger.setLevel(logging.DEBUG)
 
 def handler(event, context):
-    print(event)
-    pomodoro_timer = PomodoroTimer(client=SLACK_BOT, notion_api=LambdaNotionApi())
-    request = PomodoroTimerRequest(
-        page_id=event["page_id"],
-        channel=event["channel"],
-        thread_ts=event["thread_ts"],
-    )
-    pomodoro_timer.handle(request)
+    try:
+        pomodoro_timer = PomodoroTimer(client=SLACK_BOT, notion_api=LambdaNotionApi())
+        request = PomodoroTimerRequest(
+            page_id=event["page_id"],
+            channel=event["channel"],
+            thread_ts=event["thread_ts"],
+        )
+        pomodoro_timer.handle(request)
+    except:
+        message = f"pomodoro timer error. event: {event}"
+        ErrorReporter().execute(message=message)
+        raise
 
 if __name__ == "__main__":
     # python -m pomodoro_timer
