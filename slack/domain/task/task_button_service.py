@@ -2,6 +2,7 @@ from slack_sdk.web import WebClient
 
 from domain.channel.thread import Thread
 from domain.task.task import Task
+from domain.user import UserKind
 from domain_service.block.block_builder import BlockBuilder
 
 
@@ -32,6 +33,20 @@ class TaskButtonSerivce:
             slack_thread=slack_thread,
             is_enabled_start_button=True,
             is_enabled_complete_button=False)
+
+    def pomodoro_timer(
+            self,
+            task: Task,
+            slack_thread: Thread|None = None) -> Thread:
+        user_mention = UserKind.KOBORI_AKIRA.mention()
+        text = f"{user_mention}\n25分が経過しました！\n進捗や気持ちをメモして休憩してください。"
+        return self.__execute(
+            task=task,
+            text=text,
+            slack_thread=slack_thread,
+            is_enabled_start_button=True,
+            is_enabled_complete_button=True)
+
 
     def __execute(
             self,

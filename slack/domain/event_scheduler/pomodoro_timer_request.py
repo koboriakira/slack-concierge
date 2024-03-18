@@ -6,7 +6,7 @@ class PomodoroTimerRequest:
     page_id: str
     channel: str
     thread_ts: str
-    event_ts: str
+    event_ts: str|None = None
 
     @staticmethod
     def from_event(event: dict) -> "PomodoroTimerRequest":

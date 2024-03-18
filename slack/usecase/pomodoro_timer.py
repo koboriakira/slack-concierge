@@ -1,99 +1,29 @@
-import random
 
 from slack_sdk.web import WebClient
 
+from domain.channel.thread import Thread
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
-from domain.infrastructure.api.notion_api import NotionApi
-from domain.user import UserKind
-from domain_service.block.block_builder import BlockBuilder
-from util.datetime import now
+from domain.task.task_button_service import TaskButtonSerivce
+from domain.task.task_repository import TaskRepository
 
 
 class PomodoroTimer:
-    def __init__(self, client: WebClient, notion_api: NotionApi):
-        self.client = client
-        self.notion_api = notion_api
+    def __init__(self, task_button_service: TaskButtonSerivce, task_repository: TaskRepository):
+        self.task_button_service = task_button_service
+        self.task_repository = task_repository
 
     def handle(self, request: PomodoroTimerRequest):
         """ ポモドーロの終了を通達する """
-        task_id = request.page_id
-        if self._is_completed(task_id):
+        task = self.task_repository.find_by_id(request.page_id)
+        if task.is_completed():
             return
-
-        user_mention = UserKind.KOBORI_AKIRA.mention()
-
-        block_builder = BlockBuilder()
-        block_builder = block_builder.add_section(
-            text=f"{user_mention}\n25分が経過しました！\n進捗や気持ちをメモして休憩してください。",
-        )
-        block_builder = block_builder.add_section(
-            text=_suggest_rest_action(),
-        )
-        block_builder = block_builder.add_button_action(
-            action_id="start-pomodoro",
-            text="再開",
-            value=task_id,
-            style="primary",
-        )
-        block_builder = block_builder.add_button_action(
-            action_id="complete-task",
-            text="終了",
-            value=task_id,
-            style="danger",
-        )
-        block_builder = block_builder.add_context({
-            "channel_id": request.channel,
-            "thread_ts": request.thread_ts,
-            })
-        blocks = block_builder.build()
-
-        self.client.chat_postMessage(
-            text="25分が経過しました！",
-            blocks=blocks,
-            channel=request.channel,
-            thread_ts=request.thread_ts)
+        slack_thread = Thread(channel=request.channel, thread_ts=request.thread_ts)
+        self.task_button_service.pomodoro_timer(task=task, slack_thread=slack_thread)
 
     def _is_completed(self, task_id: str):
         """ タスクがすでに完了しているかどうか """
         task = self.notion_api.find_task(task_id)
         return task.is_completed()
-
-
-def _suggest_rest_action() -> str:
-    hour = now().time().hour
-    action = random.choice(["家事の確認", "ストレッチ"])
-    if hour < 12:
-        # 朝活、ヨガ系の動画
-        url = random.choice([
-            "https://youtube.com/watch?v=8FX9ZwDvf_0&si=Bw3P_R-ki7I3RnUo", # 5分ヨガ
-        ])
-        return f"休憩時のオススメ！\n{url}"
-    elif 12 <= hour < 18:
-        if action == "家事の確認":
-            housework = random.choice(["洗濯",
-                                       "トイレ掃除",
-                                       "リビング掃除",
-                                       "食器洗い"])
-            return f"休憩時のオススメ！\n{housework}はやりましたか？"
-        elif action == "ストレッチ":
-            url = random.choice([
-                "https://youtube.com/watch?v=8FX9ZwDvf_0&si=Bw3P_R-ki7I3RnUo", # FIXME: あとで差し替える
-            ])
-            return f"休憩時のオススメ！\n{url}"
-        else:
-            raise ValueError(f"Unexpected action: {action}")
-    elif action == "家事の確認":
-        housework = random.choice(["洗濯",
-                                   "リビング掃除",
-                                   "食器洗い"])
-        return f"休憩時のオススメ！\n{housework}はやりましたか？"
-    elif action == "ストレッチ":
-        url = random.choice([
-            "https://youtube.com/watch?v=8FX9ZwDvf_0&si=Bw3P_R-ki7I3RnUo", # FIXME: あとで差し替える
-        ])
-        return f"休憩時のオススメ！\n{url}"
-    else:
-        raise ValueError(f"Unexpected action: {action}")
 
 if __name__ == "__main__":
     # python -m usecase.pomodoro_timer
