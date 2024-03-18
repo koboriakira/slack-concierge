@@ -14,8 +14,10 @@ class NotionTaskRepository(TaskRepository):
         return Task.reconstruct(data=response["data"])
 
     def save(self, task: "Task") -> "Task":
-        response = self.api.post(path="task",
-                                  data=task.to_dict()) if not Environment.is_demo() else _demo_save(task)
+        if Environment.is_demo():
+            return _demo_save(task)
+
+        response = self.api.post(path="task", data=task.to_dict())
         if task.task_id:
             return task
 
@@ -36,8 +38,7 @@ class NotionTaskRepository(TaskRepository):
                           data=data) if not Environment.is_demo() else None
 
 
-def _demo_save(task: Task) -> dict:
-    return {
-        "id": task.task_id or "afd886c4-ec90-40b1-9e9e-ba2536335ecc",
-        "url": task.url or "https://www.notion.so/koboriakira/test-afd886c4ec9040b19e9eba2536335ecc",
-    }
+def _demo_save(task: Task) -> Task:
+    task.task_id = task.task_id or "afd886c4-ec90-40b1-9e9e-ba2536335ecc"
+    task.url = task.url or "https://www.notion.so/koboriakira/test-afd886c4ec9040b19e9eba2536335ecc"
+    return task
