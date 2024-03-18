@@ -7,7 +7,9 @@ import jpholiday
 JST = timezone(timedelta(hours=+9), "JST")
 
 def jst_now() -> DatetimeObject:
-    return DatetimeObject.now(JST)
+    now = DatetimeObject.now(JST)
+    # マイクロ秒以下を切り捨てる
+    return now.replace(microsecond=0)
 
 def now(enable_jst: bool = True) -> DatetimeObject:
     """
