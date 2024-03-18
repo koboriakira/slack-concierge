@@ -206,7 +206,7 @@ class LambdaNotionApi(NotionApi):
     def get(self, path: str, params: dict | None = None) -> dict:
         """ 任意のパスに対してGETリクエストを送る。共通化のために作成 """
         debug_message = f"GET to url: {path}"
-        self.logger.debug(debug_message, extra={"data": json.dumps(params, ensure_ascii=False) if params else "None"})
+        self.logger.debug(debug_message)
 
         url = f"{self.domain}{path}"
         headers = {
@@ -217,7 +217,6 @@ class LambdaNotionApi(NotionApi):
         if response.status_code != 200:
             error_message = f"status_code: {response.status_code}, message: {response.text}"
             raise Exception(error_message)
-        self.logger.debug(debug_message, extra={"data": json.dumps(response.json(), ensure_ascii=False)})
         return response.json()
 
     def _get(self, path: str, params: dict = {}) -> dict:
@@ -238,7 +237,7 @@ class LambdaNotionApi(NotionApi):
             "access-token": NOTION_SECRET,
         }
         debug_message = f"POST to url: {path}"
-        self.logger.debug(debug_message, extra={"data": json.dumps(data, ensure_ascii=False)})
+        self.logger.debug(debug_message)
 
         respone = requests.post(url=f"{self.domain}{path}",
                                 headers=headers,
@@ -248,8 +247,6 @@ class LambdaNotionApi(NotionApi):
             exception_message = f"statusCode:{respone.status_code}, msg: {respone.text}, data: {json.dumps(data, ensure_ascii=False)}"
             raise Exception(exception_message)
         response_json = respone.json()
-
-        self.logger.debug(debug_message, extra=json.dumps(response_json, ensure_ascii=False))
         return response_json["data"]
 
 
