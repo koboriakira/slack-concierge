@@ -14,6 +14,7 @@ def handler(event:dict, context:dict) -> dict:  # noqa: ARG001
         usecase.handle(task_page_id=page_id)
         return {"statusCode": 200}
     except:
-        message = f"complete task error. event: {event}"
+        request = json.loads(event["Records"][0]["body"])
+        message = f"complete task error. ```event: {request}```"
         ErrorReporter().execute(message=message)
         raise
