@@ -15,7 +15,8 @@ class TaskButtonSerivce:
             self,
             task: Task,
             slack_thread: Thread|None = None,
-            block_builder: BlockBuilder|None = None) -> None:
+            block_builder: BlockBuilder|None = None,
+            is_enabled_complete_button: bool|None = None) -> None:
         slack_thread = slack_thread or Thread.empty()
         block_builder = block_builder or BlockBuilder()
 
@@ -27,12 +28,13 @@ class TaskButtonSerivce:
             value=task.task_id,
             style="primary",
         )
-        block_builder = block_builder.add_button_action(
-            action_id="complete-task",
-            text="終了",
-            value=task.task_id,
-            style="danger",
-        )
+        if is_enabled_complete_button:
+            block_builder = block_builder.add_button_action(
+                action_id="complete-task",
+                text="終了",
+                value=task.task_id,
+                style="danger",
+            )
         blocks = block_builder.build()
 
         # Slackに送信
