@@ -2,10 +2,10 @@
 from datetime import date
 
 from domain.channel.channel_type import ChannelType
+from domain.channel.thread import Thread
 from domain.task.task import Task
 from domain.task.task_button_service import TaskButtonSerivce
 from domain.task.task_repository import TaskRepository
-from slack.domain.channel.thread import Thread
 from util.datetime import jst_now
 
 TODAY = jst_now().date()

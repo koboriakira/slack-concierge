@@ -1,7 +1,7 @@
-from slack.domain.task.task import Task
 from slack_sdk.web import WebClient
 
 from domain.channel.thread import Thread
+from domain.task.task import Task
 from domain_service.block.block_builder import BlockBuilder
 
 
