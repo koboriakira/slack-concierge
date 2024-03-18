@@ -28,6 +28,16 @@ class AchivementRepositoryImpl(AchievementRepository):
         ) for el in response]
         return [achievement for achievement in achievements if achievement.in_range(start, end)]
 
+    def save(self, achivement: Achievement) -> None:
+        self.google_cal_api.post_gas_calendar(
+            category="実績",
+            title=achivement.title,
+            start=achivement.start,
+            end=achivement.end,
+            detail=achivement.description(),
+        )
+
+
 
 if __name__ == "__main__":
     # python -m slack.infrastructure.schedule.achievement_repository_impl

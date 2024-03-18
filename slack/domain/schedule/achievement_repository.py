@@ -8,3 +8,7 @@ class AchievementRepository(metaclass=ABCMeta):
     @abstractmethod
     def search(self, start: datetime, end: datetime) -> Achievement:
         pass
+
+    @abstractmethod
+    def save(self, achivement: Achievement) -> None:
+        pass
