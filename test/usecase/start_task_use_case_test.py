@@ -54,12 +54,12 @@ class StartTaskUseCaseTest(TestCase):
         self.suite.task_repository.find_by_id.assert_not_called()
         self.suite.google_cal_api.post_gas_calendar.assert_called_once()
         self.suite.client.chat_postMessage.assert_called_once()
-        self.suite.client.reactions_add.assert_called_once()
         self.suite.scheduler_service.set_pomodoro_timer.assert_called_once_with(
             request=PomodoroTimerRequest(
                 page_id=task.task_id,
                 channel=ChannelType.DIARY.value,
                 thread_ts=DEMO_TS,
+                event_ts=DEMO_TS,
             ),
         )
 
@@ -77,11 +77,11 @@ class StartTaskUseCaseTest(TestCase):
         self.suite.task_repository.find_by_id.assert_called_once()
         self.suite.google_cal_api.post_gas_calendar.assert_called_once()
         self.suite.client.chat_postMessage.assert_called_once()
-        self.suite.client.reactions_add.assert_called_once()
         self.suite.scheduler_service.set_pomodoro_timer.assert_called_once_with(
             request=PomodoroTimerRequest(
                 page_id=task.task_id,
                 channel=ChannelType.DIARY.value,
                 thread_ts=DEMO_TS,
+                event_ts=DEMO_TS,
             ),
         )

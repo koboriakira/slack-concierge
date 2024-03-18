@@ -7,6 +7,7 @@ from datetime import timedelta
 
 import boto3
 from botocore.exceptions import NoCredentialsError
+from slack_sdk.web import WebClient
 
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
 from util.datetime import now as datetime_now
@@ -19,9 +20,14 @@ POMODORO_TIMER_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:fun
 CREATE_TASK_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:function:SlackConcierge-CreateTask0C1E0090-em9csrKc0K9T"
 
 POMODORO_MINUTES = 25
+POMODORO_ICON = "tomato"
 
 class EventBridgeSchedulerService:
-    def __init__(self, logger: logging.Logger | None = None) -> None:
+    def __init__(
+            self,
+            slack_client: WebClient|None = None,
+            logger: logging.Logger | None = None) -> None:
+        self.slack_client = slack_client or WebClient(token=Environment.get_slack_bot_token())
         self.events_client = boto3.client("scheduler")
         self.logger = logger or logging.getLogger(__name__)
 
@@ -37,6 +43,13 @@ class EventBridgeSchedulerService:
                 "thread_ts": request.thread_ts,
             },
         )
+        # ポモドーロ開始を示すリアクションをつける
+        self.slack_client.reactions_add(
+            channel=request.channel,
+            timestamp=request.event_ts,
+            name=POMODORO_ICON,
+        )
+
 
     def set_create_task(
             self,

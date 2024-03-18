@@ -39,6 +39,7 @@ class Achievement:
         return True
 
 
+
 def _partition(text: str) -> tuple[dict, str]:
     # frontmatterだけの場合
     if text.strip().endswith("---"):

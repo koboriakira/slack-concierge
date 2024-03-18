@@ -57,7 +57,7 @@ class TestTaskButtonSerivce(TestCase):
             }
         ]
         self.suite.slack_client.chat_postMessage.assert_called_once_with(
-            text="",
+            text="25分のポモドーロを開始します",
             blocks=expected_blocks,
             channel=DUMMY_THREAD.channel_id,
             thread_ts=DUMMY_THREAD.thread_ts,

@@ -55,20 +55,16 @@ class StartTaskUseCase:
         # Slackに投稿
         text, blocks = task.create_slack_message_start_task()
         response = self.client.chat_postMessage(channel=CHANNEL.value, text=text, blocks=blocks)
-        thread_ts = response["ts"]
+        event_ts = response["ts"]
 
         # 予約投稿を準備
         request = PomodoroTimerRequest(
             page_id=task.task_id,
             channel=CHANNEL.value,
-            thread_ts=thread_ts,
+            thread_ts=event_ts,
+            event_ts=event_ts,
         )
         self.scheduler_service.set_pomodoro_timer(request=request)
-
-        # ポモドーロ開始を示すリアクションをつける
-        self.client.reactions_add(
-            channel=request.channel, timestamp=thread_ts, name=POMODORO_ICON,
-        )
 
         return task
 
