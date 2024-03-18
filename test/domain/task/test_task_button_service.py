@@ -14,10 +14,14 @@ DUMMY_THREAD = Thread.create(channel_id="dummy_channel_id", thread_ts="dummy_thr
 class TestTaskButtonSerivce(TestCase):
     def setUp(self) -> None:
         mock_slack_client = Mock(spec=WebClient)
+        mock_slack_client.chat_postMessage.return_value = {
+            "channel": "dummy_channel_id",
+            "ts": "dummy_response_ts"
+        }
         self.suite = TaskButtonSerivce(slack_client=mock_slack_client)
         return super().setUp()
 
-    def test_正常系(self):
+    def test_ポモドーロの開始(self):
         # Given
         task = Task(
             task_id=DUMMY_TASK_ID,
@@ -25,7 +29,7 @@ class TestTaskButtonSerivce(TestCase):
             title="dummy",
             pomodoro_count=0)
         # When
-        self.suite.execute(task=task, slack_thread=DUMMY_THREAD)
+        _actual = self.suite.start_pomodoro(task=task, slack_thread=DUMMY_THREAD)
 
         # Then
         expected_blocks = [
@@ -33,23 +37,8 @@ class TestTaskButtonSerivce(TestCase):
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"<{DUMMY_TASK_URL}|{DUMMY_TASK_TITLE}>"
+                    "text": "25分のポモドーロを開始します",
                 }
-            },
-            {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "開始"
-                        },
-                        "style": "primary",
-                        "value": DUMMY_TASK_ID,
-                        "action_id": "start-pomodoro",
-                    },
-                ]
             },
             {
                 "type": "actions",

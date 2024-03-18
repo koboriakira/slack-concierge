@@ -34,7 +34,7 @@ class ListTasksUseCase:
         )
 
         for task in tasks:
-            self.task_button_service.execute(
+            self.task_button_service.print_task(
                 task=task,
                 slack_thread=slack_thread,
             )
