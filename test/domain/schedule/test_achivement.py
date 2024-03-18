@@ -83,3 +83,24 @@ class TestAchivement(TestCase):
         self.assertEqual(actual.end, DUMMY_END_DATETIME)
         self.assertEqual(actual.frontmatter, {})
         self.assertEqual(actual.text, "")
+
+    def test_Googleカレンダー用の詳細文を作成する(self):
+        # Given
+        suite = Achievement(
+            title=DUMMY_TITLE,
+            start=DUMMY_START_DATETIME,
+            end=DUMMY_END_DATETIME,
+            frontmatter={"notion_url": "https://www.notion.so/018268c8c2e241b2b3cafca6b1a6cccf"},
+            text="ダミーテキスト",
+        )
+
+        # When
+        actual = suite.description()
+
+        # Then
+        expected = """---
+notion_url: https://www.notion.so/018268c8c2e241b2b3cafca6b1a6cccf
+---
+
+ダミーテキスト"""
+        self.assertEqual(actual, expected)
