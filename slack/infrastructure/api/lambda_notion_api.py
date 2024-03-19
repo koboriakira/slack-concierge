@@ -206,7 +206,7 @@ class LambdaNotionApi(NotionApi):
 
     def get(self, path: str, params: dict | None = None) -> dict:
         """ 任意のパスに対してGETリクエストを送る。共通化のために作成 """
-        debug_message = f"GET to url: {path}"
+        debug_message = f"GET to url: {path} params: {json.dumps(params, ensure_ascii=False)}" if params else f"GET to url: {path}"
         self.logger.debug(debug_message)
 
         url = f"{self.domain}{path}"
@@ -237,7 +237,7 @@ class LambdaNotionApi(NotionApi):
         headers = {
             "access-token": NOTION_SECRET,
         }
-        debug_message = f"POST to url: {path}"
+        debug_message = f"POST to url: {path} data: {json.dumps(data, ensure_ascii=False)}"
         self.logger.debug(debug_message)
 
         respone = requests.post(url=f"{self.domain}{path}",
