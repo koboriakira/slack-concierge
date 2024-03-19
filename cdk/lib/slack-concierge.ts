@@ -14,6 +14,7 @@ import {
 import { Construct } from "constructs";
 
 // CONFIG
+const IS_DEBUG = "true";
 const RUNTIME = lambda.Runtime.PYTHON_3_11;
 const APP_DIR_PATH = "../slack";
 const LAYER_ZIP_PATH = "../dependencies.zip";
@@ -316,6 +317,7 @@ export class SlackConcierge extends Stack {
       retryAttempts: 0,
     });
 
+    fn.addEnvironment("IS_DEBUG", IS_DEBUG);
     fn.addEnvironment(
       "SLACK_SIGNING_SECRET",
       process.env.SLACK_SIGNING_SECRET || ""
