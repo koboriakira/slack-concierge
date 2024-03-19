@@ -11,7 +11,6 @@ def get_logger(name: str | None) -> Logger:
     else:
         logger.setLevel(logging.INFO)
 
-    # handler1: 標準出力
     handler1 = logging.StreamHandler()
     handler1.setFormatter(logging.Formatter(
         "%(asctime)s %(levelname)8s %(message)s"))

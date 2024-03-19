@@ -8,13 +8,14 @@ import requests
 
 from domain.infrastructure.api.notion_api import NotionApi
 from domain.notion.notion_page import NotionPage, RecipePage, TaskPage
+from util.custom_logging import get_logger
 
 NOTION_SECRET = os.getenv("NOTION_SECRET")
 
 class LambdaNotionApi(NotionApi):
     def __init__(self, logger: logging.Logger | None = None):
         self.domain = os.environ["LAMBDA_NOTION_API_DOMAIN"]
-        self.logger = logger or logging.getLogger(__name__)
+        self.logger = logger or get_logger(__name__)
 
     def list_recipes(self) -> list[RecipePage]:
         response = self._get(path="recipes")
