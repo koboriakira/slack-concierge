@@ -71,7 +71,10 @@ class StartTaskUseCase:
     def load_or_create(self, task_id: str|None = None, task_title: str|None = None) -> Task:
         if task_id is not None:
             return self.task_repository.find_by_id(task_id)
-        task = Task.from_title(task_title)
+        task = Task(
+            title=task_title,
+            start_date=jst_now().replace(hour=0, minute=0, second=0, microsecond=0),
+        )
         return self.task_repository.save(task)
 
     def _record_google_calendar_achivement(self, task_title: str, task_url: str) -> None:
