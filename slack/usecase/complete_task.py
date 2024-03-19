@@ -30,3 +30,9 @@ class CompleteTask:
         self.scheduler_client.set_create_task(
             title=task_title,
             datetime=routine_task.datetime_creates_next_task)
+
+if __name__ == "__main__":
+    from infrastructure.task.notion_task_repository import NotionTaskRepository
+    task_repository = NotionTaskRepository()
+    complete_task = CompleteTask(task_repository=task_repository)
+    complete_task.handle(task_page_id="5b33e46db6dc4b1f9d88dfec33a3f7c4")
