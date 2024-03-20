@@ -5,7 +5,7 @@ from slack_sdk.web import WebClient
 from domain.channel import ChannelType
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from usecase.create_task_in_inbox import CreateTaskInInbox
-from util.slack_client_wrapper import SlackClientWrapper
+from util.slack_client_wrapper import SlackClientWrapperImpl
 
 
 def handle_message_post(event: dict, logger: logging.Logger, client: WebClient):
@@ -17,7 +17,7 @@ def handle_message_post(event: dict, logger: logging.Logger, client: WebClient):
     blocks: list[dict] = event["blocks"]
 
     if _is_inbox_post(channel=channel, blocks=blocks):
-        client_wrapper = SlackClientWrapper(client=client, logger=logger)
+        client_wrapper = SlackClientWrapperImpl(client=client, logger=logger)
         client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts, exception_enabled=True)
         usecase = CreateTaskInInbox(notion_api=LambdaNotionApi())
         usecase.handle(text=text, event_ts=event_ts, channel=channel)
