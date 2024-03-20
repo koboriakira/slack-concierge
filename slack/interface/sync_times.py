@@ -1,20 +1,22 @@
 import json
+
+from slack_bolt import Ack, App
 from slack_sdk.web import WebClient
-from slack_bolt import App, Ack
-from usecase.sync_business_timeline import SyncBusinessTimeline as SyncBusinessTimelineUsecase
-from util.logging_traceback import logging_traceback
-from util.custom_logging import get_logger
-from domain.message import BaseMessage
+
 from domain.channel import Channel
+from domain.message import BaseMessage
+from usecase.sync_business_timeline import SyncBusinessTimeline as SyncBusinessTimelineUsecase
+from util.custom_logging import get_logger
+from util.error_reporter import ErrorReporter
 
 SHORTCUT_ID = "sync-times"
 
 logger = get_logger(__name__)
 
-def just_ack(ack: Ack):
+def just_ack(ack: Ack) -> None:
     ack()
 
-def sync_times(body: dict, client: WebClient):
+def sync_times(body: dict, client: WebClient) -> None:
     logger.info("sync_times")
     logger.debug(json.dumps(body))
 
@@ -29,11 +31,10 @@ def sync_times(body: dict, client: WebClient):
             file_id_list=[], # TODO: 画像のIDを取得する
         )
 
-    except Exception as err:
-        import sys
-        logging_traceback(err, sys.exc_info())
+    except:  # noqa: E722
+        ErrorReporter().execute()
 
-def shortcut_sync_times(app: App):
+def shortcut_sync_times(app: App) -> App:
     app.shortcut(SHORTCUT_ID)(
         ack=just_ack,
         lazy=[sync_times],

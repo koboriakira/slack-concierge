@@ -1,19 +1,22 @@
-import logging
 import json
-from slack_sdk.web import WebClient
-from slack_bolt import App, Ack
-from util.logging_traceback import logging_traceback
-from util.environment import Environment
-from interface.handle_message import handle_message_file_share, handle_message_changed, handle_message_post, handle_message_reply
+import logging
 
-def just_ack(ack: Ack):
+from slack_bolt import Ack, App
+from slack_sdk.web import WebClient
+
+from interface.handle_message import (
+    handle_message_changed,
+    handle_message_file_share,
+    handle_message_post,
+    handle_message_reply,
+)
+from util.error_reporter import ErrorReporter
+
+
+def just_ack(ack: Ack) -> None:
     ack()
 
-def handle(body: dict, logger: logging.Logger, client: WebClient):
-    if Environment.is_dev():
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.DEBUG)
+def handle(body: dict, logger: logging.Logger, client: WebClient) -> None: # noqa: C901
     logger.info("handle_message_event")
     logger.debug(json.dumps(body, ensure_ascii=False))
 
@@ -26,7 +29,7 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
 
         # メッセージ削除イベントは無視
         if event.get("subtype") == "message_deleted":
-            return
+            return None
 
         # メッセージ更新イベント
         if event.get("subtype") == "message_changed":
@@ -39,15 +42,11 @@ def handle(body: dict, logger: logging.Logger, client: WebClient):
             handle_message_post(event, logger, client)
         else:
             handle_message_reply(event, logger, client)
+    except:  # noqa: E722
+        ErrorReporter().execute()
 
 
-    except Exception as e:
-        import sys
-        exc_info = sys.exc_info()
-        logging_traceback(e, exc_info)
-
-
-def handle_message_event(app: App):
+def handle_message_event(app: App) -> App:
     app.event("message")(
         ack=just_ack,
         lazy=[handle],

@@ -1,9 +1,11 @@
 import logging
 import os
+
+from slack_bolt import Ack, App
 from slack_sdk.web import WebClient
-from slack_bolt import App, Ack
+
 from usecase.service.sqs_service import SqsService
-from util.logging_traceback import logging_traceback
+from util.error_reporter import ErrorReporter
 
 ACTION_ID = "complete-task"
 AWS_ACCOUNT_ID = os.environ["AWS_ACCOUNT_ID"]
@@ -33,11 +35,10 @@ def complete_task(body: dict, client: WebClient, logger:logging.Logger):
         sqs_service.send(QUEUE_URL, {
             "page_id": notion_page_block_id,
             "channel": channel_id,
-            "thread_ts": thread_ts
+            "thread_ts": thread_ts,
         })
-    except Exception as err:
-        import sys
-        logging_traceback(err, sys.exc_info())
+    except:  # noqa: E722
+        ErrorReporter().execute()
 
 def action_complete_task(app: App):
     app.action(ACTION_ID)(

@@ -9,7 +9,7 @@ from domain_service.view.view_builder import ViewBuilder
 from infrastructure.task.notion_task_repository import NotionTaskRepository
 from usecase.fetch_current_tasks_use_case import FetchCurrentTasksUseCase
 from usecase.start_task_use_case import StartTaskUseCase
-from util.logging_traceback import logging_traceback
+from util.error_reporter import ErrorReporter
 
 SHORTCUT_ID = "start-task"
 CALLBACK_ID = "start-task-modal"
@@ -22,16 +22,13 @@ class StartTaskInterface:
         self.start_task_use_case = start_task_use_case
 
     def start_task(self, view: dict) -> None:
-        try:
-            view_model = View(view)
-            state = view_model.get_state()
-            state_task_title, state_task_id = _get_task_title_and_id(state)
+        view_model = View(view)
+        state = view_model.get_state()
+        state_task_title, state_task_id = _get_task_title_and_id(state)
 
-            # タスクを開始する
-            _ = self.start_task_use_case.execute(task_id=state_task_id, task_title=state_task_title)
-        except Exception as err:
-            import sys
-            logging_traceback(err, sys.exc_info())
+        # タスクを開始する
+        _ = self.start_task_use_case.execute(task_id=state_task_id, task_title=state_task_title)
+
 
 class StartTaskModalInterface:
     def __init__(
@@ -64,9 +61,8 @@ class StartTaskModalInterface:
                 trigger_id=trigger_id,
                 view=view,
             )
-        except Exception as err:
-            import sys
-            logging_traceback(err, sys.exc_info())
+        except:  # noqa: E722
+            ErrorReporter().execute()
 
 
 class TaskTitleNotFoundError(ValueError):
@@ -85,26 +81,31 @@ def handle_modal(ack: Ack) -> None:
     ack()
 
 def start_modal_interaction(body: dict, client: WebClient) -> None:
-    task_repository = NotionTaskRepository()
-    fetch_current_tasks_use_case = FetchCurrentTasksUseCase(
-        task_repository=task_repository,
-    )
-    start_task_model_interface = StartTaskModalInterface(
-        fetch_current_tasks_use_case=fetch_current_tasks_use_case,
-        client=client,
-    )
-    start_task_model_interface.execute(trigger_id=body["trigger_id"])
-
+    try:
+        task_repository = NotionTaskRepository()
+        fetch_current_tasks_use_case = FetchCurrentTasksUseCase(
+            task_repository=task_repository,
+        )
+        start_task_model_interface = StartTaskModalInterface(
+            fetch_current_tasks_use_case=fetch_current_tasks_use_case,
+            client=client,
+        )
+        start_task_model_interface.execute(trigger_id=body["trigger_id"])
+    except:  # noqa: E722
+        ErrorReporter().execute()
 
 def start_task(logger: logging.Logger, view: dict, client: WebClient) -> None:
-    start_task_use_case = StartTaskUseCase(
-        client=client,
-        logger=logger,
-    )
-    start_task_interface = StartTaskInterface(
-        start_task_use_case=start_task_use_case,
-    )
-    start_task_interface.start_task(view=view)
+    try:
+        start_task_use_case = StartTaskUseCase(
+            client=client,
+            logger=logger,
+        )
+        start_task_interface = StartTaskInterface(
+            start_task_use_case=start_task_use_case,
+        )
+        start_task_interface.start_task(view=view)
+    except:  # noqa: E722
+        ErrorReporter().execute()
 
 
 def _get_task_title_and_id(state: State) -> tuple[str, str | None]:

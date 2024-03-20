@@ -10,7 +10,7 @@ from infrastructure.task.notion_task_repository import NotionTaskRepository
 from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
 from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
 from util.custom_logging import get_logger
-from util.logging_traceback import logging_traceback
+from util.error_reporter import ErrorReporter
 
 ACTION_ID = "start-pomodoro"
 
@@ -39,9 +39,8 @@ def start_pomodoro(body: dict, client: WebClient) -> None:
         )
 
         usecase.handle(task_page_id=notion_page_block_id, slack_thread=slack_thread)
-    except Exception as err:
-        import sys
-        logging_traceback(err, sys.exc_info())
+    except:  # noqa: E722
+        ErrorReporter().execute()
 
 def action_start_pomodoro(app: App) -> App:
     app.action(ACTION_ID)(

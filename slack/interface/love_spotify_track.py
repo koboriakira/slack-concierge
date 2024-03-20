@@ -5,7 +5,7 @@ from slack_sdk.web import WebClient
 
 from usecase.service.sqs_service import SqsService
 from util.custom_logging import get_logger
-from util.logging_traceback import logging_traceback
+from util.error_reporter import ErrorReporter
 from util.slack_client_wrapper import SlackClientWrapperImpl
 
 ACTION_ID = "LOVE_SPOTIFY_TRACK"
@@ -39,11 +39,10 @@ def love_spotify_track(body: dict, client: WebClient) -> None:
                 "channel_id": channel_id,
                 "thread_ts": thread_ts,
             })
-    except Exception as err:
-        import sys
-        logging_traceback(err, sys.exc_info())
+    except:  # noqa: E722
+        ErrorReporter().execute()
 
-def shortcut_love_spotify_track(app: App):
+def shortcut_love_spotify_track(app: App) -> App:
     app.action(ACTION_ID)(
         ack=just_ack,
         lazy=[love_spotify_track],
