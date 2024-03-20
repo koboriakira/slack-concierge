@@ -20,6 +20,7 @@ class Task:
     url: str | None = None
     mentioned_page_id: str | None = None
     task_kind: str | None = None
+    text: str | None = None
 
     @staticmethod
     def reconstruct(data: dict) -> "Task":
@@ -35,6 +36,7 @@ class Task:
             end_date=data["end_date"],
             mentioned_page_id=data.get("mentioned_page_id"), # FIXME: APIから取得できるようにしたい
             pomodoro_count=data.get("pomodoro_count", 0), # FIXME: APIから取得できるようにしたい
+            text=data.get("text"), # FIXME: APIから取得できるようにしたい
         )
 
     @staticmethod
@@ -80,8 +82,10 @@ class Task:
     def create_slack_message_start_task(self) -> tuple[str, list[dict]]:
         from domain_service.block.block_builder import BlockBuilder
         """タスク開始時のSlackメッセージを生成する"""
-        text = f"<{self.url}|{self.title}>"
         block_builder = BlockBuilder()
+        text = f"<{self.url}|{self.title}>"
+        if self.text:
+            text += f"\n\n{self.text}"
         block_builder = block_builder.add_section(text=text)
         block_builder = block_builder.add_button_action(
             action_id="complete-task",
