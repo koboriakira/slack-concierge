@@ -13,6 +13,7 @@ from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerS
 from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
 from util.datetime import now as _now
 from util.environment import Environment
+from util.error_reporter import ErrorReporter
 
 client = WebClient(token=Environment.get_slack_bot_token())
 usecase = StartPomodoroUsecase(
@@ -22,13 +23,17 @@ usecase = StartPomodoroUsecase(
     scheduler_service=EventBridgeSchedulerService(slack_client=client),
 )
 
-def handler(event, context):
-    now_tasks = _find_task()
-    if len(now_tasks) == 0:
-        return {"message": "no task"}
-    for task in now_tasks:
-        post_task(task)
-    return {"message": "success"}
+def handler(event:dict, context:dict) -> dict:  # noqa: ARG001
+    try:
+        now_tasks = _find_task()
+        if len(now_tasks) == 0:
+            return {"message": "no task"}
+        for task in now_tasks:
+            post_task(task)
+        return {"message": "success"}
+    except:  # noqa: E722
+        ErrorReporter().execute()
+        return {"message": "error"}
 
 def _find_task() -> list:
     now = _now()

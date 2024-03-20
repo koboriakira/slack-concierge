@@ -1,7 +1,8 @@
-import os
-import json
 import logging
+import os
+
 from slack_sdk.web import WebClient
+
 from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
