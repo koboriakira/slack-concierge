@@ -4,8 +4,6 @@ from domain.task.task_repository import TaskRepository
 from infrastructure.repository.current_tasks_s3_repository import CurrentTasksS3Repository
 from util.datetime import jst_now, now
 
-TODAY_TASK_OPTIONS = "today_task_options"
-
 
 class FetchCurrentTasksUseCase:
     def __init__(
