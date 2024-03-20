@@ -19,6 +19,7 @@ class Task:
     task_id: str | None = None
     url: str | None = None
     mentioned_page_id: str | None = None
+    task_kind: str | None = None
 
     @staticmethod
     def reconstruct(data: dict) -> "Task":

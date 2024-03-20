@@ -71,9 +71,12 @@ class StartTaskUseCase:
     def load_or_create(self, task_id: str|None = None, task_title: str|None = None) -> Task:
         if task_id is not None:
             return self.task_repository.find_by_id(task_id)
+
+        # いまスタートするので、「今すぐやる」タスクとして作成する
         task = Task(
             title=task_title,
             start_date=jst_now().replace(hour=0, minute=0, second=0, microsecond=0),
+            task_kind="今すぐやる",
         )
         return self.task_repository.save(task)
 
