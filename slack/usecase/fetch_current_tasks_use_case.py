@@ -1,13 +1,8 @@
 from datetime import datetime, timedelta
 
-from domain.routine.routine_task import RoutineTask
 from domain.task.task_repository import TaskRepository
 from infrastructure.repository.current_tasks_s3_repository import CurrentTasksS3Repository
 from util.datetime import jst_now, now
-
-ROUTINE_TASK_OPTIONS = [
-    {"text": task.value, "value": task.name} for task in RoutineTask
-]
 
 TODAY_TASK_OPTIONS = "today_task_options"
 
