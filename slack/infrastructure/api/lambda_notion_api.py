@@ -111,13 +111,16 @@ class LambdaNotionApi(NotionApi):
     def add_book(
         self,
         google_book_id: str | None = None,
-        title: str | None = None) -> dict:
+        title: str | None = None,
+        slack_channel: str|None = None) -> dict:
         api_url = f"{self.domain}books/regist"
         data = {}
         if google_book_id:
             data["google_book_id"] = google_book_id
         if title:
             data["title"] = title
+        if slack_channel:
+            data["slack_channel"] = slack_channel
         return self._post(url=api_url, data=data)
 
     def create_prowrestling_page(self,
