@@ -1,5 +1,6 @@
 import logging
 
+from slack_sdk.errors import SlackApiError
 from slack_sdk.web import WebClient
 
 from domain.channel import ChannelType
@@ -18,10 +19,14 @@ def handle_message_post(event: dict, logger: logging.Logger, client: WebClient):
 
     if _is_inbox_post(channel=channel, blocks=blocks):
         client_wrapper = SlackClientWrapperImpl(client=client, logger=logger)
-        client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts, exception_enabled=True)
-        usecase = CreateTaskInInbox(notion_api=LambdaNotionApi())
-        usecase.handle(text=text, event_ts=event_ts, channel=channel)
-        return
+        try:
+            client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts, exception_enabled=True)
+            usecase = CreateTaskInInbox(notion_api=LambdaNotionApi())
+            usecase.handle(text=text, event_ts=event_ts, channel=channel)
+            return
+        except SlackApiError as e:
+            logger.error(f"Slack APIエラー: {e}")
+            return
 
 
 def _is_inbox_post(channel: str, blocks: list[dict]) -> bool:
