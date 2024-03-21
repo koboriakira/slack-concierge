@@ -20,9 +20,10 @@ notion_api = LambdaNotionApi()
 google_calendar_api = LambdaGoogleCalendarApi()
 
 # ログ
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG) # 一時的にデバッグレベル高くする
 if Environment.is_dev():
-    logging.basicConfig(level=logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
 
 # アプリ設定
 app = FastAPI(
@@ -75,7 +76,9 @@ def post_add_context(
 def post_wakeup() -> dict:
     try:
         achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
-        usecase = WakeUpUseCase(achievement_repository=achivement_repository)
+        usecase = WakeUpUseCase(
+            achievement_repository=achivement_repository,
+            logger=logger)
         usecase.execute()
         return {"status": "ok"}
     except:  # noqa: E722
