@@ -6,7 +6,7 @@ from domain.channel import ChannelType
 from domain.channel.thread import Thread
 from domain.task.task import Task
 from domain.task.task_button_service import TaskButtonSerivce
-from infrastructure.schedule.achievement_repository_impl import AchivementRepositoryImpl
+from infrastructure.schedule.achievement_repository_impl import AchievementRepositoryImpl
 from infrastructure.task.notion_task_repository import NotionTaskRepository
 from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
 from usecase.start_pomodoro import StartPomodoro as StartPomodoroUsecase
@@ -17,7 +17,7 @@ from util.error_reporter import ErrorReporter
 client = WebClient(token=Environment.get_slack_bot_token())
 usecase = StartPomodoroUsecase(
     task_button_service=TaskButtonSerivce(slack_client=client),
-    achievement_repository=AchivementRepositoryImpl(),
+    achievement_repository=AchievementRepositoryImpl(),
     task_repository=NotionTaskRepository(),
     scheduler_service=EventBridgeSchedulerService(slack_client=client),
 )

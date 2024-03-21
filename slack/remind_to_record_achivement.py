@@ -2,12 +2,12 @@ import os
 
 from slack_sdk.web import WebClient
 
-from infrastructure.schedule.achievement_repository_impl import AchivementRepositoryImpl
+from infrastructure.schedule.achievement_repository_impl import AchievementRepositoryImpl
 from usecase.remind_to_record_achivement_use_case import RemindToRecordAchievementUseCase
 from util.error_reporter import ErrorReporter
 
 usecase = RemindToRecordAchievementUseCase(
-    achievement_repository=AchivementRepositoryImpl(),
+    achievement_repository=AchievementRepositoryImpl(),
     slack_client=WebClient(token=os.environ["SLACK_BOT_TOKEN"]),
 )
 

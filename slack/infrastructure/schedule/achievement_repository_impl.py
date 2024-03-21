@@ -6,7 +6,7 @@ from domain.schedule.achievement_repository import AchievementRepository
 from util.datetime import JST
 
 
-class AchivementRepositoryImpl(AchievementRepository):
+class AchievementRepositoryImpl(AchievementRepository):
     def __init__(
             self,
             google_cal_api: GoogleCalendarApi|None=None) -> None:
@@ -41,7 +41,7 @@ class AchivementRepositoryImpl(AchievementRepository):
 
 if __name__ == "__main__":
     # python -m slack.infrastructure.schedule.achievement_repository_impl
-    repository = AchivementRepositoryImpl()
+    repository = AchievementRepositoryImpl()
     response = repository.search(
         start=datetime(2024, 3, 15, 16, 15, tzinfo=JST),
         end=datetime(2024, 3, 15, 17, 15, tzinfo=JST))
