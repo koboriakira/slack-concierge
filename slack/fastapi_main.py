@@ -10,6 +10,7 @@ from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarAp
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from infrastructure.schedule.achievement_repository_impl import AchievementRepositoryImpl
 from usecase.append_context_use_case import AppendContextUseCase
+from usecase.sleep_use_case import SleepUseCase
 from usecase.start_task_use_case import StartTaskUseCase
 from usecase.wake_up_use_case import WakeUpUseCase
 from util.environment import Environment
@@ -79,6 +80,19 @@ def post_wakeup() -> dict:
     try:
         achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
         usecase = WakeUpUseCase(
+            achievement_repository=achivement_repository,
+            logger=logger)
+        usecase.execute()
+        return {"status": "ok"}
+    except:  # noqa: E722
+        ErrorReporter.execute()
+        return {"status": "error"}
+
+@app.post("/sleep")
+def post_sleep() -> dict:
+    try:
+        achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
+        usecase = SleepUseCase(
             achievement_repository=achivement_repository,
             logger=logger)
         usecase.execute()

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 import yaml
@@ -9,8 +9,8 @@ class Achievement:
     title: str
     start: datetime
     end: datetime
-    frontmatter: dict
-    text: str
+    frontmatter: dict = field(default_factory=dict)
+    text: str = ""
 
     @staticmethod
     def generate(title: str, start: datetime, end: datetime, text: str) -> "Achievement":
@@ -25,13 +25,11 @@ class Achievement:
 
     @staticmethod
     def wakeup(wakeup_at: datetime) -> "Achievement":
-        return Achievement(
-            title="起床",
-            start=wakeup_at,
-            end=wakeup_at + timedelta(minutes=5),
-            frontmatter={},
-            text="",
-        )
+        return Achievement(title="起床", start=wakeup_at, end=wakeup_at + timedelta(minutes=5))
+
+    @staticmethod
+    def sleep(sleep_at: datetime) -> "Achievement":
+        return Achievement(title="就寝",start=sleep_at,end=sleep_at + timedelta(minutes=5))
 
 
     def description(self) -> str:
