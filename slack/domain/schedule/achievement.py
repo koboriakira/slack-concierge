@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import yaml
 
@@ -22,6 +22,17 @@ class Achievement:
             frontmatter=fromtmatter,
             text=freetext,
         )
+
+    @staticmethod
+    def wakeup(wakeup_at: datetime) -> "Achievement":
+        return Achievement(
+            title="起床",
+            start=wakeup_at,
+            end=wakeup_at + timedelta(minutes=5),
+            frontmatter={},
+            text="",
+        )
+
 
     def description(self) -> str:
         if self.frontmatter != {}:

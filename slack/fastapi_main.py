@@ -8,8 +8,10 @@ from slack_sdk.web import WebClient
 
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from infrastructure.schedule.achievement_repository_impl import AchievementRepositoryImpl
 from usecase.append_context_use_case import AppendContextUseCase
 from usecase.start_task_use_case import StartTaskUseCase
+from usecase.wake_up_use_case import WakeUpUseCase
 from util.environment import Environment
 from util.error_reporter import ErrorReporter
 
@@ -64,6 +66,17 @@ def post_add_context(
     try:
         usecase = AppendContextUseCase()
         usecase.execute(channel=channel, event_ts=event_ts, data=request.data)
+        return {"status": "ok"}
+    except:  # noqa: E722
+        ErrorReporter.execute()
+        return {"status": "error"}
+
+@app.post("/wakeup")
+def post_wakeup() -> dict:
+    try:
+        achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
+        usecase = WakeUpUseCase(achievement_repository=achivement_repository)
+        usecase.execute()
         return {"status": "ok"}
     except:  # noqa: E722
         ErrorReporter.execute()
