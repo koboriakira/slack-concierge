@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import date as DateObject
 from datetime import datetime as DatetimeObject
+from logging import Logger, getLogger
 
 import requests
 import yaml
@@ -13,7 +14,8 @@ from util.environment import Environment
 
 
 class LambdaGoogleCalendarApi(GoogleCalendarApi):
-    def __init__(self):
+    def __init__(self, logger: Logger | None = None) -> None:
+        self._logger = logger or getLogger(__name__)
         self.domain = os.environ["LAMBDA_GOOGLE_CALENDAR_API_DOMAIN"]
         self.access_token = "Bearer " + os.environ["GAS_DEPLOY_ID"]
 
@@ -29,7 +31,7 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
             "access-token": self.access_token,
         }
         response = requests.get(url=url, params=params, headers=headers)
-        logging.debug(f"get_gas_calendar: status_code={response.status_code}")
+        self._logger.debug(f"get_gas_calendar: status_code={response.status_code}")
         return response.json()
 
     def get_current_schedules(self) -> list[dict]:
@@ -40,11 +42,11 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
             "access-token": self.access_token,
         }
         response = requests.get(url=url, headers=headers)
-        logging.debug(f"post_gas_calendar: status_code={response.status_code}")
+        self._logger.debug(f"post_gas_calendar: status_code={response.status_code}")
         response_json = response.json()
         if isinstance(response_json, str):
             response_json = json.loads(response_json)
-        logging.debug(f"post_gas_calendar: response={response_json}")
+        self._logger.debug(f"post_gas_calendar: response={response_json}")
         return response_json
 
     def get(self, path: str, params: dict) -> list[dict]:
@@ -56,14 +58,14 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
         response = requests.get(url=url, headers=headers, params=params, timeout=30)
         if response.status_code != 200:
             error_message = f"GET: {response.text} {url} params={json.dumps(params, ensure_ascii=False)} status_code={response.status_code} headers={headers}"
-            logging.error(error_message)
+            self._logger.exception(error_message)
             raise ValueError(error_message)
 
         response_json = response.json()
         if isinstance(response_json, str):
             response_json = json.loads(response_json)
         debug_message = f"GET: {url} response={response_json}"
-        logging.debug(debug_message)
+        self._logger.debug(debug_message)
         return response_json
 
     def get_gas_calendar_achievements(self,
@@ -119,16 +121,16 @@ class LambdaGoogleCalendarApi(GoogleCalendarApi):
             "Content-Type": "application/json",
             "access-token": self.access_token,
         }
-        logging.debug("post_gas_calendar: post", extra=data)
+        self._logger.debug("post_gas_calendar: post", extra=data)
         if Environment.is_demo():
-            logging.debug("post_gas_calendar: demo mode")
+            self._logger.debug("post_gas_calendar: demo mode")
             return True
 
         response = requests.post(url=url, json=data, headers=headers, timeout=10)
         response_json = response.json()
         if isinstance(response_json, str):
             response_json = json.loads(response_json)
-        logging.debug("post_gas_calendar: response", extra=response_json)
+        self._logger.debug("post_gas_calendar: response", extra=response_json)
         return "status" in response_json and response_json["status"] == "success"
 
 def dump_yaml(value: dict) -> str:

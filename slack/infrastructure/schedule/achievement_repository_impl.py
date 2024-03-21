@@ -1,4 +1,5 @@
 from datetime import datetime
+from logging import Logger, getLogger
 
 from domain.infrastructure.api.google_calendar_api import GoogleCalendarApi
 from domain.schedule.achievement import Achievement
@@ -9,9 +10,11 @@ from util.datetime import JST
 class AchievementRepositoryImpl(AchievementRepository):
     def __init__(
             self,
-            google_cal_api: GoogleCalendarApi|None=None) -> None:
+            google_cal_api: GoogleCalendarApi|None=None,
+            logger: Logger|None =None) -> None:
         from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
         self.google_cal_api = google_cal_api or LambdaGoogleCalendarApi()
+        self._logger = logger or getLogger(__name__)
 
     def search(self, start: datetime, end: datetime) -> list[Achievement]:
         params = {

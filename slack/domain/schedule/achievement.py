@@ -38,6 +38,7 @@ class Achievement:
         if self.frontmatter != {}:
             frontmatter_text = "\n".join([f"{k}: {v}" for k, v in self.frontmatter.items()])
             return f"---\n{frontmatter_text}\n---\n\n{self.text}"
+        return ""
 
     def get_notion_url(self) -> str|None:
         return self.frontmatter.get("notion_url")

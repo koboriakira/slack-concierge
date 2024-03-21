@@ -15,15 +15,17 @@ from usecase.wake_up_use_case import WakeUpUseCase
 from util.environment import Environment
 from util.error_reporter import ErrorReporter
 
-slack_client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
-notion_api = LambdaNotionApi()
-google_calendar_api = LambdaGoogleCalendarApi()
-
 # ログ
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG) # 一時的にデバッグレベル高くする
 if Environment.is_dev():
     logger.setLevel(logging.DEBUG)
+
+
+slack_client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
+notion_api = LambdaNotionApi(logger=logger)
+google_calendar_api = LambdaGoogleCalendarApi(logger=logger)
+
 
 # アプリ設定
 app = FastAPI(
