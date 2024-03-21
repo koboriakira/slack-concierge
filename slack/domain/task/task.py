@@ -32,8 +32,8 @@ class Task:
             is_routine=data.get("is_routine"), # FIXME: APIから取得できるようにしたい
             url=data["url"],
             status=data["status"],
-            start_date=data["start_date"],
-            end_date=data["end_date"],
+            start_date=datetime.fromisoformat(data["start_date"]) if "start_date" in data else None,
+            end_date=datetime.fromisoformat(data["end_date"]) if "end_date" in data else None,
             mentioned_page_id=data.get("mentioned_page_id"), # FIXME: APIから取得できるようにしたい
             pomodoro_count=data.get("pomodoro_count", 0), # FIXME: APIから取得できるようにしたい
             text=data.get("text"), # FIXME: APIから取得できるようにしたい
