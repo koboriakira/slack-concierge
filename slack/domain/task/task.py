@@ -6,6 +6,13 @@ from util.datetime import jst_now
 
 MAX_SLACK_TEXT_LENGTH = 50
 
+def _convert_to_datetime(value: str|datetime|None) -> datetime|None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    return datetime.fromisoformat(value)
+
 @dataclass
 class Task:
     title: str
@@ -32,8 +39,8 @@ class Task:
             is_routine=data.get("is_routine"), # FIXME: APIから取得できるようにしたい
             url=data["url"],
             status=data["status"],
-            start_date=datetime.fromisoformat(data["start_date"]) if "start_date" in data else None,
-            end_date=datetime.fromisoformat(data["end_date"]) if "end_date" in data else None,
+            start_date=_convert_to_datetime(data.get("start_date")),
+            end_date=_convert_to_datetime(data.get("end_date")),
             mentioned_page_id=data.get("mentioned_page_id"), # FIXME: APIから取得できるようにしたい
             pomodoro_count=data.get("pomodoro_count", 0), # FIXME: APIから取得できるようにしたい
             text=data.get("text"), # FIXME: APIから取得できるようにしたい
