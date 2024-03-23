@@ -75,6 +75,9 @@ class Task:
         # Taskのフィールド変数のうち、Noneでないものを辞書に追加
         for field in self.__dataclass_fields__:
             if self.__dict__[field]:
+                # id列, url列は無視
+                if field in ["task_id", "url"]:
+                    continue
                 # datetime型の場合は文字列に変換
                 if isinstance(self.__dict__[field], datetime):
                     data[field] = self.__dict__[field].isoformat()

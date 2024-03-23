@@ -17,12 +17,14 @@ class NotionTaskRepository(TaskRepository):
         if Environment.is_demo():
             return _demo_save(task)
 
-        response = self.api.post(path="task", data=task.to_dict())
-        if task.task_id:
+        if not task.task_id:
+            # 新規追加
+            response = self.api.post(path="task", data=task.to_dict())
+            task.append_id_and_url(task_id=response["id"], url=response["url"])
             return task
 
-        # タスクIDがない場合は、Notionのレスポンスから取得して付け加える
-        task.append_id_and_url(task_id=response["id"], url=response["url"])
+        # 更新
+        self.api.post(path=f"task/{task.task_id}", data=task.to_dict())
         return task
 
     def fetch_current_tasks(self) -> list["Task"]:
