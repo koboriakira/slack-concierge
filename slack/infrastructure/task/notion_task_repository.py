@@ -2,6 +2,7 @@
 
 from domain.task import Task, TaskRepository
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from infrastructure.task.request.update_task_request import UpdateTaskRequest
 from util.environment import Environment
 
 
@@ -24,7 +25,8 @@ class NotionTaskRepository(TaskRepository):
             return task
 
         # 更新
-        self.api.post(path=f"task/{task.task_id}", data=task.to_dict())
+        request_data = UpdateTaskRequest.from_entity(entity=task)
+        self.api.post(path=f"task/{task.task_id}", data=request_data.__dict__)
         return task
 
     def fetch_current_tasks(self) -> list["Task"]:
