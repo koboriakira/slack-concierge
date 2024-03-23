@@ -24,12 +24,25 @@ class Achievement:
         )
 
     @staticmethod
+    def five_minutes(title: str, start: datetime) -> "Achievement":
+        return Achievement(title=title, start=start, end=start + timedelta(minutes=5))
+
+
+    @staticmethod
     def wakeup(wakeup_at: datetime) -> "Achievement":
-        return Achievement(title="起床", start=wakeup_at, end=wakeup_at + timedelta(minutes=5))
+        return Achievement.five_minutes(title="起床", start=wakeup_at)
 
     @staticmethod
     def sleep(sleep_at: datetime) -> "Achievement":
-        return Achievement(title="就寝",start=sleep_at,end=sleep_at + timedelta(minutes=5))
+        return Achievement.five_minutes(title="就寝", start=sleep_at)
+
+    @staticmethod
+    def go_out(go_out_at: datetime) -> "Achievement":
+        return Achievement.five_minutes(title="外出", start=go_out_at)
+
+    @staticmethod
+    def come_home(come_home_at: datetime) -> "Achievement":
+        return Achievement.five_minutes(title="帰宅", start=come_home_at)
 
 
     def description(self) -> str:

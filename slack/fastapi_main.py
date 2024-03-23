@@ -10,6 +10,8 @@ from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarAp
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from infrastructure.schedule.achievement_repository_impl import AchievementRepositoryImpl
 from usecase.append_context_use_case import AppendContextUseCase
+from usecase.come_home_use_case import ComeHomeUseCase
+from usecase.go_out_use_case import GoOutUseCase
 from usecase.sleep_use_case import SleepUseCase
 from usecase.start_task_use_case import StartTaskUseCase
 from usecase.wake_up_use_case import WakeUpUseCase
@@ -93,6 +95,32 @@ def post_sleep() -> dict:
     try:
         achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
         usecase = SleepUseCase(
+            achievement_repository=achivement_repository,
+            logger=logger)
+        usecase.execute()
+        return {"status": "ok"}
+    except:  # noqa: E722
+        ErrorReporter.execute()
+        return {"status": "error"}
+
+@app.post("/goout")
+def post_goout() -> dict:
+    try:
+        achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
+        usecase = GoOutUseCase(
+            achievement_repository=achivement_repository,
+            logger=logger)
+        usecase.execute()
+        return {"status": "ok"}
+    except:  # noqa: E722
+        ErrorReporter.execute()
+        return {"status": "error"}
+
+@app.post("/come_home")
+def post_come_home() -> dict:
+    try:
+        achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
+        usecase = ComeHomeUseCase(
             achievement_repository=achivement_repository,
             logger=logger)
         usecase.execute()
