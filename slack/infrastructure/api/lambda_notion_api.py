@@ -263,7 +263,7 @@ class LambdaNotionApi(NotionApi):
         self.logger.debug(f"url: {url} data: {json.dumps(data, ensure_ascii=False)}")
         respone = requests.post(url=url, headers=headers, json=data)
         if respone.status_code != 200:
-            exception_message = f"{respone.status_code}: {respone.text}"
+            exception_message = f"POST to {url}, status_code:{respone.status_code}, text:{respone.text}, data: {json.dumps(data, ensure_ascii=False)}"
             raise Exception(exception_message)
         response_json = respone.json()
         self.logger.debug(json.dumps(response_json, ensure_ascii=False))
