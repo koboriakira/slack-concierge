@@ -248,7 +248,7 @@ class LambdaNotionApi(NotionApi):
                                 json=data,
                                 timeout=60)
         if respone.status_code != 200:
-            exception_message = f"statusCode:{respone.status_code}, msg: {respone.text}, data: {json.dumps(data, ensure_ascii=False)}"
+            exception_message = f"POST to {path}. statusCode:{respone.status_code}, msg: {respone.text}, data: {json.dumps(data, ensure_ascii=False)}"
             raise Exception(exception_message)
         response_json = respone.json()
         return response_json["data"]
