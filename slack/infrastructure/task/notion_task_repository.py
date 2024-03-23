@@ -2,6 +2,7 @@
 
 from domain.task import Task, TaskRepository
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from infrastructure.task.request.create_task_request import CreateTaskRequest
 from infrastructure.task.request.update_task_request import UpdateTaskRequest
 from util.environment import Environment
 
@@ -20,7 +21,8 @@ class NotionTaskRepository(TaskRepository):
 
         if not task.task_id:
             # 新規追加
-            response = self.api.post(path="task", data=task.to_dict())
+            request_data = CreateTaskRequest.from_entity(entity=task)
+            response = self.api.post(path="task", data=request_data.__dict__)
             task.append_id_and_url(task_id=response["id"], url=response["url"])
             return task
 

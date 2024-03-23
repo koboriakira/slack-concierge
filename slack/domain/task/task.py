@@ -70,21 +70,6 @@ class Task:
             return f"<{self.url}|{self.title}>"
         return self.title
 
-    def to_dict(self) -> dict:
-        data = {}
-        # Taskのフィールド変数のうち、Noneでないものを辞書に追加
-        for field in self.__dataclass_fields__:
-            if self.__dict__[field]:
-                # id列, url列は無視
-                if field in ["task_id", "url"]:
-                    continue
-                # datetime型の場合は文字列に変換
-                if isinstance(self.__dict__[field], datetime):
-                    data[field] = self.__dict__[field].isoformat()
-                else:
-                    data[field] = self.__dict__[field]
-        return data
-
     def increment_pomodoro_count(self) -> None:
         """ポモドーロカウンターをインクリメントする"""
         self.pomodoro_count += 1
