@@ -1,8 +1,8 @@
 import logging
 import os
 
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from usecase.service.task_generator import TaskGenerator
+from domain.task.task import Task
+from infrastructure.task.notion_task_repository import NotionTaskRepository
 from util.datetime import convert_to_datetime_or_date
 from util.error_reporter import ErrorReporter
 
@@ -11,12 +11,16 @@ logger.setLevel(logging.INFO)
 if os.environ.get("ENVIRONMENT") == "dev":
     logger.setLevel(logging.DEBUG)
 
+task_repository = NotionTaskRepository()
+
 def handler(event: dict, context: dict) -> None:  # noqa: ARG001
     try:
-        task_generator = TaskGenerator(notion_api=LambdaNotionApi())
-        task_generator.add_scheduled_task(
-            title=event["title"],
-            start_datetime=convert_to_datetime_or_date(event["datetime"]))
+        title=event["title"]
+        start_datetime=convert_to_datetime_or_date(event["datetime"])
+
+        task = Task.from_title(title)
+        task.start_date = start_datetime
+        task_repository.save(task)
     except:  # noqa: E722
         ErrorReporter.execute()
         return {"status": "error"}
