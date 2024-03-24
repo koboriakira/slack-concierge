@@ -44,10 +44,10 @@ class StartTaskUseCase:
             raise StartTaskError.unspecified()
         task = self.load_or_create(task_id=task_id, task_title=task_title)
 
-        # ポモドーロカウンターをインクリメント
-        # FIXME: task.increment_pomodoro_count()を呼び出したあとに保存すればよい
-        self.task_repository.update_pomodoro_count(task)
+        # InProgressに更新、ポモドーロカウンターをインクリメント
         task.increment_pomodoro_count()
+        task.inprogress()
+        self.task_repository.save(task)
 
         # Googleカレンダーにイベントを登録する
         self._record_google_calendar_achivement(task_title=task.title, task_url=task.url)

@@ -105,6 +105,8 @@ class Task:
     def is_completed(self) -> bool:
         return self.status == "Done"
 
+    def inprogress(self) -> None:
+        self.status = "InProgress"
 
     @staticmethod
     def test_instance() -> "Task":

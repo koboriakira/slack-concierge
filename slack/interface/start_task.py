@@ -112,13 +112,9 @@ def _get_task_title_and_id(state: State) -> tuple[str, str | None]:
         if (task := state.get_static_select("task")) is not None:
             # 既存タスクから選んだ場合
             return task
-        elif (new_task_title := state.get_text_input_value("new-task")) is not None:
+        if (new_task_title := state.get_text_input_value("new-task")) is not None:
             # 新規タスクを起票した場合
             return new_task_title, None
-        elif (routine_task := state.get_static_select("routine-task")) is not None:
-            # ルーチンタスクを選択した場合
-            task_title, _ = routine_task
-            return f"{task_title}【ルーティン】", None
         raise TaskTitleNotFoundError
 
 def shortcut_start_task(app: App) -> App:
