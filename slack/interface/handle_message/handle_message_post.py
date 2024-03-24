@@ -4,7 +4,7 @@ from slack_sdk.errors import SlackApiError
 from slack_sdk.web import WebClient
 
 from domain.channel import ChannelType
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from infrastructure.task.notion_task_repository import NotionTaskRepository
 from usecase.create_task_in_inbox import CreateTaskInInbox
 from util.slack_client_wrapper import SlackClientWrapperImpl
 
@@ -21,7 +21,7 @@ def handle_message_post(event: dict, logger: logging.Logger, client: WebClient):
         client_wrapper = SlackClientWrapperImpl(client=client, logger=logger)
         try:
             client_wrapper.reactions_add(name="inbox_tray", channel=channel, timestamp=event_ts, exception_enabled=True)
-            usecase = CreateTaskInInbox(notion_api=LambdaNotionApi())
+            usecase = CreateTaskInInbox(task_repository=NotionTaskRepository())
             usecase.handle(text=text, event_ts=event_ts, channel=channel)
             return
         except SlackApiError as e:
