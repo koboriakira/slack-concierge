@@ -13,4 +13,4 @@ class CreateTaskInInbox:
         title = text if "\n" not in text else text.split("\n")[0]
         task = Task.from_title(title)
         page = self._task_repository.save(task)
-        self.user_client.handle(page_id=page["id"], channel=channel, thread_ts=event_ts)
+        self.user_client.handle(page_id=page.task_id, channel=channel, thread_ts=event_ts)
