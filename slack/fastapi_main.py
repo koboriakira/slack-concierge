@@ -6,15 +6,19 @@ from mangum import Mangum
 from pydantic import BaseModel
 from slack_sdk.web import WebClient
 
+from domain.task.task_button_service import TaskButtonSerivce
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from infrastructure.schedule.achievement_repository_impl import AchievementRepositoryImpl
+from infrastructure.task.notion_task_repository import NotionTaskRepository
 from usecase.append_context_use_case import AppendContextUseCase
 from usecase.come_home_use_case import ComeHomeUseCase
 from usecase.go_out_use_case import GoOutUseCase
+from usecase.list_today_tasks_use_case import ListTasksUseCase
 from usecase.sleep_use_case import SleepUseCase
 from usecase.start_task_use_case import StartTaskUseCase
 from usecase.wake_up_use_case import WakeUpUseCase
+from util.datetime import jst_now
 from util.environment import Environment
 from util.error_reporter import ErrorReporter
 
@@ -80,12 +84,22 @@ def post_add_context(
 @app.post("/wakeup")
 def post_wakeup() -> dict:
     try:
+        # 実績を記録
         achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
         usecase = WakeUpUseCase(
             achievement_repository=achivement_repository,
             logger=logger)
         usecase.execute()
-        return {"status": "ok"}
+
+        # タスクをリストアップ
+        # FIXME: UseCaseはひとつにまとめる
+        slack_client=WebClient(token=os.environ["SLACK_BOT_TOKEN"])
+        task_button_service = TaskButtonSerivce(slack_client=slack_client)
+        use_case = ListTasksUseCase(
+            slack_client=slack_client,
+            task_repository=NotionTaskRepository(),
+            task_button_service=task_button_service)
+        use_case.execute(target_date=jst_now().date())
     except:  # noqa: E722
         ErrorReporter.execute()
         return {"status": "error"}
