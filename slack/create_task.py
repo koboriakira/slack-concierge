@@ -22,7 +22,7 @@ def handler(event: dict, context: dict) -> None:  # noqa: ARG001
         task.start_date = start_datetime
         task_repository.save(task)
     except:  # noqa: E722
-        ErrorReporter.execute()
+        ErrorReporter().execute()
         return {"status": "error"}
 
 if __name__ == "__main__":

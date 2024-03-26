@@ -52,7 +52,7 @@ def post_new_task(task_name: str) -> dict:
         response = start_task_use_case.execute(task_id=None, task_title=task_name)
         return {"id": response.task_id, "title": response.title}
     except:  # noqa: E722
-        ErrorReporter.execute()
+        ErrorReporter().execute()
         return {"status": "error"}
 
 @app.post("/task/start/{task_id}")
@@ -62,7 +62,7 @@ def post_start_task(task_id: str) -> dict:
         response = start_task_use_case.execute(task_id=task_id, task_title=None)
         return {"id": response.task_id, "title": response.title}
     except:  # noqa: E722
-        ErrorReporter.execute()
+        ErrorReporter().execute()
         return {"status": "error"}
 
 class PageAddContextRequest(BaseModel):
@@ -79,7 +79,7 @@ def post_add_context(
         usecase.execute(channel=channel, event_ts=event_ts, data=request.data)
         return {"status": "ok"}
     except:  # noqa: E722
-        ErrorReporter.execute()
+        ErrorReporter().execute()
         return {"status": "error"}
 
 @app.post("/wakeup")
@@ -102,7 +102,7 @@ def post_wakeup() -> dict:
             task_button_service=task_button_service)
         use_case.execute(target_date=jst_now().date())
     except:  # noqa: E722
-        ErrorReporter.execute()
+        ErrorReporter().execute()
         return {"status": "error"}
 
 @app.post("/sleep")
@@ -115,7 +115,7 @@ def post_sleep() -> dict:
         usecase.execute()
         return {"status": "ok"}
     except:  # noqa: E722
-        ErrorReporter.execute()
+        ErrorReporter().execute()
         return {"status": "error"}
 
 @app.post("/goout")
@@ -128,7 +128,7 @@ def post_goout() -> dict:
         usecase.execute()
         return {"status": "ok"}
     except:  # noqa: E722
-        ErrorReporter.execute()
+        ErrorReporter().execute()
         return {"status": "error"}
 
 @app.post("/come_home")
@@ -141,7 +141,7 @@ def post_come_home() -> dict:
         usecase.execute()
         return {"status": "ok"}
     except:  # noqa: E722
-        ErrorReporter.execute()
+        ErrorReporter().execute()
         return {"status": "error"}
 
 app.include_router(post.router, prefix="/post", tags=["post"])

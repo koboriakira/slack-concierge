@@ -28,7 +28,7 @@ def start_modal_interaction(body: dict, client: WebClient) -> None:
             trigger_id=body["trigger_id"],
             callback_id=CALLBACK_ID)
     except:  # noqa: E722
-        ErrorReporter.execute()
+        ErrorReporter().execute()
 
 def regist_modal_interaction(logger: logging.Logger, view: dict, client: WebClient) -> None:  # noqa: ARG001
     try:
@@ -49,7 +49,7 @@ def regist_modal_interaction(logger: logging.Logger, view: dict, client: WebClie
                 msg = f"category: {category} is not supported"
                 raise ValueError(msg)
     except:  # noqa: E722
-        ErrorReporter.execute()
+        ErrorReporter().execute()
 
 
 def shortcut_regist(app: App) -> App:
