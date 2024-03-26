@@ -11,6 +11,7 @@ from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarAp
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from infrastructure.schedule.achievement_repository_impl import AchievementRepositoryImpl
 from infrastructure.task.notion_task_repository import NotionTaskRepository
+from interface.fastapi import post
 from usecase.append_context_use_case import AppendContextUseCase
 from usecase.come_home_use_case import ComeHomeUseCase
 from usecase.go_out_use_case import GoOutUseCase
@@ -142,5 +143,7 @@ def post_come_home() -> dict:
     except:  # noqa: E722
         ErrorReporter.execute()
         return {"status": "error"}
+
+app.include_router(post.router, prefix="/post", tags=["post"])
 
 handler = Mangum(app, lifespan="off")
