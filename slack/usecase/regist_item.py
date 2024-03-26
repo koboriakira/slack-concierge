@@ -54,7 +54,7 @@ class RegistItemUseCase:
         self.notion_api.add_book(
             google_book_id=google_book_id,
             title=title,
-            channel=ChannelType.DIARY.value)
+            slack_channel=ChannelType.DIARY.value)
 
     def _get_google_book_id_or_title(self, book_info: str) -> tuple[str | None, str | None]:
         """ Google BooksのIDかタイトルを返す """
