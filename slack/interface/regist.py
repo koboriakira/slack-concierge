@@ -23,7 +23,7 @@ def handle_modal(ack: Ack) -> None:
 def start_modal_interaction(body: dict, client: WebClient) -> None:
     try:
         logging.debug(json.dumps(body, ensure_ascii=False))
-        usecase = RegistItemModalUseCase(client=client)
+        usecase = RegistItemModalUseCase(slack_client=client)
         usecase.execute(
             trigger_id=body["trigger_id"],
             callback_id=CALLBACK_ID)
