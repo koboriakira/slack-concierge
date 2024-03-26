@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from slack_sdk import WebClient
 
 from interface.fastapi.base_response import BaseResponse
-from slack.usecase.slack.post_image_use_case import PostImageUseCase
+from usecase.slack.post_image_use_case import PostImageUseCase
 
 router = APIRouter()
 
