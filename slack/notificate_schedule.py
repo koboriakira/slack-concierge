@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from slack_sdk.web import WebClient
 
@@ -45,6 +45,9 @@ def _find_task() -> list[Task]:
 
 def is_valid(task: Task, started_at: datetime, end_at: datetime) -> bool:
     if task.start_date is None:
+        return False
+    # 時刻がない場合も無視
+    if isinstance(task.start_date, date):
         return False
     return started_at.timestamp() <= task.start_date.timestamp() <= end_at.timestamp()
 
