@@ -1,17 +1,11 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 
 from domain.schedule.schedule import Schedule
-from util.datetime import jst_now
+from util.datetime import convert_to_date_or_datetime, jst_now
 
 MAX_SLACK_TEXT_LENGTH = 50
 
-def _convert_to_datetime(value: str|datetime|None) -> datetime|None:
-    if value is None:
-        return None
-    if isinstance(value, datetime):
-        return value
-    return datetime.fromisoformat(value)
 
 @dataclass
 class Task:
@@ -20,8 +14,8 @@ class Task:
     description: str | None = None
     pomodoro_count: int = 0
     status: str | None = None
-    start_date: datetime | None = None
-    end_date: datetime | None = None
+    start_date: date |datetime | None = None
+    end_date: date |datetime | None = None
     # 以下はNotionページがあるときのフィールド
     task_id: str | None = None
     url: str | None = None
@@ -39,8 +33,8 @@ class Task:
             is_routine=data.get("is_routine"), # FIXME: APIから取得できるようにしたい
             url=data["url"],
             status=data["status"],
-            start_date=_convert_to_datetime(data.get("start_date")),
-            end_date=_convert_to_datetime(data.get("end_date")),
+            start_date=convert_to_date_or_datetime(data.get("start_date")),
+            end_date=convert_to_date_or_datetime(data.get("end_date")),
             mentioned_page_id=data.get("mentioned_page_id"), # FIXME: APIから取得できるようにしたい
             pomodoro_count=data.get("pomodoro_count", 0), # FIXME: APIから取得できるようにしたい
             text=data.get("text"), # FIXME: APIから取得できるようにしたい

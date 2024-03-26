@@ -46,9 +46,26 @@ def convert_to_datetime_or_date(date_str: str) -> DatetimeObject|DateObject:
     """
     日付文字列をdatetimeオブジェクトもしくはdateオブジェクトに変換する。
     """
-    if "T" in date_str:
-        return DatetimeObject.fromisoformat(date_str)
-    return DateObject.fromisoformat(date_str)
+    return convert_to_date_or_datetime(date_str)
+
+def convert_to_date_or_datetime(value: str|None, cls: type|None = None) -> DateObject | DatetimeObject | None:  # noqa: C901
+    if value is None:
+        return None
+    length_date = 10 # "YYYY-MM-DD"
+    value_error_msg = f"Invalid class: {cls}"
+    if len(value) == length_date:
+        tmp_date = DateObject.fromisoformat(value)
+        if cls is None or cls == DateObject:
+            return tmp_date
+        if cls == DatetimeObject:
+            return DatetimeObject(tmp_date.year, tmp_date.month, tmp_date.day, tzinfo=JST)
+        raise ValueError(value_error_msg)
+    tmp_datetime = DatetimeObject.fromisoformat(value)
+    if cls is None or cls == DatetimeObject:
+        return tmp_datetime
+    if cls == DateObject:
+        return tmp_datetime.date()
+    raise ValueError(value_error_msg)
 
 
 def is_holiday(date: DateObject) -> bool:
