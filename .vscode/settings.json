@@ -1,9 +1,12 @@
 {
-  "python.terminal.activateEnvInCurrentTerminal": true,
   "[python]": {
     "editor.codeActionsOnSave": {
       "source.fixAll.ruff": "always",
       "source.organizeImports.ruff": "always"
     }
   },
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.testing.cwd": "test",
+  "python.testing.pytestEnabled": true,
+  "python.defaultInterpreterPath": ".venv/bin/python",
 }
