@@ -6,7 +6,7 @@ services:
   api:
     container_name: "slack-concierge-api"
     volumes:
-      - ./:/workspace:cached
+      - ./slack:/workspace/slack:cached
     build:
       context: .
       dockerfile: docker/api/Dockerfile
