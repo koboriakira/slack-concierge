@@ -1,17 +1,20 @@
-from slack_sdk.web import WebClient
 from logging import Logger
-from usecase.upload_files_to_s3 import UploadFilesToS3
+
+from slack_sdk.web import WebClient
+
 from domain.channel import ChannelType
 from domain.user import UserKind
+from usecase.upload_files_to_s3 import UploadFilesToS3
 from util.environment import Environment
 
-def handle_message_file_share(event: dict, logger: Logger, client: WebClient):
+
+def handle_message_file_share(event: dict, logger: Logger, client: WebClient) -> None:
     if _is_uploaded_file_in_share_channel(event):
         usecase = UploadFilesToS3(client, logger)
         usecase = usecase.execute(
             channel=event["channel"],
             files=event["files"],
-            thread_ts=event["ts"]
+            thread_ts=event["ts"],
         )
         return
 
