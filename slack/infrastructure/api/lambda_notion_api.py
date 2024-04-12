@@ -12,6 +12,7 @@ from util.custom_logging import get_logger
 
 NOTION_SECRET = os.getenv("NOTION_SECRET")
 
+
 class LambdaNotionApi(NotionApi):
     def __init__(self, logger: logging.Logger | None = None):
         self.domain = os.environ["LAMBDA_NOTION_API_DOMAIN"]
@@ -36,10 +37,11 @@ class LambdaNotionApi(NotionApi):
         data = response["data"]
         return NotionPage.from_dict(data)
 
-    def list_tasks(self,
-                   start_date: Date | None = None,
-                   status: str | None = None,
-                   ) -> list[TaskPage]:
+    def list_tasks(
+        self,
+        start_date: Date | None = None,
+        status: str | None = None,
+    ) -> list[TaskPage]:
         params = {}
         if start_date:
             params["start_date"] = start_date
@@ -54,17 +56,19 @@ class LambdaNotionApi(NotionApi):
         data = response["data"]
         return [TaskPage.from_dict(page) for page in data]
 
-
     def find_task(self, task_id: str) -> TaskPage:
         response = self._get(path=f"task/{task_id}")
         data = response["data"]
         return TaskPage.from_dict(data)
 
-    def create_track_page(self, track_name: str,
-                                artists: list[str],
-                                spotify_url: str | None = None,
-                                cover_url: str | None = None,
-                                release_date: Date | None = None) -> dict:
+    def create_track_page(
+        self,
+        track_name: str,
+        artists: list[str],
+        spotify_url: str | None = None,
+        cover_url: str | None = None,
+        release_date: Date | None = None,
+    ) -> dict:
         url = f"{self.domain}music"
         data = {
             "track_name": track_name,
@@ -78,11 +82,12 @@ class LambdaNotionApi(NotionApi):
             data["release_date"] = release_date.strftime("%Y-%m-%d")
         return self._post(url=url, data=data)
 
-    def create_webclip_page(self,
-                            url: str,
-                            title: str,
-                            cover: str | None = None,
-                            ) -> dict:
+    def create_webclip_page(
+        self,
+        url: str,
+        title: str,
+        cover: str | None = None,
+    ) -> dict:
         api_url = f"{self.domain}webclip"
         data = {
             "url": url,
@@ -92,12 +97,13 @@ class LambdaNotionApi(NotionApi):
             data["cover"] = cover
         return self._post(url=api_url, data=data)
 
-    def create_video_page(self,
-                            url: str,
-                            title: str,
-                            tags: list[str],
-                            cover: str | None = None,
-                            ) -> dict:
+    def create_video_page(
+        self,
+        url: str,
+        title: str,
+        tags: list[str],
+        cover: str | None = None,
+    ) -> dict:
         api_url = f"{self.domain}video"
         data = {
             "url": url,
@@ -112,7 +118,8 @@ class LambdaNotionApi(NotionApi):
         self,
         google_book_id: str | None = None,
         title: str | None = None,
-        slack_channel: str|None = None) -> dict:
+        slack_channel: str | None = None,
+    ) -> dict:
         api_url = f"{self.domain}books/regist"
         data = {}
         if google_book_id:
@@ -123,15 +130,16 @@ class LambdaNotionApi(NotionApi):
             data["slack_channel"] = slack_channel
         return self._post(url=api_url, data=data)
 
-    def create_prowrestling_page(self,
-                                 url: str,
-                                 title: str,
-                                 date: Date,
-                                 promotion: str,
-                                 text: str,
-                                 tags: list[str],
-                                 cover: str | None = None,
-                                ) -> dict:
+    def create_prowrestling_page(
+        self,
+        url: str,
+        title: str,
+        date: Date,
+        promotion: str,
+        text: str,
+        tags: list[str],
+        cover: str | None = None,
+    ) -> dict:
         api_url = f"{self.domain}prowrestling"
         data = {
             "url": url,
@@ -144,10 +152,11 @@ class LambdaNotionApi(NotionApi):
             data["cover"] = cover
         return self._post(url=api_url, data=data)
 
-    def append_feeling(self,
-                       page_id: str,
-                       feeling: str,
-                       ) -> dict:
+    def append_feeling(
+        self,
+        page_id: str,
+        feeling: str,
+    ) -> dict:
         api_url = f"{self.domain}page/feeling"
         data = {
             "page_id": page_id,
@@ -155,10 +164,11 @@ class LambdaNotionApi(NotionApi):
         }
         return self._post(url=api_url, data=data)
 
-    def update_pomodoro_count(self,
-                              page_id: str,
-                              count: int | None = None,
-                              ) -> dict:
+    def update_pomodoro_count(
+        self,
+        page_id: str,
+        count: int | None = None,
+    ) -> dict:
         api_url = f"{self.domain}page/pomodoro-count"
         data = {
             "page_id": page_id,
@@ -166,10 +176,11 @@ class LambdaNotionApi(NotionApi):
         self.logger.debug(f"url: {api_url} data: {json.dumps(data, ensure_ascii=False)}")
         return self._post(url=api_url, data=data)
 
-    def update_status(self,
-                      page_id: str,
-                      value: str,
-                      ) -> dict:
+    def update_status(
+        self,
+        page_id: str,
+        value: str,
+    ) -> dict:
         api_url = f"{self.domain}page/status"
         data = {
             "page_id": page_id,
@@ -177,12 +188,13 @@ class LambdaNotionApi(NotionApi):
         }
         return self._post(url=api_url, data=data)
 
-    def create_task(self,
-                    title: str | None = None,
-                    mentioned_page_id: str | None = None,
-                    start_date: Date | Datetime | None = None,
-                    end_date: Date | Datetime | None = None,
-                    ) -> dict:
+    def create_task(
+        self,
+        title: str | None = None,
+        mentioned_page_id: str | None = None,
+        start_date: Date | Datetime | None = None,
+        end_date: Date | Datetime | None = None,
+    ) -> dict:
         api_url = f"{self.domain}task"
         data = {}
         if title:
@@ -195,10 +207,11 @@ class LambdaNotionApi(NotionApi):
             data["end_date"] = end_date.isoformat()
         return self._post(url=api_url, data=data)
 
-    def append_text_block(self,
-                          block_id: str,
-                          value: str,
-                          ) -> dict:
+    def append_text_block(
+        self,
+        block_id: str,
+        value: str,
+    ) -> dict:
         api_url = f"{self.domain}page/block/text"
         data = {
             "page_id": block_id,
@@ -206,10 +219,19 @@ class LambdaNotionApi(NotionApi):
         }
         return self._post(url=api_url, data=data)
 
+    def add_recipe(
+        self,
+        description: str,
+        reference_url: str,
+        slack_channel: ChannelType,
+    ) -> dict:
+        """レシピを追加する"""
 
     def get(self, path: str, params: dict | None = None) -> dict:
-        """ 任意のパスに対してGETリクエストを送る。共通化のために作成 """
-        debug_message = f"GET to url: {path} params: {json.dumps(params, ensure_ascii=False)}" if params else f"GET to url: {path}"
+        """任意のパスに対してGETリクエストを送る。共通化のために作成"""
+        debug_message = (
+            f"GET to url: {path} params: {json.dumps(params, ensure_ascii=False)}" if params else f"GET to url: {path}"
+        )
         self.logger.debug(debug_message)
 
         url = f"{self.domain}{path}"
@@ -224,7 +246,7 @@ class LambdaNotionApi(NotionApi):
         return response.json()
 
     def _get(self, path: str, params: dict = {}) -> dict:
-        """ 任意のパスに対してPOSTリクエストを送る """
+        """任意のパスに対してPOSTリクエストを送る"""
         url = f"{self.domain}{path}"
         headers = {
             "access-token": NOTION_SECRET,
@@ -236,23 +258,19 @@ class LambdaNotionApi(NotionApi):
         return response.json()
 
     def post(self, path: str, data: dict) -> dict:
-        """ NotionAPIにPOSTリクエストを送る。共通化のために作成 """
+        """NotionAPIにPOSTリクエストを送る。共通化のために作成"""
         headers = {
             "access-token": NOTION_SECRET,
         }
         debug_message = f"POST to url: {path} data: {json.dumps(data, ensure_ascii=False)}"
         self.logger.debug(debug_message)
 
-        respone = requests.post(url=f"{self.domain}{path}",
-                                headers=headers,
-                                json=data,
-                                timeout=60)
+        respone = requests.post(url=f"{self.domain}{path}", headers=headers, json=data, timeout=60)
         if respone.status_code != 200:
             exception_message = f"POST to {path}. statusCode:{respone.status_code}, msg: {respone.text}, data: {json.dumps(data, ensure_ascii=False)}"
             raise Exception(exception_message)
         response_json = respone.json()
         return response_json["data"]
-
 
     # 非推奨
     def _post(self, url: str, data: dict) -> dict:
@@ -268,7 +286,6 @@ class LambdaNotionApi(NotionApi):
         response_json = respone.json()
         self.logger.debug(json.dumps(response_json, ensure_ascii=False))
         return response_json["data"]
-
 
 
 if __name__ == "__main__":
@@ -287,16 +304,15 @@ if __name__ == "__main__":
     #     release_date=Date(2024, 1, 22)
     # ))
 
-
-# {
-#     "url": "https://note.com/koboriakira/n/ne14eaa1c50d2?sub_rt=share_pb",
-#     "title": "東京女子プロレスのベストバウト29選 (2023)｜コボリアキラ",
-#     "summary": "2023年にファンとなった筆者が、その年の東京女子プロレスのベストバウト29試合について熱く語る記事。筆者は東京女子プロレスの魔法にかけられたように熱中し、試合や選手への情熱的な愛情を語りつくす。多くの試合が印象的だったが、特に強調されるのは、選手たちのエネルギッシュなパフォーマンス、印象的なシーン、そしてファンの心を捉えるストーリーテリングである。筆者は、東京女子プロレスの独特の魅力を「東京女子プロレスだから好き」という言葉で表現し、彼らのプロレスへの深い愛情を読者に伝えている。",
-#     "cover": "https://assets.st-note.com/production/uploads/images/126014735/rectangle_large_type_2_a12108f8a67248cc00e888924d6a08dc.jpeg?fit=bounds&quality=85&width=1280",
-#     "tags": ["東京女子プロレス", "プロレス", "ベストバウト", "2023"],
-#     "status": "Inbox",
-#     "text": "テスト"
-# }
+    # {
+    #     "url": "https://note.com/koboriakira/n/ne14eaa1c50d2?sub_rt=share_pb",
+    #     "title": "東京女子プロレスのベストバウト29選 (2023)｜コボリアキラ",
+    #     "summary": "2023年にファンとなった筆者が、その年の東京女子プロレスのベストバウト29試合について熱く語る記事。筆者は東京女子プロレスの魔法にかけられたように熱中し、試合や選手への情熱的な愛情を語りつくす。多くの試合が印象的だったが、特に強調されるのは、選手たちのエネルギッシュなパフォーマンス、印象的なシーン、そしてファンの心を捉えるストーリーテリングである。筆者は、東京女子プロレスの独特の魅力を「東京女子プロレスだから好き」という言葉で表現し、彼らのプロレスへの深い愛情を読者に伝えている。",
+    #     "cover": "https://assets.st-note.com/production/uploads/images/126014735/rectangle_large_type_2_a12108f8a67248cc00e888924d6a08dc.jpeg?fit=bounds&quality=85&width=1280",
+    #     "tags": ["東京女子プロレス", "プロレス", "ベストバウト", "2023"],
+    #     "status": "Inbox",
+    #     "text": "テスト"
+    # }
 
     # print(notion_api.create_webclip_page(
     #     url= "https://6yhkmd3lcl.execute-api.ap-northeast-1.amazonaws.com/v1/webclip",
