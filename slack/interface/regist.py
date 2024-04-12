@@ -39,7 +39,7 @@ def regist_modal_interaction(logger: logging.Logger, view: dict, client: WebClie
         _, category = state.get_static_select("category")
         notion_api = LambdaNotionApi()
 
-        match RegistCategory(category):
+        match RegistCategory[category]:
             case RegistCategory.BOOK:
                 # 書籍の登録
                 usecase = RegistBookUseCase(notion_api=notion_api)

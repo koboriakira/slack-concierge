@@ -45,7 +45,7 @@ class RegistItemModalUseCase:
             optional=True,
         )
         block_builder = block_builder.add_plain_text_input(
-            action_id="recipi-desc",
+            action_id="recipe-desc",
             label="レシピの詳細",
             multiline=True,
             optional=True,
