@@ -219,14 +219,6 @@ class LambdaNotionApi(NotionApi):
         }
         return self._post(url=api_url, data=data)
 
-    def add_recipe(
-        self,
-        description: str,
-        reference_url: str,
-        slack_channel: ChannelType,
-    ) -> dict:
-        """レシピを追加する"""
-
     def get(self, path: str, params: dict | None = None) -> dict:
         """任意のパスに対してGETリクエストを送る。共通化のために作成"""
         debug_message = (
