@@ -1,18 +1,52 @@
+import json
 from abc import ABCMeta, abstractmethod
-from datetime import date as Date
-from datetime import datetime as Datetime
+from datetime import date, datetime
 
 from domain.notion.notion_page import NotionPage, RecipePage, TaskPage
+
+
+class NotionApiError(Exception):
+    def __init__(self, status_code: int, message: str, params: dict) -> None:
+        self.status_code = status_code
+        self.message = message
+        self.params = params
+        super().__init__(
+            message=f"status_code: {status_code}, message: {message}, params: {json.dumps(params, ensure_ascii=False)}",
+        )
 
 
 class NotionApi(metaclass=ABCMeta):
     @abstractmethod
     def post(self, path: str, data: dict) -> dict:
-        """NotionAPIにPOSTリクエストを送る。共通化のために作成"""
+        """
+        NotionAPIにPOSTリクエストを送る。共通化のために作成
+
+        Args:
+            path (str): リクエストパス
+            data (dict): 送信データ
+
+        Returns:
+            dict: レスポンスデータ
+
+        Raises:
+            NotionApiError: NotionAPIからエラーレスポンスが返ってきた場合
+        """
 
     @abstractmethod
     def get(self, path: str, params: dict | None = None) -> dict:
-        """NotionAPIにGETリクエストを送る。共通化のために作成"""
+        """
+        NotionAPIにGETリクエストを送る。共通化のために作成
+
+        Args:
+            path (str): リクエストパス
+            params (dict, optional): クエリパラメータ. Defaults to None.
+
+        Returns:
+            dict: レスポンスデータ
+
+        Raises:
+            NotionApiError: NotionAPIからエラーレスポンスが返ってきた場合
+        """
 
     @abstractmethod
     def list_recipes(self) -> list[RecipePage]:
@@ -29,7 +63,7 @@ class NotionApi(metaclass=ABCMeta):
     @abstractmethod
     def list_tasks(
         self,
-        start_date: Date | None = None,
+        start_date: date | None = None,
         status: str | None = None,
     ) -> list[TaskPage]:
         """Notionのタスクを取得する"""
@@ -49,7 +83,7 @@ class NotionApi(metaclass=ABCMeta):
         artists: list[str],
         spotify_url: str | None = None,
         cover_url: str | None = None,
-        release_date: Date | None = None,
+        release_date: date | None = None,
     ) -> dict:
         """Notionに音楽のページを作成する"""
 
@@ -86,7 +120,7 @@ class NotionApi(metaclass=ABCMeta):
         self,
         url: str,
         title: str,
-        date: Date,
+        date: date,
         promotion: str,
         text: str,
         tags: list[str],
@@ -123,8 +157,8 @@ class NotionApi(metaclass=ABCMeta):
         self,
         title: str | None = None,
         mentioned_page_id: str | None = None,
-        start_date: Date | Datetime | None = None,
-        end_date: Date | Datetime | None = None,
+        start_date: date | datetime | None = None,
+        end_date: date | datetime | None = None,
     ) -> dict:
         """タスクページを新規作成する"""
 

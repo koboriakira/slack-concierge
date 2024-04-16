@@ -1,12 +1,11 @@
 import json
 import logging
 import os
-from datetime import date as Date
-from datetime import datetime as Datetime
+from datetime import date, datetime
 
 import requests
 
-from domain.infrastructure.api.notion_api import NotionApi
+from domain.infrastructure.api.notion_api import NotionApi, NotionApiError
 from domain.notion.notion_page import NotionPage, RecipePage, TaskPage
 from util.custom_logging import get_logger
 
@@ -14,7 +13,7 @@ NOTION_SECRET = os.getenv("NOTION_SECRET")
 
 
 class LambdaNotionApi(NotionApi):
-    def __init__(self, logger: logging.Logger | None = None):
+    def __init__(self, logger: logging.Logger | None = None) -> None:
         self.domain = os.environ["LAMBDA_NOTION_API_DOMAIN"]
         self.logger = logger or get_logger(__name__)
 
@@ -39,7 +38,7 @@ class LambdaNotionApi(NotionApi):
 
     def list_tasks(
         self,
-        start_date: Date | None = None,
+        start_date: date | None = None,
         status: str | None = None,
     ) -> list[TaskPage]:
         params = {}
@@ -67,7 +66,7 @@ class LambdaNotionApi(NotionApi):
         artists: list[str],
         spotify_url: str | None = None,
         cover_url: str | None = None,
-        release_date: Date | None = None,
+        release_date: date | None = None,
     ) -> dict:
         url = f"{self.domain}music"
         data = {
@@ -134,7 +133,7 @@ class LambdaNotionApi(NotionApi):
         self,
         url: str,
         title: str,
-        date: Date,
+        date: date,
         promotion: str,
         text: str,
         tags: list[str],
@@ -192,8 +191,8 @@ class LambdaNotionApi(NotionApi):
         self,
         title: str | None = None,
         mentioned_page_id: str | None = None,
-        start_date: Date | Datetime | None = None,
-        end_date: Date | Datetime | None = None,
+        start_date: date | datetime | None = None,
+        end_date: date | datetime | None = None,
     ) -> dict:
         api_url = f"{self.domain}task"
         data = {}
@@ -233,8 +232,7 @@ class LambdaNotionApi(NotionApi):
         response = requests.get(url, params=params, headers=headers, timeout=10)
 
         if response.status_code != 200:
-            error_message = f"status_code: {response.status_code}, message: {response.text}"
-            raise Exception(error_message)
+            raise NotionApiError(status_code=response.status_code, message=response.text)
         return response.json()
 
     def _get(self, path: str, params: dict = {}) -> dict:
@@ -246,7 +244,7 @@ class LambdaNotionApi(NotionApi):
         response = requests.get(url, params=params, headers=headers)
         logging.debug(response)
         if response.status_code != 200:
-            raise Exception(f"status_code: {response.status_code}, message: {response.text}")
+            raise NotionApiError(status_code=response.status_code, message=response.text, params=params)
         return response.json()
 
     def post(self, path: str, data: dict) -> dict:
@@ -257,11 +255,10 @@ class LambdaNotionApi(NotionApi):
         debug_message = f"POST to url: {path} data: {json.dumps(data, ensure_ascii=False)}"
         self.logger.debug(debug_message)
 
-        respone = requests.post(url=f"{self.domain}{path}", headers=headers, json=data, timeout=60)
-        if respone.status_code != 200:
-            exception_message = f"POST to {path}. statusCode:{respone.status_code}, msg: {respone.text}, data: {json.dumps(data, ensure_ascii=False)}"
-            raise Exception(exception_message)
-        response_json = respone.json()
+        response = requests.post(url=f"{self.domain}{path}", headers=headers, json=data, timeout=60)
+        if response.status_code != 200:
+            raise NotionApiError(status_code=response.status_code, message=response.text, params=data)
+        response_json = response.json()
         return response_json["data"]
 
     # 非推奨
