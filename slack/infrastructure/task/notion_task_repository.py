@@ -1,5 +1,3 @@
-
-
 from domain.task import Task, TaskRepository
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from infrastructure.task.request.create_task_request import CreateTaskRequest
@@ -13,7 +11,7 @@ class NotionTaskRepository(TaskRepository):
 
     def find_by_id(self, task_id: str) -> "Task":
         response = self.api.get(path=f"task/{task_id}")
-        return Task.reconstruct(data=response["data"])
+        return Task.reconstruct(data=response)
 
     def save(self, task: "Task") -> "Task":
         if Environment.is_demo():
@@ -33,15 +31,14 @@ class NotionTaskRepository(TaskRepository):
 
     def fetch_current_tasks(self) -> list["Task"]:
         response = self.api.get(path="tasks/current")
-        return [Task.reconstruct(data=el) for el in response["data"]]
+        return [Task.reconstruct(data=el) for el in response]
 
     # FIXME: いずれ消す。saveメソッドに統一できるはず
     def update_pomodoro_count(self, task: "Task") -> None:
         data = {
             "page_id": task.task_id,
         }
-        self.api.post(path="page/pomodoro-count",
-                          data=data) if not Environment.is_demo() else None
+        self.api.post(path="page/pomodoro-count", data=data) if not Environment.is_demo() else None
 
 
 def _demo_save(task: Task) -> Task:

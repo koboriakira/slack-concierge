@@ -22,6 +22,41 @@ class LambdaNotionApi(NotionApi):
         self._request_wrapper = request_wrapper or RequestWrapper(timeout=60)
         self.logger = logger or get_logger(__name__)
 
+    def get(self, path: str, params: dict | None = None) -> dict:
+        """任意のパスに対してGETリクエストを送る。共通化のために作成"""
+        try:
+            response = self._request_wrapper.get(url=f"{self.domain}{path}", headers=self._headers(), params=params)
+            response_json = response.json()
+            return response_json["data"]
+        except requests.HTTPError as e:
+            # 400系はこちらのバグ、500系はNotionAPI側のバグ
+            raise NotionApiError(status_code=e.response.status_code, message=e.response.text, params=params) from e
+        except json.JSONDecodeError as e:
+            # NotionAPI側のバグ
+            raise NotionApiError(status_code=500, message="Response body is not JSON", params=params) from e
+        except KeyError as e:
+            # NotionAPI側のバグ
+            raise NotionApiError(
+                status_code=500,
+                message="Response body does not have 'params' key",
+                params=params,
+            ) from e
+
+    def post(self, path: str, data: dict) -> dict:
+        try:
+            response = self._request_wrapper.post(url=f"{self.domain}{path}", headers=self._headers(), data=data)
+            response_json = response.json()
+            return response_json["data"]
+        except requests.HTTPError as e:
+            # 400系はこちらのバグ、500系はNotionAPI側のバグ
+            raise NotionApiError(status_code=e.response.status_code, message=e.response.text, params=data) from e
+        except json.JSONDecodeError as e:
+            # NotionAPI側のバグ
+            raise NotionApiError(status_code=500, message="Response body is not JSON", params=data) from e
+        except KeyError as e:
+            # NotionAPI側のバグ
+            raise NotionApiError(status_code=500, message="Response body does not have 'data' key", params=data) from e
+
     def list_recipes(self) -> list[RecipePage]:
         response = self._get(path="recipes")
         data = response["data"]
@@ -223,25 +258,6 @@ class LambdaNotionApi(NotionApi):
         }
         return self._post(url=api_url, data=data)
 
-    def get(self, path: str, params: dict | None = None) -> dict:
-        """任意のパスに対してGETリクエストを送る。共通化のために作成"""
-        try:
-            response = self._request_wrapper.get(url=f"{self.domain}{path}", headers=self._headers(), params=params)
-            return response.json()
-        except requests.HTTPError as e:
-            # 400系はこちらのバグ、500系はNotionAPI側のバグ
-            raise NotionApiError(status_code=e.response.status_code, message=e.response.text, params=params) from e
-        except json.JSONDecodeError as e:
-            # NotionAPI側のバグ
-            raise NotionApiError(status_code=500, message="Response body is not JSON", params=params) from e
-        except KeyError as e:
-            # NotionAPI側のバグ
-            raise NotionApiError(
-                status_code=500,
-                message="Response body does not have 'params' key",
-                params=params,
-            ) from e
-
     def _get(self, path: str, params: dict = {}) -> dict:
         """任意のパスに対してPOSTリクエストを送る"""
         url = f"{self.domain}{path}"
@@ -253,21 +269,6 @@ class LambdaNotionApi(NotionApi):
         if response.status_code != 200:
             raise NotionApiError(status_code=response.status_code, message=response.text, params=params)
         return response.json()
-
-    def post(self, path: str, data: dict) -> dict:
-        try:
-            response = self._request_wrapper.post(url=f"{self.domain}{path}", headers=self._headers(), data=data)
-            response_json = response.json()
-            return response_json["data"]
-        except requests.HTTPError as e:
-            # 400系はこちらのバグ、500系はNotionAPI側のバグ
-            raise NotionApiError(status_code=e.response.status_code, message=e.response.text, params=data) from e
-        except json.JSONDecodeError as e:
-            # NotionAPI側のバグ
-            raise NotionApiError(status_code=500, message="Response body is not JSON", params=data) from e
-        except KeyError as e:
-            # NotionAPI側のバグ
-            raise NotionApiError(status_code=500, message="Response body does not have 'data' key", params=data) from e
 
     # 非推奨
     def _post(self, url: str, data: dict) -> dict:
