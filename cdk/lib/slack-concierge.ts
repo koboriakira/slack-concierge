@@ -79,15 +79,15 @@ export class SlackConcierge extends Stack {
       events.Schedule.cron({ minute: "0", hour: "12" })
     );
 
-    // complete_task: SQSから呼び出される
-    const remindToRecordAchivement = this.createEventLambda(
-      "RemindToRecordAchivement",
-      role,
-      myLayer,
-      "remind_to_record_achivement.handler",
-      // JSTで、AM9:00からPM10:55までの間、5分おきに実行
-      events.Schedule.cron({ minute: "*/5", hour: "0-13" })
-    );
+    // remind_to_record_achivement: SQSから。実績の記入がないときにリマインドする
+    // const remindToRecordAchivement = this.createEventLambda(
+    //   "RemindToRecordAchivement",
+    //   role,
+    //   myLayer,
+    //   "remind_to_record_achivement.handler",
+    //   // JSTで、AM9:00からPM10:55までの間、5分おきに実行
+    //   events.Schedule.cron({ minute: "*/5", hour: "0-13" })
+    // );
 
     // love_spotify_track: SQSから呼び出される
     const loveSpotifyTrack = this.createLambdaAndSqs(
