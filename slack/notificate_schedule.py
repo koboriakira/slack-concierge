@@ -1,11 +1,10 @@
 from datetime import datetime, timedelta
 from logging import getLogger
 
-from slack_sdk.web import WebClient
-
 from domain.task.task import Task
 from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
 from infrastructure.task.notion_task_repository import NotionTaskRepository
+from slack_sdk.web import WebClient
 from usecase.service.event_bridge_scheduler_service import EventBridgeSchedulerService
 from usecase.start_task_use_case import StartTaskUseCase
 from util.datetime import now as _now
@@ -52,8 +51,9 @@ def _find_task() -> list[Task]:
     #     minute=55,
     #     tzinfo=now.tzinfo,
     # )
-    after_5minutes = now + timedelta(minutes=5)
-    return [task for task in tasks if is_valid(task, now, after_5minutes)]
+    before_2minutes = now - timedelta(minutes=2)
+    after_3minutes = now + timedelta(minutes=3)
+    return [task for task in tasks if is_valid(task, before_2minutes, after_3minutes)]
 
 
 def is_valid(task: Task, started_at: datetime, end_at: datetime) -> bool:
@@ -62,7 +62,10 @@ def is_valid(task: Task, started_at: datetime, end_at: datetime) -> bool:
     # 時刻がない場合も無視
     if not isinstance(task.start_date, datetime):
         return False
-    return started_at.timestamp() <= task.start_date.timestamp() and task.start_date.timestamp() <= end_at.timestamp()
+    return (
+        started_at.timestamp() <= task.start_date.timestamp()
+        and task.start_date.timestamp() <= end_at.timestamp()
+    )
 
 
 if __name__ == "__main__":
