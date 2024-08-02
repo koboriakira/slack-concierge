@@ -14,8 +14,8 @@ class Task:
     description: str | None = None
     pomodoro_count: int = 0
     status: str | None = None
-    start_date: date |datetime | None = None
-    end_date: date |datetime | None = None
+    start_date: date | datetime | None = None
+    end_date: date | datetime | None = None
     # 以下はNotionページがあるときのフィールド
     task_id: str | None = None
     url: str | None = None
@@ -25,19 +25,23 @@ class Task:
 
     @staticmethod
     def reconstruct(data: dict) -> "Task":
-        """ データベースから取得したデータを元にTaskを再構築する"""
+        """データベースから取得したデータを元にTaskを再構築する"""
         return Task(
             task_id=data["id"],
             title=data["title"],
-            description=data.get("description"), # FIXME: APIから取得できるようにしたい
-            is_routine=data.get("is_routine"), # FIXME: APIから取得できるようにしたい
+            description=data.get("description"),  # FIXME: APIから取得できるようにしたい
+            is_routine=data.get("is_routine"),  # FIXME: APIから取得できるようにしたい
             url=data["url"],
             status=data["status"],
             start_date=convert_to_date_or_datetime(data.get("start_date")),
             end_date=convert_to_date_or_datetime(data.get("end_date")),
-            mentioned_page_id=data.get("mentioned_page_id"), # FIXME: APIから取得できるようにしたい
-            pomodoro_count=data.get("pomodoro_count", 0), # FIXME: APIから取得できるようにしたい
-            text=data.get("text"), # FIXME: APIから取得できるようにしたい
+            mentioned_page_id=data.get(
+                "mentioned_page_id"
+            ),  # FIXME: APIから取得できるようにしたい
+            pomodoro_count=data.get(
+                "pomodoro_count", 0
+            ),  # FIXME: APIから取得できるようにしたい
+            text=data.get("text"),  # FIXME: APIから取得できるようにしたい
         )
 
     @staticmethod
@@ -53,6 +57,7 @@ class Task:
             title=title,
             start_date=schedule.start,
             end_date=schedule.end,
+            task_kind="スケジュール",
         )
 
     def complete(self) -> None:
@@ -70,6 +75,7 @@ class Task:
 
     def create_slack_message_start_task(self) -> tuple[str, list[dict]]:
         from domain_service.block.block_builder import BlockBuilder
+
         """タスク開始時のSlackメッセージを生成する"""
         block_builder = BlockBuilder()
         text = f"<{self.url}|{self.title}>"
@@ -105,6 +111,7 @@ class Task:
     @staticmethod
     def test_instance() -> "Task":
         from util.datetime import JST
+
         return Task(
             title="test",
             is_routine=False,
