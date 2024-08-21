@@ -20,7 +20,7 @@ class NotionTaskRepository(TaskRepository):
         if not task.task_id:
             # 新規追加
             request_data = CreateTaskRequest.from_entity(entity=task)
-            response = self.api.post(path="task", data=request_data.__dict__)
+            response = self.api.post(path="task/", data=request_data.__dict__)
             task.append_id_and_url(task_id=response["id"], url=response["url"])
             return task
 
@@ -38,10 +38,15 @@ class NotionTaskRepository(TaskRepository):
         data = {
             "page_id": task.task_id,
         }
-        self.api.post(path="page/pomodoro-count", data=data) if not Environment.is_demo() else None
+        self.api.post(
+            path="page/pomodoro-count", data=data
+        ) if not Environment.is_demo() else None
 
 
 def _demo_save(task: Task) -> Task:
     task.task_id = task.task_id or "afd886c4-ec90-40b1-9e9e-ba2536335ecc"
-    task.url = task.url or "https://www.notion.so/koboriakira/test-afd886c4ec9040b19e9eba2536335ecc"
+    task.url = (
+        task.url
+        or "https://www.notion.so/koboriakira/test-afd886c4ec9040b19e9eba2536335ecc"
+    )
     return task
