@@ -4,7 +4,6 @@ import os
 from datetime import date, datetime
 
 import requests
-
 from domain.infrastructure.api.notion_api import NotionApi, NotionApiError
 from domain.notion.notion_page import NotionPage, RecipePage, TaskPage
 from infrastructure.api.request_wrapper import RequestWrapper
@@ -14,7 +13,11 @@ NOTION_SECRET = os.getenv("NOTION_SECRET")
 
 
 class LambdaNotionApi(NotionApi):
-    def __init__(self, request_wrapper: RequestWrapper | None = None, logger: logging.Logger | None = None) -> None:
+    def __init__(
+        self,
+        request_wrapper: RequestWrapper | None = None,
+        logger: logging.Logger | None = None,
+    ) -> None:
         if "LAMBDA_NOTION_API_DOMAIN" not in os.environ:
             msg = "LAMBDA_NOTION_API_DOMAIN is not set"
             raise ValueError(msg)
@@ -25,15 +28,23 @@ class LambdaNotionApi(NotionApi):
     def get(self, path: str, params: dict | None = None) -> dict:
         """任意のパスに対してGETリクエストを送る。共通化のために作成"""
         try:
-            response = self._request_wrapper.get(url=f"{self.domain}{path}", headers=self._headers(), params=params)
+            response = self._request_wrapper.get(
+                url=f"{self.domain}{path}", headers=self._headers(), params=params
+            )
             response_json = response.json()
             return response_json["data"]
         except requests.HTTPError as e:
             # 400系はこちらのバグ、500系はNotionAPI側のバグ
-            raise NotionApiError(status_code=e.response.status_code, message=e.response.text, params=params) from e
+            raise NotionApiError(
+                status_code=e.response.status_code,
+                message=e.response.text,
+                params=params,
+            ) from e
         except json.JSONDecodeError as e:
             # NotionAPI側のバグ
-            raise NotionApiError(status_code=500, message="Response body is not JSON", params=params) from e
+            raise NotionApiError(
+                status_code=500, message="Response body is not JSON", params=params
+            ) from e
         except KeyError as e:
             # NotionAPI側のバグ
             raise NotionApiError(
@@ -44,18 +55,31 @@ class LambdaNotionApi(NotionApi):
 
     def post(self, path: str, data: dict) -> dict:
         try:
-            response = self._request_wrapper.post(url=f"{self.domain}{path}", headers=self._headers(), data=data)
+            response = self._request_wrapper.post(
+                url=f"{self.domain}{path}", headers=self._headers(), data=data
+            )
             response_json = response.json()
             return response_json["data"]
         except requests.HTTPError as e:
             # 400系はこちらのバグ、500系はNotionAPI側のバグ
-            raise NotionApiError(status_code=e.response.status_code, message=e.response.text, params=data) from e
+            raise NotionApiError(
+                status_code=e.response.status_code,
+                message=e.response.text,
+                params=data,
+                path=path,
+            ) from e
         except json.JSONDecodeError as e:
             # NotionAPI側のバグ
-            raise NotionApiError(status_code=500, message="Response body is not JSON", params=data) from e
+            raise NotionApiError(
+                status_code=500, message="Response body is not JSON", params=data
+            ) from e
         except KeyError as e:
             # NotionAPI側のバグ
-            raise NotionApiError(status_code=500, message="Response body does not have 'data' key", params=data) from e
+            raise NotionApiError(
+                status_code=500,
+                message="Response body does not have 'data' key",
+                params=data,
+            ) from e
 
     def list_recipes(self) -> list[RecipePage]:
         response = self._get(path="recipes")
@@ -212,7 +236,9 @@ class LambdaNotionApi(NotionApi):
         data = {
             "page_id": page_id,
         }
-        self.logger.debug(f"url: {api_url} data: {json.dumps(data, ensure_ascii=False)}")
+        self.logger.debug(
+            f"url: {api_url} data: {json.dumps(data, ensure_ascii=False)}"
+        )
         return self._post(url=api_url, data=data)
 
     def update_status(
@@ -267,7 +293,9 @@ class LambdaNotionApi(NotionApi):
         response = requests.get(url, params=params, headers=headers)
         logging.debug(response)
         if response.status_code != 200:
-            raise NotionApiError(status_code=response.status_code, message=response.text, params=params)
+            raise NotionApiError(
+                status_code=response.status_code, message=response.text, params=params
+            )
         return response.json()
 
     # 非推奨
