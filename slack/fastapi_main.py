@@ -1,19 +1,21 @@
 import logging
 import os
 
+from domain.task.task_button_service import TaskButtonSerivce
 from fastapi import FastAPI
+from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
+from infrastructure.api.lambda_notion_api import LambdaNotionApi
+from infrastructure.schedule.achievement_repository_impl import (
+    AchievementRepositoryImpl,
+)
+from infrastructure.task.notion_task_repository import NotionTaskRepository
+from interface.fastapi import post
 from mangum import Mangum
 from pydantic import BaseModel
 from slack_sdk.web import WebClient
-
-from domain.task.task_button_service import TaskButtonSerivce
-from infrastructure.api.lambda_google_calendar_api import LambdaGoogleCalendarApi
-from infrastructure.api.lambda_notion_api import LambdaNotionApi
-from infrastructure.schedule.achievement_repository_impl import AchievementRepositoryImpl
-from infrastructure.task.notion_task_repository import NotionTaskRepository
-from interface.fastapi import post
 from usecase.append_context_use_case import AppendContextUseCase
 from usecase.come_home_use_case import ComeHomeUseCase
+from usecase.fetch_diary_markdown import FetchDiaryMarkdownUseCase
 from usecase.go_out_use_case import GoOutUseCase
 from usecase.list_today_tasks_use_case import ListTasksUseCase
 from usecase.sleep_use_case import SleepUseCase
@@ -55,7 +57,9 @@ class PostNewTaskRequest(BaseModel):
 def post_new_task(request: PostNewTaskRequest) -> dict:
     try:
         start_task_use_case = StartTaskUseCase()
-        response = start_task_use_case.execute(task_id=None, task_title=request.task_name)
+        response = start_task_use_case.execute(
+            task_id=None, task_title=request.task_name
+        )
         return {"id": response.task_id, "title": response.title}
     except:  # noqa: E722
         ErrorReporter().execute()
@@ -78,7 +82,9 @@ class PageAddContextRequest(BaseModel):
 
 
 @app.post("/message/{channel}/{event_ts}/block/add_context")
-def post_add_context(channel: str, event_ts: str, request: PageAddContextRequest) -> dict:
+def post_add_context(
+    channel: str, event_ts: str, request: PageAddContextRequest
+) -> dict:
     try:
         usecase = AppendContextUseCase()
         usecase.execute(channel=channel, event_ts=event_ts, data=request.data)
@@ -92,8 +98,12 @@ def post_add_context(channel: str, event_ts: str, request: PageAddContextRequest
 def post_wakeup() -> dict:
     try:
         # 実績を記録
-        achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
-        usecase = WakeUpUseCase(achievement_repository=achivement_repository, logger=logger)
+        achivement_repository = AchievementRepositoryImpl(
+            google_cal_api=google_calendar_api
+        )
+        usecase = WakeUpUseCase(
+            achievement_repository=achivement_repository, logger=logger
+        )
         usecase.execute()
 
         # タスクをリストアップ
@@ -114,8 +124,12 @@ def post_wakeup() -> dict:
 @app.post("/sleep")
 def post_sleep() -> dict:
     try:
-        achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
-        usecase = SleepUseCase(achievement_repository=achivement_repository, logger=logger)
+        achivement_repository = AchievementRepositoryImpl(
+            google_cal_api=google_calendar_api
+        )
+        usecase = SleepUseCase(
+            achievement_repository=achivement_repository, logger=logger
+        )
         usecase.execute()
         return {"status": "ok"}
     except:  # noqa: E722
@@ -126,8 +140,12 @@ def post_sleep() -> dict:
 @app.post("/goout")
 def post_goout() -> dict:
     try:
-        achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
-        usecase = GoOutUseCase(achievement_repository=achivement_repository, logger=logger)
+        achivement_repository = AchievementRepositoryImpl(
+            google_cal_api=google_calendar_api
+        )
+        usecase = GoOutUseCase(
+            achievement_repository=achivement_repository, logger=logger
+        )
         usecase.execute()
         return {"status": "ok"}
     except:  # noqa: E722
@@ -138,10 +156,25 @@ def post_goout() -> dict:
 @app.post("/come_home")
 def post_come_home() -> dict:
     try:
-        achivement_repository = AchievementRepositoryImpl(google_cal_api=google_calendar_api)
-        usecase = ComeHomeUseCase(achievement_repository=achivement_repository, logger=logger)
+        achivement_repository = AchievementRepositoryImpl(
+            google_cal_api=google_calendar_api
+        )
+        usecase = ComeHomeUseCase(
+            achievement_repository=achivement_repository, logger=logger
+        )
         usecase.execute()
         return {"status": "ok"}
+    except:  # noqa: E722
+        ErrorReporter().execute()
+        return {"status": "error"}
+
+
+@app.get("/mydiary/")
+def mydiary() -> dict:
+    try:
+        usecase = FetchDiaryMarkdownUseCase(client=slack_client, logger=logger)
+        result = usecase.execute()
+        return {"status": "ok", "result": result}
     except:  # noqa: E722
         ErrorReporter().execute()
         return {"status": "error"}
