@@ -6,7 +6,7 @@ from datetime import datetime as Datetime
 from datetime import timedelta
 
 import boto3
-from botocore.exceptions import NoCredentialsError
+from botocore.exceptions import NoCredentialsError, ClientError
 from slack_sdk.web import WebClient
 
 from domain.event_scheduler.pomodoro_timer_request import PomodoroTimerRequest
@@ -21,6 +21,9 @@ CREATE_TASK_LAMBDA_ARN = f"arn:aws:lambda:ap-northeast-1:{AWS_ACCOUNT_ID}:functi
 
 POMODORO_MINUTES = 25
 POMODORO_ICON = "tomato"
+
+class EventBridgeError(Exception):
+    pass
 
 class EventBridgeSchedulerService:
     def __init__(
@@ -99,6 +102,9 @@ class EventBridgeSchedulerService:
         except NoCredentialsError as e:
             self.logger.error("認証情報が不足しています。")
             raise e
+        except ClientError as e:
+            self.logger.error(e)
+            raise EventBridgeError()
         except Exception as e:
             self.logger.error(e)
             raise e

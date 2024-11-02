@@ -11,6 +11,7 @@ from usecase.service.event_bridge_scheduler_service import (
     EventBridgeSchedulerService,
     PomodoroTimerRequest,
 )
+from usecase.service.event_bridge_scheduler_service import EventBridgeError
 from util.datetime import jst_now
 from util.environment import Environment
 
@@ -79,7 +80,13 @@ class StartTaskUseCase:
             thread_ts=event_ts,
             event_ts=event_ts,
         )
-        self.scheduler_service.set_pomodoro_timer(request=request)
+        try:
+            self.scheduler_service.set_pomodoro_timer(request=request)
+        except EventBridgeError as e:
+            self.client.chat_postMessage(
+                channel=CHANNEL.value, text="予約投稿の重複が発生したためポモドーロの通知ができません。", thread_ts=event_ts
+            )
+
 
         return task
 
