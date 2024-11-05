@@ -74,18 +74,18 @@ class StartTaskUseCase:
         event_ts = response["ts"]
 
         # 予約投稿を準備
-        request = PomodoroTimerRequest(
-            page_id=task.task_id,
-            channel=CHANNEL.value,
-            thread_ts=event_ts,
-            event_ts=event_ts,
-        )
-        try:
-            self.scheduler_service.set_pomodoro_timer(request=request)
-        except EventBridgeError as e:
-            self.client.chat_postMessage(
-                channel=CHANNEL.value, text="予約投稿の重複が発生したためポモドーロの通知ができません。", thread_ts=event_ts
-            )
+        # request = PomodoroTimerRequest(
+        #     page_id=task.task_id,
+        #     channel=CHANNEL.value,
+        #     thread_ts=event_ts,
+        #     event_ts=event_ts,
+        # )
+        # try:
+        #     self.scheduler_service.set_pomodoro_timer(request=request)
+        # except EventBridgeError as e:
+        #     self.client.chat_postMessage(
+        #         channel=CHANNEL.value, text="予約投稿の重複が発生したためポモドーロの通知ができません。", thread_ts=event_ts
+        #     )
 
 
         return task
