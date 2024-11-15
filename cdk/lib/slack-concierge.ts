@@ -60,24 +60,24 @@ export class SlackConcierge extends Stack {
 
     this.createLambdaFunctionScheduler(role, myLayer);
 
-    const lambda_notificate_schedule = this.createEventLambda(
-      "NotificateSchedule",
-      role,
-      myLayer,
-      "notificate_schedule.handler",
-      // JSTで、AM6:00からPM11:00までの間、5分おきに実行
-      // see https://docs.aws.amazon.com/ja_jp/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions
-      events.Schedule.cron({ minute: "*/5", hour: "21-14" })
-    );
+    // const lambda_notificate_schedule = this.createEventLambda(
+    //   "NotificateSchedule",
+    //   role,
+    //   myLayer,
+    //   "notificate_schedule.handler",
+    //   // JSTで、AM6:00からPM11:00までの間、5分おきに実行
+    //   // see https://docs.aws.amazon.com/ja_jp/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions
+    //   events.Schedule.cron({ minute: "*/5", hour: "21-14" })
+    // );
 
-    const syncScheduleToTask = this.createEventLambda(
-      "SyncScheduleToTask",
-      role,
-      myLayer,
-      "sync_schedule_to_task.handler",
-      // JSTで、PM9:00に実行
-      events.Schedule.cron({ minute: "0", hour: "12" })
-    );
+    // const syncScheduleToTask = this.createEventLambda(
+    //   "SyncScheduleToTask",
+    //   role,
+    //   myLayer,
+    //   "sync_schedule_to_task.handler",
+    //   // JSTで、PM9:00に実行
+    //   events.Schedule.cron({ minute: "0", hour: "12" })
+    // );
 
     // remind_to_record_achivement: SQSから。実績の記入がないときにリマインドする
     // const remindToRecordAchivement = this.createEventLambda(
