@@ -8,9 +8,20 @@
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.testing.cwd": "test",
   "python.testing.pytestEnabled": true,
-  "python.defaultInterpreterPath": ".venv/bin/python",
-  "python.analysis.extraPaths": [
-    "./slack",
-    "./venv/lib/python3.11/site-packages"
-  ]
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.aiCodeActions": {
+    "implementAbstractClasses": true,
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": true,
+    "useTypeStubForTypeshed": true
+  },
+  "python.analysis.extraPaths": ["./slack"],
+  "python.analysis.fixAll": [
+    "source.unusedImports",
+    "source.convertImportFormat"
+  ],
+  "python.analysis.importFormat": "absolute",
+  "python.analysis.typeCheckingMode": "basic",
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 500 // 新しいプロジェクトならstrictにしたい
 }
