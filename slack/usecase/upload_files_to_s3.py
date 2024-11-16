@@ -63,14 +63,14 @@ class UploadFilesToS3:
             name = file["name"]
             file_url = file["url_private"]
 
-            # self.s3_uploader.upload(file_name=name, file_url=file_url)
+            self.s3_uploader.upload(file_name=name, file_url=file_url)
             cloudfront_url_list.append(f"{CLOUDFRONT_URL}/{name}")
             image_url = ImageUrl(original_url=f"{CLOUDFRONT_URL}/{name}")
 
             # サムネイルもあればアップロードする
             if thumb_file_url := self._get_thumb_file_url(file):
                 thumb_name = convert_thumb_filename(name)
-                # self.s3_uploader.upload(file_name=thumb_name, file_url=thumb_file_url)
+                self.s3_uploader.upload(file_name=thumb_name, file_url=thumb_file_url)
                 cloudfront_url_list.append(f"{CLOUDFRONT_URL}/{thumb_name}")
                 image_url.append_thumbnail_url(f"{CLOUDFRONT_URL}/{thumb_name}")
 
