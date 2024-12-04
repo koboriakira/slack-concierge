@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from uuid import uuid4
 
 from infrastructure.api.lambda_notion_api import LambdaNotionApi
 from slack_sdk.web import WebClient
@@ -60,7 +61,7 @@ class UploadFilesToS3:
 
             cloudfront_url_list: list[str] = []
 
-            name = file["name"]
+            name: str = str(uuid4()) + file["name"]
             file_url = file["url_private"]
 
             self.s3_uploader.upload(file_name=name, file_url=file_url)
