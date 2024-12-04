@@ -61,7 +61,7 @@ class UploadFilesToS3:
 
             cloudfront_url_list: list[str] = []
 
-            name: str = str(uuid4()) + file["name"]
+            name: str = str(uuid4()) + "_" + file["name"]
             name = name.replace(" ", "_")
             file_url = file["url_private"]
 
