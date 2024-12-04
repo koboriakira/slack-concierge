@@ -62,7 +62,7 @@ class UploadFilesToS3:
             cloudfront_url_list: list[str] = []
 
             name: str = str(uuid4()) + file["name"]
-            name = name.replace(" ", "_")  # 空白をアンダースコアに置換しておく
+            name = name.replace(" ", "_")
             file_url = file["url_private"]
 
             self.s3_uploader.upload(file_name=name, file_url=file_url)
@@ -72,6 +72,7 @@ class UploadFilesToS3:
             # サムネイルもあればアップロードする
             if thumb_file_url := self._get_thumb_file_url(file):
                 thumb_name = convert_thumb_filename(name)
+                thumb_name = thumb_name.replace(" ", "_")
                 self.s3_uploader.upload(file_name=thumb_name, file_url=thumb_file_url)
                 cloudfront_url_list.append(f"{CLOUDFRONT_URL}/{thumb_name}")
                 image_url.append_thumbnail_url(f"{CLOUDFRONT_URL}/{thumb_name}")
@@ -123,8 +124,9 @@ class UploadFilesToS3:
 
 
 def convert_thumb_filename(filename: str) -> str:
-    """ "hoge.jpg"を"hoge_thumb.jpg"に変換する"""
-    return f"{filename.split('.')[0]}_thumb.{filename.split('.')[1]}"
+    # 拡張子を抜いたファイル名の末尾に_thumbをつける
+    name, ext = filename.rsplit(".", 1)
+    return f"{name}_thumb.{ext}"
 
 
 if __name__ == "__main__":
