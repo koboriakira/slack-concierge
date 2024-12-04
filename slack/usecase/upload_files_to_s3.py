@@ -62,6 +62,7 @@ class UploadFilesToS3:
             cloudfront_url_list: list[str] = []
 
             name: str = str(uuid4()) + file["name"]
+            name = name.replace(" ", "_")  # 空白をアンダースコアに置換しておく
             file_url = file["url_private"]
 
             self.s3_uploader.upload(file_name=name, file_url=file_url)
