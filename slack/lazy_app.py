@@ -1,7 +1,5 @@
 import os
 
-from slack_bolt import App
-
 from interface.complete_task import action_complete_task
 from interface.handle_message_event import handle_message_event
 from interface.love_spotify_track import shortcut_love_spotify_track
@@ -9,6 +7,7 @@ from interface.regist import shortcut_regist
 from interface.start_pomodoro import action_start_pomodoro
 from interface.start_task import shortcut_start_task
 from interface.sync_times import shortcut_sync_times
+from slack_bolt import App
 
 
 def create_lazy_app() -> App:

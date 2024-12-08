@@ -14,6 +14,13 @@ GitHub Actionsのdeployワークフローを利用。
 
 ## ローカル開発
 
+ngrokは要インストール。
+
 ```shell
-python slack/lazy_main.py
+# localhostを公開
+ngrok http 10121
+# localhostでSlack Appを起動
+pipenv run python slack/lazy_main.py
 ```
+
+SlackAppのEvent SubscriptionとInteractivityそれぞれのRequest URLには `http://*****.ngrok-free.app/slack/events` を設定する。
