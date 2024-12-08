@@ -55,7 +55,7 @@ def _is_food_drink_post(channel: str) -> bool:
     """
     INBOXチャンネルへの投稿かどうか判断する
     """
-    return channel == ChannelType.INBOX.value
+    return channel == ChannelType.FOOD_DRINK.value
 
 
 def _is_inbox_post(channel: str, blocks: list[dict]) -> bool:

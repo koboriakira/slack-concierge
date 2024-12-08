@@ -13,7 +13,7 @@ class CreateFoodDrinkUseCase:
         data = {
             "title": title,
         }
-        response = self._notion_api.post(path="/food_drink", data=data)
+        response = self._notion_api.post(path="/food", data=data)
         self.user_client.handle(
             page_id=response["id"], channel=channel, thread_ts=event_ts
         )
