@@ -9,11 +9,11 @@ from usecase.upload_files_to_s3 import UploadFilesToS3
 
 def handle_message_reply(event: dict, logger: logging.Logger, client: WebClient):
     channel: str = event["channel"]
-    user: str = event["user"]
+    _user: str = event["user"]
     event_ts: str = event["ts"]
     thread_ts: str = event.get("thread_ts") or event_ts
     text: str = event["text"]
-    blocks: list[dict] = event["blocks"]
+    _blocks: list[dict] = event.get("blocks") or []
     files = event.get("files") or []
 
     logger.info("スレッド返信")
