@@ -54,6 +54,7 @@ class LambdaNotionApi(NotionApi):
             ) from e
 
     def post(self, path: str, data: dict) -> dict:
+        path = path.lstrip("/")
         try:
             response = self._request_wrapper.post(
                 url=f"{self.domain}{path}", headers=self._headers(), data=data

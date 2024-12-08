@@ -11,11 +11,17 @@ CLOUDFRONT_URL = "https://d3swar8tu7yuby.cloudfront.net"
 
 @dataclass
 class ImageUrl:
-    original_url: str
+    original_url: str | None = None
     thumbnail_url: str | None = None
+
+    def append_original_url(self, original_url: str) -> None:
+        self.original_url = original_url
 
     def append_thumbnail_url(self, thumbnail_url: str) -> None:
         self.thumbnail_url = thumbnail_url
+
+    def is_empty(self) -> bool:
+        return not self.original_url and not self.thumbnail_url
 
 
 @dataclass
@@ -41,7 +47,11 @@ class UploadFilesToS3:
         self._notion_api = LambdaNotionApi(logger=logger)
 
     def execute(
-        self, channel: str, files: list[dict], thread_ts: str
+        self,
+        channel: str,
+        files: list[dict],
+        thread_ts: str,
+        only_thumbnail: bool | None = None,
     ) -> UploadFIlesToS3Response:
         """
         Slackに投稿された画像ファイルをS3にアップロードする
@@ -65,9 +75,11 @@ class UploadFilesToS3:
             name = name.replace(" ", "_")
             file_url = file["url_private"]
 
-            self.s3_uploader.upload(file_name=name, file_url=file_url)
-            cloudfront_url_list.append(f"{CLOUDFRONT_URL}/{name}")
-            image_url = ImageUrl(original_url=f"{CLOUDFRONT_URL}/{name}")
+            image_url = ImageUrl()
+            if not only_thumbnail:
+                self.s3_uploader.upload(file_name=name, file_url=file_url)
+                cloudfront_url_list.append(f"{CLOUDFRONT_URL}/{name}")
+                image_url.append_original_url(f"{CLOUDFRONT_URL}/{name}")
 
             # サムネイルもあればアップロードする
             if thumb_file_url := self._get_thumb_file_url(file):
@@ -76,6 +88,12 @@ class UploadFilesToS3:
                 self.s3_uploader.upload(file_name=thumb_name, file_url=thumb_file_url)
                 cloudfront_url_list.append(f"{CLOUDFRONT_URL}/{thumb_name}")
                 image_url.append_thumbnail_url(f"{CLOUDFRONT_URL}/{thumb_name}")
+
+            if image_url.is_empty():
+                raise Exception(
+                    "画像のアップロードに失敗しています。only_thumbnail: %s"
+                    % only_thumbnail
+                )
 
             image_urls.append(image_url)
             self._reply(

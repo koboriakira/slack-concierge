@@ -9,11 +9,15 @@ class CreateFoodDrinkUseCase:
 
     def handle(self, text: str, event_ts: str, channel: str) -> None:
         """飲食ページを作成する"""
-        title = text if "\n" not in text else text.split("\n")[0]
-        data = {
-            "title": title,
-        }
-        response = self._notion_api.post(path="/food", data=data)
-        self.user_client.handle(
-            page_id=response["id"], channel=channel, thread_ts=event_ts
-        )
+        try:
+            title = text if "\n" not in text else text.split("\n")[0]
+            data = {
+                "title": title,
+            }
+            response = self._notion_api.post(path="food/", data=data)
+            self.user_client.handle(
+                page_id=response["id"], channel=channel, thread_ts=event_ts
+            )
+        except Exception as e:
+            print("Error: CreateFoodDrinkUseCase.handle")
+            print(e)
