@@ -30,7 +30,7 @@ def handle_message_reply(event: dict, logger: logging.Logger, client: WebClient)
         and (page_id := parent_message_context.page_id) is not None
     ):
         # 親スレッドがNotionページとひもづいている場合
-        upload_files_to_s3 = UploadFilesToS3(client, logger)
+        upload_files_to_s3 = UploadFilesToS3(client, logger, enable_slack_client=False)
         append_text_usecase = AppendTextInNotionPage(
             notion_api=LambdaNotionApi(), upload_files_to_s3=upload_files_to_s3
         )

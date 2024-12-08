@@ -40,11 +40,17 @@ class UploadFIlesToS3Response:
 
 # FIXME: 「S3にアップする」みたいな具体的すぎるクラスでないほうがよい
 class UploadFilesToS3:
-    def __init__(self, client: WebClient, logger: logging.Logger):
+    def __init__(
+        self,
+        client: WebClient,
+        logger: logging.Logger,
+        enable_slack_client: bool = True,
+    ):
         self.client = client
         self.logger = logger
         self.s3_uploader = S3Uploader(logger=logger)
         self._notion_api = LambdaNotionApi(logger=logger)
+        self._enable_slack_client = enable_slack_client
 
     def execute(
         self,
@@ -124,6 +130,8 @@ class UploadFilesToS3:
     def _reply(
         self, channel: str, thread_ts: str, cloudfront_url_list: list[str]
     ) -> None:
+        if not self._enable_slack_client:
+            return
         first_url = cloudfront_url_list[0]
 
         # 最初の画像以外は勝手にプレビューされないよう、コードブロックで囲む

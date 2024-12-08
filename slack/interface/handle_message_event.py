@@ -25,8 +25,8 @@ def handle(body: dict, logger: logging.Logger, client: WebClient) -> None:  # no
 
         # ファイル共有イベント
         if event.get("subtype") == "file_share":
-            handle_message_file_share(event, logger, client)
-            return
+            if handle_message_file_share(event, logger, client):
+                return
 
         # メッセージ削除イベントは無視
         if event.get("subtype") == "message_deleted":

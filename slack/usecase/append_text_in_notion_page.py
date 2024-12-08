@@ -13,7 +13,10 @@ class AppendTextInNotionPage:
         self.notion_api.append_text_block(block_id=page_id, value=text)
         if len(files) > 0:
             upload_response = self.upload_files_to_s3.execute(
-                channel=channel, files=files, thread_ts=thread_ts
+                channel=channel,
+                files=files,
+                thread_ts=thread_ts,
+                only_thumbnail=False,
             )
             for image_url in upload_response.image_urls:
                 self.notion_api.post(
